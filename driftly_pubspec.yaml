@@ -1,0 +1,52 @@
+name: driftly
+description: "A social app for cruise passengers aged 21-30"
+publish_to: 'none' # Prevent accidental publishing
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^3.8.1
+  firebase_auth: ^5.3.3
+  cloud_firestore: ^5.5.0
+
+  # State Management
+  provider: ^6.1.2
+
+  # UI & Utils
+  intl: ^0.19.0              # Date formatting
+  image_picker: ^1.1.2       # Selfie uploads
+  cached_network_image: ^3.4.1  # Profile images
+
+  # Routing
+  go_router: ^14.6.2
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Uncomment when you add assets:
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: assets/fonts/Poppins-Regular.ttf
+  #       - asset: assets/fonts/Poppins-Bold.ttf
+  #         weight: 700
