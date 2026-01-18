@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 /// Splash Screen - Auth Gate
 ///
@@ -10,8 +12,6 @@ import 'package:go_router/go_router.dart';
 ///    - Not logged in → /auth
 ///    - Logged in but incomplete profile → /onboarding/profile
 ///    - Logged in with profile → /home
-///
-/// TODO: Add Firebase Auth state listener in a future prompt
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,19 +27,46 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuthState() async {
-    // Simulate auth check delay
-    await Future.delayed(const Duration(seconds: 2));
+    // Give a small delay for splash screen visibility
+    await Future.delayed(const Duration(seconds: 1));
 
     if (!mounted) return;
 
-    // TODO: Replace with actual Firebase Auth check
-    // For now, always route to auth screen
-    final bool isLoggedIn = false;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    if (isLoggedIn) {
-      // TODO: Check if profile is complete
-      context.go('/home');
+    // Wait for auth state to be initialized
+    // The AuthProvider's constructor already starts listening to auth changes
+    // Give it a moment to load the initial state
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+
+    // Check authentication and profile status
+    if (authProvider.isAuthenticated) {
+      // User is logged in, check profile completeness
+      if (authProvider.hasProfile) {
+        // Profile exists, check if it's complete
+        if (authProvider.appUser!.isProfileComplete) {
+          // Profile is complete, go to home
+          context.go('/home');
+        } else {
+          // Profile incomplete - check what's missing
+          final user = authProvider.appUser!;
+          if (user.currentSailingId == null) {
+            // No sailing selected, go to sailing selection
+            context.go('/onboarding/sailing');
+          } else {
+            // Has sailing but might be missing other data
+            // For now, send to profile to complete
+            context.go('/onboarding/profile');
+          }
+        }
+      } else {
+        // No profile exists yet, start onboarding
+        context.go('/onboarding/profile');
+      }
     } else {
+      // User not logged in, go to auth screen
       context.go('/auth');
     }
   }

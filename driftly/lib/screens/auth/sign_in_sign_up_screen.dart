@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 /// Sign In / Sign Up Screen
 ///
@@ -11,8 +13,6 @@ import 'package:go_router/go_router.dart';
 /// Flow:
 /// - After successful sign-up → /onboarding/profile
 /// - After successful sign-in → Check profile completeness → /home or /onboarding
-///
-/// TODO: Add Firebase Auth integration in a future prompt
 class SignInSignUpScreen extends StatefulWidget {
   const SignInSignUpScreen({super.key});
 
@@ -26,7 +26,7 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
   final _passwordController = TextEditingController();
 
   bool _isSignUp = false;
-  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -38,17 +38,39 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
   Future<void> _handleAuth() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // TODO: Implement Firebase Auth sign-in/sign-up
-    await Future.delayed(const Duration(seconds: 1));
+    bool success;
+    if (_isSignUp) {
+      success = await authProvider.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+    } else {
+      success = await authProvider.signIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+    }
 
     if (!mounted) return;
 
-    setState(() => _isLoading = false);
-
-    // For now, simulate successful auth and go to onboarding
-    context.go('/onboarding/profile');
+    if (success) {
+      // For sign-up, navigate to onboarding
+      if (_isSignUp) {
+        context.go('/onboarding/profile');
+      }
+      // For sign-in, navigation handled by splash screen
+    } else {
+      // Show error message
+      final error = authProvider.errorMessage ?? 'Authentication failed';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -96,6 +118,7 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       prefixIcon: Icon(Icons.email),
@@ -116,11 +139,25 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
                   // Password Field
                   TextFormField(
                     controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _handleAuth(),
+                    decoration: InputDecoration(
                       labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -135,21 +172,25 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
                   const SizedBox(height: 24),
 
                   // Auth Button
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _handleAuth,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            _isSignUp ? 'Sign Up' : 'Sign In',
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      return ElevatedButton(
+                        onPressed: authProvider.isLoading ? null : _handleAuth,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: authProvider.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(
+                                _isSignUp ? 'Sign Up' : 'Sign In',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -159,12 +200,35 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
                       setState(() {
                         _isSignUp = !_isSignUp;
                       });
+                      // Clear error when switching modes
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .clearError();
                     },
                     child: Text(
                       _isSignUp
                           ? 'Already have an account? Sign In'
                           : "Don't have an account? Sign Up",
                     ),
+                  ),
+
+                  // Error Message Display
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      if (authProvider.errorMessage != null) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            authProvider.errorMessage!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
                   ),
                 ],
               ),

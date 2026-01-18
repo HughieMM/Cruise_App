@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'core/router/app_router.dart';
+import 'providers/auth_provider.dart';
 
 /// Driftly - A social app for cruise passengers aged 21-30
 ///
@@ -21,14 +23,17 @@ class DriftlyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Driftly',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (_) => AuthProvider(),
+      child: MaterialApp.router(
+        title: 'Driftly',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        routerConfig: AppRouter.router,
+        debugShowCheckedModeBanner: false,
       ),
-      routerConfig: AppRouter.router,
-      debugShowCheckedModeBanner: false,
     );
   }
 }

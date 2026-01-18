@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 /// Onboarding Profile Screen
 ///
 /// Collects:
 /// - Name (first & last)
-/// - Age band (21-25, 26-30, later: teens)
-/// - Interests (multi-select chips)
+/// - Age band (21-23, 24-27, 28-30)
+/// - Interests (3-5 selections required)
 /// - Selfie verified flag (placeholder for image picker)
 ///
 /// Flow: After completion → /onboarding/sailing
 ///
 /// TODO: Add image picker for selfie verification
-/// TODO: Save profile data to Firestore
 class OnboardingProfileScreen extends StatefulWidget {
   const OnboardingProfileScreen({super.key});
 
@@ -26,7 +27,7 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
   final _nameController = TextEditingController();
 
   String? _selectedAgeBand;
-  final List<String> _ageBands = ['21-25', '26-30'];
+  final List<String> _ageBands = ['21-23', '24-27', '28-30'];
 
   final List<String> _availableInterests = [
     'Nightlife',
@@ -48,7 +49,7 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
     super.dispose();
   }
 
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedAgeBand == null) {
@@ -58,16 +59,45 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
       return;
     }
 
-    if (_selectedInterests.isEmpty) {
+    // Validate 3-5 interests
+    if (_selectedInterests.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one interest')),
+        const SnackBar(content: Text('Please select at least 3 interests')),
       );
       return;
     }
 
-    // TODO: Save profile data to Firestore
-    // Navigate to sailing selection
-    context.go('/onboarding/sailing');
+    if (_selectedInterests.length > 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select no more than 5 interests')),
+      );
+      return;
+    }
+
+    // Save profile to Firestore
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.createUserProfile(
+      name: _nameController.text.trim(),
+      ageBand: _selectedAgeBand!,
+      interests: _selectedInterests.toList(),
+      selfieVerified: _selfieVerified,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      // Navigate to sailing selection
+      context.go('/onboarding/sailing');
+    } else {
+      // Show error
+      final error = authProvider.errorMessage ?? 'Failed to save profile';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -155,12 +185,27 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                 const SizedBox(height: 24),
 
                 // Interests Selection
-                const Text(
-                  'Interests (select at least one)',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Interests (select 3-5)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '${_selectedInterests.length}/5 selected',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _selectedInterests.length >= 3 && _selectedInterests.length <= 5
+                            ? Colors.green
+                            : Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -210,15 +255,25 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                 const SizedBox(height: 32),
 
                 // Continue Button
-                ElevatedButton(
-                  onPressed: _handleContinue,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return ElevatedButton(
+                      onPressed: authProvider.isLoading ? null : _handleContinue,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: authProvider.isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(
+                              'Continue',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                    );
+                  },
                 ),
               ],
             ),
