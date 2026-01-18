@@ -3,10 +3,11 @@ import '../models/app_user.dart';
 import '../models/sailing.dart';
 import '../models/pod.dart';
 import '../models/pod_member.dart';
+import '../models/message.dart';
 
 /// FirestoreService
 ///
-/// Handles all Firestore database operations for users, sailings, and pods
+/// Handles all Firestore database operations for users, sailings, pods, and messages
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -337,6 +338,96 @@ class FirestoreService {
       return doc.exists;
     } catch (e) {
       throw Exception('Failed to check pod membership: $e');
+    }
+  }
+
+  // ==================== Message Methods ====================
+
+  /// Get messages collection for a pod
+  CollectionReference messagesCollection(String sailingId, String podId) {
+    return podsCollection(sailingId).doc(podId).collection('messages');
+  }
+
+  /// Send a message to a pod
+  Future<void> sendMessage({
+    required String sailingId,
+    required String podId,
+    required String userId,
+    required String userName,
+    required String text,
+    String? userPhotoUrl,
+  }) async {
+    try {
+      final message = Message(
+        id: '', // Will be set by Firestore
+        podId: podId,
+        userId: userId,
+        userName: userName,
+        userPhotoUrl: userPhotoUrl,
+        text: text,
+        timestamp: DateTime.now(),
+      );
+
+      // Add message to collection
+      await messagesCollection(sailingId, podId).add(message.toMap());
+
+      // Update pod's lastMessageAt timestamp
+      await podsCollection(sailingId).doc(podId).update({
+        'lastMessageAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to send message: $e');
+    }
+  }
+
+  /// Stream messages for a pod in real-time
+  /// Returns messages ordered by timestamp (newest first for pagination, but display oldest first)
+  Stream<List<Message>> streamMessages({
+    required String sailingId,
+    required String podId,
+    int limit = 50,
+  }) {
+    return messagesCollection(sailingId, podId)
+        .orderBy('timestamp', descending: false)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Message.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    });
+  }
+
+  /// Get messages for a pod (one-time fetch)
+  Future<List<Message>> getMessages({
+    required String sailingId,
+    required String podId,
+    int limit = 50,
+  }) async {
+    try {
+      final querySnapshot = await messagesCollection(sailingId, podId)
+          .orderBy('timestamp', descending: false)
+          .limit(limit)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => Message.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get messages: $e');
+    }
+  }
+
+  /// Delete a message
+  Future<void> deleteMessage({
+    required String sailingId,
+    required String podId,
+    required String messageId,
+  }) async {
+    try {
+      await messagesCollection(sailingId, podId).doc(messageId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete message: $e');
     }
   }
 }

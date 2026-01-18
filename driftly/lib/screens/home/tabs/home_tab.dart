@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
+import '../../chat/pod_chat_screen.dart';
 
 /// Home Tab
 ///
@@ -10,7 +11,7 @@ import '../../../models/pod.dart';
 /// - Welcome message with user's name
 /// - My Pods list showing user's joined pods
 /// - Quick stats (pods count, connections, hangouts)
-/// - Activity feed (placeholder)
+/// - Navigate to pod chat on tap
 ///
 /// TODO: Add real-time activity feed
 /// TODO: Add countdown timer to sailing date
@@ -246,7 +247,30 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
-                      // TODO: Navigate to pod detail/chat
+                      final authProvider =
+                          Provider.of<AuthProvider>(context, listen: false);
+                      final sailingId = authProvider.appUser?.currentSailingId;
+
+                      if (sailingId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Sailing information not found'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      // Navigate to pod chat
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => PodChatScreen(
+                            sailingId: sailingId,
+                            podId: pod.id,
+                            pod: pod,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 );
