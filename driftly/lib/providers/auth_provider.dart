@@ -214,6 +214,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Refresh user data from Firestore
+  Future<void> refreshUserData() async {
+    try {
+      if (_firebaseUser == null) return;
+      await _loadUserProfile(_firebaseUser!.uid);
+    } catch (e) {
+      _errorMessage = 'Failed to refresh user data: $e';
+      notifyListeners();
+    }
+  }
+
   /// Clear error message
   void clearError() {
     _errorMessage = null;

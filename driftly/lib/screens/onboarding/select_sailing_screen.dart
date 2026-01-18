@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/firestore_service.dart';
 
 /// Select Sailing Screen
 ///
@@ -7,11 +10,10 @@ import 'package:go_router/go_router.dart';
 /// 1. Choose Cruise Line (dropdown)
 /// 2. Choose Ship (filtered by cruise line)
 /// 3. Choose Sailing Date (date picker)
+/// 4. Create/find sailing in Firestore
+/// 5. Save currentSailingId to user document
 ///
 /// After selection → /onboarding/pods
-///
-/// TODO: Load cruise lines and ships from Firestore
-/// TODO: Validate sailing date is within 30 days of departure
 class SelectSailingScreen extends StatefulWidget {
   const SelectSailingScreen({super.key});
 
@@ -20,7 +22,10 @@ class SelectSailingScreen extends StatefulWidget {
 }
 
 class _SelectSailingScreenState extends State<SelectSailingScreen> {
-  // Mock data - TODO: Replace with Firestore data
+  final _firestoreService = FirestoreService();
+
+  // Hard-coded cruise data for testing
+  // In production, this would be loaded from Firestore
   final Map<String, List<String>> _cruiseData = {
     'Royal Caribbean': [
       'Harmony of the Seas',
@@ -42,6 +47,7 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
   String? _selectedCruiseLine;
   String? _selectedShip;
   DateTime? _selectedDate;
+  bool _isLoading = false;
 
   List<String> get _availableShips {
     if (_selectedCruiseLine == null) return [];
@@ -65,7 +71,8 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
     }
   }
 
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
+    // Validation
     if (_selectedCruiseLine == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a cruise line')),
@@ -87,10 +94,76 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
       return;
     }
 
-    // TODO: Validate 30-day window
-    // TODO: Save sailing info to Firestore
+    // Check 30-day window
+    final daysUntilDeparture = _selectedDate!.difference(DateTime.now()).inDays;
+    if (daysUntilDeparture > 30) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'You can only access sailings within 30 days of departure. '
+            'Your sailing is $daysUntilDeparture days away.',
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
 
-    context.go('/onboarding/pods');
+    if (daysUntilDeparture < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a future sailing date'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Create simple IDs from the selected values
+      // In production, these would be actual Firestore IDs
+      final cruiseLineId = _selectedCruiseLine!.toLowerCase().replaceAll(' ', '_');
+      final shipId = _selectedShip!.toLowerCase().replaceAll(' ', '_');
+
+      // Find or create the sailing
+      final sailingId = await _firestoreService.findOrCreateSailing(
+        cruiseLineId: cruiseLineId,
+        shipId: shipId,
+        departureDate: _selectedDate!,
+      );
+
+      // Update user's current sailing
+      await _firestoreService.updateCurrentSailing(
+        authProvider.firebaseUser!.uid,
+        sailingId,
+      );
+
+      // Refresh user data in provider
+      await authProvider.refreshUserData();
+
+      if (!mounted) return;
+
+      // Navigate to pod selection
+      context.go('/onboarding/pods');
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save sailing: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -221,14 +294,20 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
 
               // Continue Button
               ElevatedButton(
-                onPressed: _handleContinue,
+                onPressed: _isLoading ? null : _handleContinue,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Continue',
+                        style: TextStyle(fontSize: 16),
+                      ),
               ),
             ],
           ),
