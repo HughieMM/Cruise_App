@@ -5,6 +5,7 @@ import '../models/pod.dart';
 import '../models/pod_member.dart';
 import '../models/message.dart';
 import '../models/micro_hangout.dart';
+import '../models/hot_zone_vote.dart';
 
 /// FirestoreService
 ///
@@ -585,6 +586,185 @@ class FirestoreService {
       });
     } catch (e) {
       throw Exception('Failed to deactivate hangout: $e');
+    }
+  }
+
+  // ==================== Hot Zones (Vibe Voting) Methods ====================
+
+  /// Get hot zone votes collection for a sailing
+  CollectionReference hotZoneVotesCollection(String sailingId) {
+    return sailingsCollection.doc(sailingId).collection('hotZoneVotes');
+  }
+
+  /// Check if user has voted for a location in the last hour
+  /// Returns the existing vote if found, null otherwise
+  Future<HotZoneVote?> checkUserRecentVote({
+    required String sailingId,
+    required String userId,
+    required String location,
+  }) async {
+    try {
+      final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
+
+      final querySnapshot = await hotZoneVotesCollection(sailingId)
+          .where('userId', isEqualTo: userId)
+          .where('location', isEqualTo: location)
+          .where('timestamp', isGreaterThan: Timestamp.fromDate(oneHourAgo))
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) return null;
+
+      return HotZoneVote.fromMap(
+        querySnapshot.docs.first.data() as Map<String, dynamic>,
+        querySnapshot.docs.first.id,
+      );
+    } catch (e) {
+      throw Exception('Failed to check recent vote: $e');
+    }
+  }
+
+  /// Submit a hot zone vibe vote
+  /// Returns the vote ID on success
+  /// Throws exception if user has already voted for this location in the last hour
+  Future<String> submitHotZoneVote({
+    required String sailingId,
+    required String userId,
+    required String location,
+    required String vibe,
+  }) async {
+    try {
+      // Check for duplicate vote
+      final existingVote = await checkUserRecentVote(
+        sailingId: sailingId,
+        userId: userId,
+        location: location,
+      );
+
+      if (existingVote != null) {
+        final minutesRemaining = existingVote.expiresAt.difference(DateTime.now()).inMinutes;
+        throw Exception(
+          'You already voted for this location. Try again in $minutesRemaining minutes.',
+        );
+      }
+
+      // Create new vote
+      final now = DateTime.now();
+      final expiresAt = now.add(const Duration(hours: 1));
+
+      final vote = HotZoneVote(
+        id: '', // Will be set by Firestore
+        sailingId: sailingId,
+        location: location,
+        userId: userId,
+        vibe: vibe,
+        timestamp: now,
+        expiresAt: expiresAt,
+      );
+
+      final docRef = await hotZoneVotesCollection(sailingId).add(vote.toMap());
+      return docRef.id;
+    } catch (e) {
+      throw Exception('Failed to submit vote: $e');
+    }
+  }
+
+  /// Get recent votes for a specific location (last 60 minutes)
+  Future<List<HotZoneVote>> getRecentVotesForLocation({
+    required String sailingId,
+    required String location,
+  }) async {
+    try {
+      final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
+
+      final querySnapshot = await hotZoneVotesCollection(sailingId)
+          .where('location', isEqualTo: location)
+          .where('timestamp', isGreaterThan: Timestamp.fromDate(oneHourAgo))
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) =>
+              HotZoneVote.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .where((vote) => !vote.hasExpired) // Additional client-side filter
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get recent votes: $e');
+    }
+  }
+
+  /// Stream all recent votes for a sailing (last 60 minutes)
+  /// Used to display real-time vibe updates across all locations
+  Stream<List<HotZoneVote>> streamRecentVotesForSailing({
+    required String sailingId,
+  }) {
+    final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
+
+    return hotZoneVotesCollection(sailingId)
+        .where('timestamp', isGreaterThan: Timestamp.fromDate(oneHourAgo))
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) =>
+              HotZoneVote.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .where((vote) => !vote.hasExpired) // Additional client-side filter
+          .toList();
+    });
+  }
+
+  /// Get vote summary for all locations
+  /// Returns a map of location -> {vibe, count}
+  Future<Map<String, Map<String, dynamic>>> getVoteSummaryForSailing({
+    required String sailingId,
+  }) async {
+    try {
+      final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
+
+      final querySnapshot = await hotZoneVotesCollection(sailingId)
+          .where('timestamp', isGreaterThan: Timestamp.fromDate(oneHourAgo))
+          .get();
+
+      final votes = querySnapshot.docs
+          .map((doc) =>
+              HotZoneVote.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .where((vote) => !vote.hasExpired)
+          .toList();
+
+      // Group votes by location
+      final locationSummaries = <String, Map<String, dynamic>>{};
+
+      for (var vote in votes) {
+        if (!locationSummaries.containsKey(vote.location)) {
+          locationSummaries[vote.location] = {
+            'vibes': <String, int>{},
+            'totalVotes': 0,
+          };
+        }
+
+        final summary = locationSummaries[vote.location]!;
+        summary['totalVotes'] = (summary['totalVotes'] as int) + 1;
+
+        final vibes = summary['vibes'] as Map<String, int>;
+        vibes[vote.vibe] = (vibes[vote.vibe] ?? 0) + 1;
+      }
+
+      // Determine most common vibe for each location
+      for (var entry in locationSummaries.entries) {
+        final vibes = entry.value['vibes'] as Map<String, int>;
+        if (vibes.isNotEmpty) {
+          final mostCommonVibe = vibes.entries
+              .reduce((a, b) => a.value > b.value ? a : b)
+              .key;
+          entry.value['dominantVibe'] = mostCommonVibe;
+        } else {
+          entry.value['dominantVibe'] = null;
+        }
+      }
+
+      return locationSummaries;
+    } catch (e) {
+      throw Exception('Failed to get vote summary: $e');
     }
   }
 }

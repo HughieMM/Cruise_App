@@ -2,17 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// HotZoneVote Model
 ///
-/// Represents a user's vote on location crowd level and vibe
+/// Represents a user's vote on location vibe
+/// Users can vote once per location per hour
 ///
 /// Firestore path: /sailings/{sailingId}/hotZoneVotes/{voteId}
 class HotZoneVote {
   final String id;
   final String sailingId;
   final String location;
-  final String? deck;
   final String userId;
-  final String crowdLevel; // "empty", "moderate", "packed"
-  final String vibe; // "chill", "lively", "party"
+  final String vibe; // "active", "quiet", "overcrowded", "good_vibes"
   final DateTime timestamp;
   final DateTime expiresAt;
 
@@ -20,9 +19,7 @@ class HotZoneVote {
     required this.id,
     required this.sailingId,
     required this.location,
-    this.deck,
     required this.userId,
-    required this.crowdLevel,
     required this.vibe,
     required this.timestamp,
     required this.expiresAt,
@@ -34,10 +31,8 @@ class HotZoneVote {
       id: documentId,
       sailingId: map['sailingId'] as String? ?? '',
       location: map['location'] as String? ?? '',
-      deck: map['deck'] as String?,
       userId: map['userId'] as String? ?? '',
-      crowdLevel: map['crowdLevel'] as String? ?? 'moderate',
-      vibe: map['vibe'] as String? ?? 'chill',
+      vibe: map['vibe'] as String? ?? 'active',
       timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       expiresAt: (map['expiresAt'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(hours: 1)),
     );
@@ -49,9 +44,7 @@ class HotZoneVote {
       'id': id,
       'sailingId': sailingId,
       'location': location,
-      'deck': deck,
       'userId': userId,
-      'crowdLevel': crowdLevel,
       'vibe': vibe,
       'timestamp': Timestamp.fromDate(timestamp),
       'expiresAt': Timestamp.fromDate(expiresAt),
@@ -77,64 +70,59 @@ class HotZoneVote {
     }
   }
 
-  /// Get crowd level emoji
-  String get crowdEmoji {
-    switch (crowdLevel) {
-      case 'empty':
-        return '🟢';
-      case 'moderate':
-        return '🟡';
-      case 'packed':
-        return '🔴';
-      default:
-        return '⚪';
-    }
-  }
-
   /// Get vibe emoji
   String get vibeEmoji {
     switch (vibe) {
-      case 'chill':
-        return '😌';
-      case 'lively':
-        return '🎉';
-      case 'party':
-        return '🔥';
+      case 'active':
+        return '⚡';
+      case 'quiet':
+        return '🤫';
+      case 'overcrowded':
+        return '😰';
+      case 'good_vibes':
+        return '✨';
       default:
         return '📍';
-    }
-  }
-
-  /// Get crowd level display name
-  String get crowdLevelDisplay {
-    switch (crowdLevel) {
-      case 'empty':
-        return 'Empty';
-      case 'moderate':
-        return 'Moderate';
-      case 'packed':
-        return 'Packed';
-      default:
-        return 'Unknown';
     }
   }
 
   /// Get vibe display name
   String get vibeDisplay {
     switch (vibe) {
-      case 'chill':
-        return 'Chill';
-      case 'lively':
-        return 'Lively';
-      case 'party':
-        return 'Party';
+      case 'active':
+        return 'Active';
+      case 'quiet':
+        return 'Quiet';
+      case 'overcrowded':
+        return 'Overcrowded';
+      case 'good_vibes':
+        return 'Good Vibes';
       default:
         return 'Unknown';
     }
   }
 
+  /// Get vibe color
+  Color get vibeColor {
+    switch (vibe) {
+      case 'active':
+        return const Color(0xFFFF9800); // Orange
+      case 'quiet':
+        return const Color(0xFF2196F3); // Blue
+      case 'overcrowded':
+        return const Color(0xFFF44336); // Red
+      case 'good_vibes':
+        return const Color(0xFF4CAF50); // Green
+      default:
+        return const Color(0xFF9E9E9E); // Grey
+    }
+  }
+
   @override
   String toString() {
-    return 'HotZoneVote(location: $location, crowd: $crowdLevel, vibe: $vibe, time: $timeAgo)';
+    return 'HotZoneVote(location: $location, vibe: $vibe, time: $timeAgo)';
   }
 }
+
+// Import for Color class
+import 'package:flutter/material.dart' show Color;
