@@ -4,10 +4,11 @@ import '../models/sailing.dart';
 import '../models/pod.dart';
 import '../models/pod_member.dart';
 import '../models/message.dart';
+import '../models/micro_hangout.dart';
 
 /// FirestoreService
 ///
-/// Handles all Firestore database operations for users, sailings, pods, and messages
+/// Handles all Firestore database operations for users, sailings, pods, messages, and hangouts
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -428,6 +429,162 @@ class FirestoreService {
       await messagesCollection(sailingId, podId).doc(messageId).delete();
     } catch (e) {
       throw Exception('Failed to delete message: $e');
+    }
+  }
+
+  // ==================== Hangout Methods ====================
+
+  /// Get hangouts collection for a sailing
+  CollectionReference hangoutsCollection(String sailingId) {
+    return sailingsCollection.doc(sailingId).collection('hangouts');
+  }
+
+  /// Create a new micro hangout
+  Future<String> createMicroHangout({
+    required String sailingId,
+    required String location,
+    String? deck,
+    required String createdBy,
+    required String createdByName,
+    required String createdByAgeBand,
+    required String vibe,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final expiresAt = now.add(const Duration(minutes: 45));
+
+      final hangout = MicroHangout(
+        id: '', // Will be set by Firestore
+        sailingId: sailingId,
+        location: location,
+        deck: deck,
+        createdBy: createdBy,
+        createdByName: createdByName,
+        createdByAgeBand: createdByAgeBand,
+        attendeeIds: [createdBy], // Creator automatically joins
+        attendeeCount: 1,
+        vibe: vibe,
+        startTime: now,
+        expiresAt: expiresAt,
+        active: true,
+      );
+
+      final docRef = await hangoutsCollection(sailingId).add(hangout.toMap());
+      return docRef.id;
+    } catch (e) {
+      throw Exception('Failed to create hangout: $e');
+    }
+  }
+
+  /// Get active hangouts for a sailing filtered by age band
+  /// Returns only non-expired hangouts
+  Future<List<MicroHangout>> getActiveHangouts({
+    required String sailingId,
+    String? ageBand,
+  }) async {
+    try {
+      Query query = hangoutsCollection(sailingId)
+          .where('active', isEqualTo: true)
+          .where('expiresAt', isGreaterThan: Timestamp.now())
+          .orderBy('expiresAt', descending: false);
+
+      // Filter by age band if provided
+      if (ageBand != null && ageBand.isNotEmpty) {
+        query = query.where('createdByAgeBand', isEqualTo: ageBand);
+      }
+
+      final querySnapshot = await query.get();
+
+      return querySnapshot.docs
+          .map((doc) =>
+              MicroHangout.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get active hangouts: $e');
+    }
+  }
+
+  /// Stream active hangouts for real-time updates
+  Stream<List<MicroHangout>> streamActiveHangouts({
+    required String sailingId,
+    String? ageBand,
+  }) {
+    Query query = hangoutsCollection(sailingId)
+        .where('active', isEqualTo: true)
+        .where('expiresAt', isGreaterThan: Timestamp.now())
+        .orderBy('expiresAt', descending: false);
+
+    // Filter by age band if provided
+    if (ageBand != null && ageBand.isNotEmpty) {
+      query = query.where('createdByAgeBand', isEqualTo: ageBand);
+    }
+
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) =>
+              MicroHangout.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .where((hangout) => !hangout.hasExpired) // Additional client-side filter
+          .toList();
+    });
+  }
+
+  /// Join a hangout
+  Future<void> joinHangout({
+    required String sailingId,
+    required String hangoutId,
+    required String userId,
+  }) async {
+    try {
+      await hangoutsCollection(sailingId).doc(hangoutId).update({
+        'attendeeIds': FieldValue.arrayUnion([userId]),
+        'attendeeCount': FieldValue.increment(1),
+      });
+    } catch (e) {
+      throw Exception('Failed to join hangout: $e');
+    }
+  }
+
+  /// Leave a hangout
+  Future<void> leaveHangout({
+    required String sailingId,
+    required String hangoutId,
+    required String userId,
+  }) async {
+    try {
+      await hangoutsCollection(sailingId).doc(hangoutId).update({
+        'attendeeIds': FieldValue.arrayRemove([userId]),
+        'attendeeCount': FieldValue.increment(-1),
+      });
+    } catch (e) {
+      throw Exception('Failed to leave hangout: $e');
+    }
+  }
+
+  /// Get a specific hangout
+  Future<MicroHangout?> getHangout({
+    required String sailingId,
+    required String hangoutId,
+  }) async {
+    try {
+      final doc = await hangoutsCollection(sailingId).doc(hangoutId).get();
+      if (!doc.exists) return null;
+      return MicroHangout.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+    } catch (e) {
+      throw Exception('Failed to get hangout: $e');
+    }
+  }
+
+  /// Deactivate an expired hangout
+  Future<void> deactivateHangout({
+    required String sailingId,
+    required String hangoutId,
+  }) async {
+    try {
+      await hangoutsCollection(sailingId).doc(hangoutId).update({
+        'active': false,
+      });
+    } catch (e) {
+      throw Exception('Failed to deactivate hangout: $e');
     }
   }
 }

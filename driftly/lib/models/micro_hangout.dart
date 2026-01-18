@@ -12,6 +12,7 @@ class MicroHangout {
   final String? deck;
   final String createdBy;
   final String createdByName;
+  final String createdByAgeBand; // Age band of creator for filtering
   final List<String> attendeeIds;
   final int attendeeCount;
   final String vibe; // "chill", "lively", "party"
@@ -26,6 +27,7 @@ class MicroHangout {
     this.deck,
     required this.createdBy,
     required this.createdByName,
+    required this.createdByAgeBand,
     required this.attendeeIds,
     required this.attendeeCount,
     required this.vibe,
@@ -43,6 +45,7 @@ class MicroHangout {
       deck: map['deck'] as String?,
       createdBy: map['createdBy'] as String? ?? '',
       createdByName: map['createdByName'] as String? ?? '',
+      createdByAgeBand: map['createdByAgeBand'] as String? ?? '',
       attendeeIds: List<String>.from(map['attendeeIds'] as List? ?? []),
       attendeeCount: map['attendeeCount'] as int? ?? 0,
       vibe: map['vibe'] as String? ?? 'chill',
@@ -61,6 +64,7 @@ class MicroHangout {
       'deck': deck,
       'createdBy': createdBy,
       'createdByName': createdByName,
+      'createdByAgeBand': createdByAgeBand,
       'attendeeIds': attendeeIds,
       'attendeeCount': attendeeCount,
       'vibe': vibe,
@@ -115,6 +119,7 @@ class MicroHangout {
     String? deck,
     String? createdBy,
     String? createdByName,
+    String? createdByAgeBand,
     List<String>? attendeeIds,
     int? attendeeCount,
     String? vibe,
@@ -129,6 +134,7 @@ class MicroHangout {
       deck: deck ?? this.deck,
       createdBy: createdBy ?? this.createdBy,
       createdByName: createdByName ?? this.createdByName,
+      createdByAgeBand: createdByAgeBand ?? this.createdByAgeBand,
       attendeeIds: attendeeIds ?? this.attendeeIds,
       attendeeCount: attendeeCount ?? this.attendeeCount,
       vibe: vibe ?? this.vibe,
