@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/hot_zone_vote.dart';
+import '../../../widgets/error_state.dart';
 import '../../hot_zones/vote_dialog.dart';
 
 /// Hot Zones Tab
@@ -24,6 +25,11 @@ class HotZonesTab extends StatefulWidget {
 
 class _HotZonesTabState extends State<HotZonesTab> {
   final _firestoreService = FirestoreService();
+
+  Future<void> _refreshVotes() async {
+    // StreamBuilder automatically refreshes, just show feedback
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
 
   // Fixed locations as per requirements
   final List<Map<String, dynamic>> _locations = [
@@ -155,15 +161,9 @@ class _HotZonesTabState extends State<HotZonesTab> {
             ),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text('Error loading hot zones: ${snapshot.error}'),
-                    ],
-                  ),
+                return ErrorState(
+                  message: 'Error loading hot zones: ${snapshot.error}',
+                  onRetry: _refreshVotes,
                 );
               }
 
@@ -174,7 +174,10 @@ class _HotZonesTabState extends State<HotZonesTab> {
               final votes = snapshot.data!;
               final locationSummaries = _aggregateVotes(votes);
 
-              return SingleChildScrollView(
+              return RefreshIndicator(
+                onRefresh: _refreshVotes,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -222,6 +225,7 @@ class _HotZonesTabState extends State<HotZonesTab> {
 
                     const SizedBox(height: 16),
                   ],
+                ),
                 ),
               );
             },

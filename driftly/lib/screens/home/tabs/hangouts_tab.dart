@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/micro_hangout.dart';
+import '../../../widgets/empty_state.dart';
+import '../../../widgets/error_state.dart';
 import '../../hangouts/create_hangout_dialog.dart';
 
 /// Hangouts Tab
@@ -26,6 +28,17 @@ class HangoutsTab extends StatefulWidget {
 
 class _HangoutsTabState extends State<HangoutsTab> {
   final _firestoreService = FirestoreService();
+  String? _errorMessage;
+
+  Future<void> _refreshHangouts() async {
+    // StreamBuilder automatically refreshes, just show feedback
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) {
+      setState(() {
+        _errorMessage = null;
+      });
+    }
+  }
 
   Future<void> _joinHangout(String hangoutId) async {
     try {
@@ -114,15 +127,9 @@ class _HangoutsTabState extends State<HangoutsTab> {
             ),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text('Error loading hangouts: ${snapshot.error}'),
-                    ],
-                  ),
+                return ErrorState(
+                  message: 'Error loading hangouts: ${snapshot.error}',
+                  onRetry: _refreshHangouts,
                 );
               }
 
@@ -132,7 +139,10 @@ class _HangoutsTabState extends State<HangoutsTab> {
 
               final hangouts = snapshot.data!;
 
-              return SingleChildScrollView(
+              return RefreshIndicator(
+                onRefresh: _refreshHangouts,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -192,7 +202,13 @@ class _HangoutsTabState extends State<HangoutsTab> {
                     const SizedBox(height: 12),
 
                     if (hangouts.isEmpty)
-                      _buildEmptyState(context)
+                      EmptyState(
+                        icon: Icons.location_off,
+                        title: 'No Active Hangouts',
+                        message: 'No one is hanging out in your age group right now.\nBe the first to create one!',
+                        actionLabel: 'Create Hangout',
+                        onAction: () => _showCreateHangoutDialog(context),
+                      )
                     else
                       ListView.builder(
                         shrinkWrap: true,
@@ -209,6 +225,7 @@ class _HangoutsTabState extends State<HangoutsTab> {
 
                     const SizedBox(height: 80), // Space for FAB
                   ],
+                ),
                 ),
               );
             },
@@ -358,32 +375,6 @@ class _HangoutsTabState extends State<HangoutsTab> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(48.0),
-      child: Column(
-        children: [
-          Icon(
-            Icons.location_off,
-            size: 64,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No active hangouts nearby',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start one to let others know where you are!',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        ],
       ),
     );
   }

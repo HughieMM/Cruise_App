@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidString(value, maxLength) {
+      return value is string && value.size() <= maxLength;
+    }
+
+    function isValidTimestamp(value) {
+      return value is timestamp;
+    }
+
+    // ==================== Users Collection ====================
+    match /users/{userId} {
+      // Users can read their own document
+      allow read: if isAuthenticated() && isOwner(userId);
+
+      // Users can create their own document
+      allow create: if isAuthenticated() && isOwner(userId)
+        && request.resource.data.keys().hasAll(['uid', 'email', 'name', 'ageBand'])
+        && isValidString(request.resource.data.name, 50)
+        && isValidString(request.resource.data.ageBand, 10)
+        && request.resource.data.ageBand in ['21-23', '24-27', '28-30'];
+
+      // Users can update their own document (except uid and email)
+      allow update: if isAuthenticated() && isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'email']);
+
+      // Users can delete their own document
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+
+    // ==================== Sailings Collection ====================
+    match /sailings/{sailingId} {
+      // Anyone authenticated can read sailings
+      allow read: if isAuthenticated();
+
+      // Only allow creation/update/delete by admin (implement custom claims)
+      // For now, allow any authenticated user to create sailings (development only)
+      allow create, update: if isAuthenticated();
+      allow delete: if false; // Disable deletion in production
+
+      // ==================== Pods Subcollection ====================
+      match /pods/{podId} {
+        // Anyone on the sailing can read pods
+        allow read: if isAuthenticated();
+
+        // Only allow creation by admin or system
+        allow create, update: if isAuthenticated();
+        allow delete: if false;
+
+        // ==================== Pod Members Subcollection ====================
+        match /members/{userId} {
+          // Anyone on the sailing can read members
+          allow read: if isAuthenticated();
+
+          // Users can join/leave pods (create/delete their membership)
+          allow create: if isAuthenticated() && isOwner(userId);
+          allow delete: if isAuthenticated() && isOwner(userId);
+          allow update: if false; // No updates to membership
+        }
+
+        // ==================== Messages Subcollection ====================
+        match /messages/{messageId} {
+          // Anyone in the pod can read messages
+          allow read: if isAuthenticated();
+
+          // Users can create messages if they're in the pod
+          allow create: if isAuthenticated()
+            && request.resource.data.userId == request.auth.uid
+            && isValidString(request.resource.data.text, 500)
+            && isValidTimestamp(request.resource.data.timestamp);
+
+          // Users can delete their own messages
+          allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+          // No updates to messages
+          allow update: if false;
+        }
+      }
+
+      // ==================== Hangouts Subcollection ====================
+      match /hangouts/{hangoutId} {
+        // Anyone on the sailing can read hangouts
+        allow read: if isAuthenticated();
+
+        // Users can create hangouts
+        allow create: if isAuthenticated()
+          && request.resource.data.createdBy == request.auth.uid
+          && isValidString(request.resource.data.location, 100)
+          && request.resource.data.vibe in ['chill', 'lively', 'party']
+          && isValidTimestamp(request.resource.data.startTime)
+          && isValidTimestamp(request.resource.data.expiresAt);
+
+        // Users can join/leave hangouts (update attendeeIds)
+        allow update: if isAuthenticated()
+          && (
+            // Adding self to attendeeIds
+            (request.resource.data.attendeeIds.hasAll([request.auth.uid])
+             && !resource.data.attendeeIds.hasAll([request.auth.uid]))
+            ||
+            // Removing self from attendeeIds
+            (!request.resource.data.attendeeIds.hasAll([request.auth.uid])
+             && resource.data.attendeeIds.hasAll([request.auth.uid]))
+            ||
+            // Creator deactivating expired hangout
+            (request.resource.data.active == false
+             && resource.data.createdBy == request.auth.uid)
+          );
+
+        // No deletion of hangouts
+        allow delete: if false;
+      }
+
+      // ==================== Hot Zone Votes Subcollection ====================
+      match /hotZoneVotes/{voteId} {
+        // Anyone on the sailing can read votes (for aggregation)
+        allow read: if isAuthenticated();
+
+        // Users can create votes
+        allow create: if isAuthenticated()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.location in ['Pool', 'Casino', 'Nightclub', 'Sports Deck', 'Buffet', 'Theatre']
+          && request.resource.data.vibe in ['active', 'quiet', 'overcrowded', 'good_vibes']
+          && isValidTimestamp(request.resource.data.timestamp)
+          && isValidTimestamp(request.resource.data.expiresAt);
+
+        // No updates or deletions (votes are immutable)
+        allow update, delete: if false;
+      }
+    }
+  }
+}

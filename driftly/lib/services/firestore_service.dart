@@ -6,6 +6,8 @@ import '../models/pod_member.dart';
 import '../models/message.dart';
 import '../models/micro_hangout.dart';
 import '../models/hot_zone_vote.dart';
+import '../utils/input_validator.dart';
+import '../utils/constants.dart';
 
 /// FirestoreService
 ///
@@ -360,13 +362,24 @@ class FirestoreService {
     String? userPhotoUrl,
   }) async {
     try {
+      // Validate and sanitize input
+      final validationError = InputValidator.validateMessage(text);
+      if (validationError != null) {
+        throw Exception(validationError);
+      }
+
+      final sanitizedText = InputValidator.sanitizeAndTruncate(
+        text,
+        AppConstants.maxMessageLength,
+      );
+
       final message = Message(
         id: '', // Will be set by Firestore
         podId: podId,
         userId: userId,
         userName: userName,
         userPhotoUrl: userPhotoUrl,
-        text: text,
+        text: sanitizedText,
         timestamp: DateTime.now(),
       );
 
@@ -451,13 +464,33 @@ class FirestoreService {
     required String vibe,
   }) async {
     try {
+      // Validate inputs
+      final locationError = InputValidator.validateLocation(location);
+      if (locationError != null) {
+        throw Exception(locationError);
+      }
+
+      if (!InputValidator.isValidHangoutVibe(vibe)) {
+        throw Exception('Invalid vibe option');
+      }
+
+      if (!InputValidator.isValidAgeBand(createdByAgeBand)) {
+        throw Exception('Invalid age band');
+      }
+
+      // Sanitize location
+      final sanitizedLocation = InputValidator.sanitizeAndTruncate(
+        location,
+        AppConstants.maxLocationLength,
+      );
+
       final now = DateTime.now();
-      final expiresAt = now.add(const Duration(minutes: 45));
+      final expiresAt = now.add(AppConstants.hangoutDuration);
 
       final hangout = MicroHangout(
         id: '', // Will be set by Firestore
         sailingId: sailingId,
-        location: location,
+        location: sanitizedLocation,
         deck: deck,
         createdBy: createdBy,
         createdByName: createdByName,
@@ -634,6 +667,15 @@ class FirestoreService {
     required String vibe,
   }) async {
     try {
+      // Validate inputs
+      if (!InputValidator.isValidHotZoneLocation(location)) {
+        throw Exception('Invalid location. Must be one of: ${AppConstants.hotZoneLocations.join(", ")}');
+      }
+
+      if (!InputValidator.isValidVibe(vibe)) {
+        throw Exception('Invalid vibe option');
+      }
+
       // Check for duplicate vote
       final existingVote = await checkUserRecentVote(
         sailingId: sailingId,
@@ -650,7 +692,7 @@ class FirestoreService {
 
       // Create new vote
       final now = DateTime.now();
-      final expiresAt = now.add(const Duration(hours: 1));
+      final expiresAt = now.add(AppConstants.voteValidityDuration);
 
       final vote = HotZoneVote(
         id: '', // Will be set by Firestore
