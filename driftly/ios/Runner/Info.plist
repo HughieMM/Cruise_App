@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Driftly needs access to your camera to take profile selfies.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Driftly needs access to your photo library to select profile pictures.</string>
 </dict>
 </plist>
