@@ -6,6 +6,10 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Driftly</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -46,8 +50,12 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Driftly needs access to your camera to take profile selfies.</string>
+	<string>Driftly uses your camera to capture profile selfies so other passengers can recognize you during hangouts and pod meetups.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Driftly needs access to your photo library to select profile pictures.</string>
+	<string>Driftly needs access to your photo library to let you choose a profile picture for your cruise social profile.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Driftly can save photos to your library from hangouts and cruise memories.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Driftly uses your location to help you find nearby hangouts and check into Hot Zones on the ship.</string>
 </dict>
 </plist>
