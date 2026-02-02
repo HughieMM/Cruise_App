@@ -27,7 +27,7 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
   final _nameController = TextEditingController();
 
   String? _selectedAgeBand;
-  final List<String> _ageBands = ['21-23', '24-27', '28-30'];
+  final List<String> _ageBands = ['14-17', '18-20', '21-30', '31-40', '40+'];
 
   final List<String> _availableInterests = [
     'Nightlife',
@@ -38,6 +38,8 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
     'Sports',
     'Photography',
     'Music',
+    'Casino',
+    'On island hangout',
   ];
 
   final Set<String> _selectedInterests = {};

@@ -40,11 +40,13 @@ class AppConstants {
 
   // ==================== Age Bands ====================
 
-  static const List<String> ageBands = ['21-23', '24-27', '28-30'];
+  static const List<String> ageBands = ['14-17', '18-20', '21-30', '31-40', '40+'];
 
-  static const String ageBand2123 = '21-23';
-  static const String ageBand2427 = '24-27';
-  static const String ageBand2830 = '28-30';
+  static const String ageBand1417 = '14-17';
+  static const String ageBand1820 = '18-20';
+  static const String ageBand2130 = '21-30';
+  static const String ageBand3140 = '31-40';
+  static const String ageBand40Plus = '40+';
 
   // ==================== Hot Zones ====================
 
