@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/constants.dart';
 
 /// Onboarding Profile Screen
 ///
@@ -27,18 +28,9 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
   final _nameController = TextEditingController();
 
   String? _selectedAgeBand;
-  final List<String> _ageBands = ['21-23', '24-27', '28-30'];
+  final List<String> _ageBands = AppConstants.ageBands;
 
-  final List<String> _availableInterests = [
-    'Nightlife',
-    'Fitness',
-    'Excursions',
-    'Relaxation',
-    'Food & Dining',
-    'Sports',
-    'Photography',
-    'Music',
-  ];
+  final List<String> _availableInterests = AppConstants.availableInterests;
 
   final Set<String> _selectedInterests = {};
   bool _selfieVerified = false;

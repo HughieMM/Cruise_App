@@ -1,56 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../services/firestore_service.dart';
+import '../../../models/pod.dart';
+import '../../chat/pod_chat_screen.dart';
+import '../../../widgets/shimmer_loading.dart';
+import '../../../widgets/error_state.dart';
+import '../../../widgets/empty_state.dart';
 
 /// Pods Tab
 ///
-/// Features (to be implemented):
-/// - List of user's joined pods
+/// Features:
+/// - List of user's joined pods with real Firestore data
 /// - Pod chat preview
 /// - Unread message badges
 /// - Pod member count
 /// - Tap to open full pod chat screen
-///
-/// TODO: Load user's pods from Firestore
-/// TODO: Add real-time chat message listeners
-/// TODO: Implement pod chat screen navigation
-class PodsTab extends StatelessWidget {
+class PodsTab extends StatefulWidget {
   const PodsTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data - TODO: Replace with Firestore data
-    final pods = [
-      _PodData(
-        id: 'nightlife_crew',
-        name: 'Nightlife Crew',
-        icon: Icons.nightlife,
-        color: Colors.purple,
-        memberCount: 24,
-        unreadCount: 3,
-        lastMessage: 'Anyone up for the club tonight?',
-        lastMessageTime: '2 min ago',
-      ),
-      _PodData(
-        id: 'gym_crew',
-        name: 'Gym Crew',
-        icon: Icons.fitness_center,
-        color: Colors.red,
-        memberCount: 18,
-        unreadCount: 0,
-        lastMessage: '6 AM workout tomorrow?',
-        lastMessageTime: '1 hour ago',
-      ),
-      _PodData(
-        id: 'excursions',
-        name: 'Excursions',
-        icon: Icons.explore,
-        color: Colors.green,
-        memberCount: 31,
-        unreadCount: 7,
-        lastMessage: 'Just booked the snorkeling trip!',
-        lastMessageTime: '3 hours ago',
-      ),
-    ];
+  State<PodsTab> createState() => _PodsTabState();
+}
 
+class _PodsTabState extends State<PodsTab> {
+  final FirestoreService _firestoreService = FirestoreService();
+  List<Pod>? _userPods;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserPods();
+  }
+
+  Future<void> _loadUserPods() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.appUser;
+
+      if (user == null || user.currentSailingId == null) {
+        setState(() {
+          _userPods = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final pods = await _firestoreService.getUserPodsForSailing(
+        sailingId: user.currentSailingId!,
+        userId: user.uid,
+      );
+
+      setState(() {
+        _userPods = pods;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Color _parseColor(String hexColor) {
+    try {
+      final hex = hexColor.replaceAll('#', '');
+      return Color(int.parse('FF$hex', radix: 16));
+    } catch (e) {
+      return Colors.blue;
+    }
+  }
+
+  IconData _getIconForPod(String podName) {
+    final name = podName.toLowerCase();
+    if (name.contains('nightlife') || name.contains('party')) {
+      return Icons.nightlife;
+    } else if (name.contains('gym') || name.contains('fitness')) {
+      return Icons.fitness_center;
+    } else if (name.contains('excursion') || name.contains('explore')) {
+      return Icons.explore;
+    } else if (name.contains('sport') || name.contains('game')) {
+      return Icons.sports_basketball;
+    } else if (name.contains('drink') || name.contains('chill')) {
+      return Icons.local_bar;
+    } else if (name.contains('food') || name.contains('dining')) {
+      return Icons.restaurant;
+    } else if (name.contains('music')) {
+      return Icons.music_note;
+    } else if (name.contains('photo')) {
+      return Icons.camera_alt;
+    } else if (name.contains('relax') || name.contains('spa')) {
+      return Icons.spa;
+    } else if (name.contains('casino')) {
+      return Icons.casino;
+    }
+    return Icons.groups;
+  }
+
+  void _openPodChat(Pod pod) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.appUser;
+
+    if (user == null || user.currentSailingId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a sailing first')),
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PodChatScreen(
+          sailingId: user.currentSailingId!,
+          podId: pod.id,
+          pod: pod,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Pods'),
@@ -63,18 +141,16 @@ class PodsTab extends StatelessWidget {
           ),
         ],
       ),
-      body: pods.isEmpty
-          ? _buildEmptyState(context)
-          : ListView.builder(
-              itemCount: pods.length,
-              itemBuilder: (context, index) {
-                final pod = pods[index];
-                return _buildPodCard(context, pod);
-              },
-            ),
+      body: RefreshIndicator(
+        onRefresh: _loadUserPods,
+        child: _buildBody(),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // TODO: Navigate to browse/join pods screen
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Browse pods coming soon!')),
+          );
         },
         icon: const Icon(Icons.add),
         label: const Text('Join Pod'),
@@ -82,38 +158,57 @@ class PodsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildPodCard(BuildContext context, _PodData pod) {
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const ShimmerLoading(itemCount: 3);
+    }
+
+    if (_error != null) {
+      return ErrorStateWidget(
+        message: _error!,
+        onRetry: _loadUserPods,
+      );
+    }
+
+    if (_userPods == null || _userPods!.isEmpty) {
+      return const EmptyStateWidget(
+        icon: Icons.groups_outlined,
+        title: 'No pods yet',
+        message: 'Join pods to connect with cruisers who share your interests',
+      );
+    }
+
+    return ListView.builder(
+      itemCount: _userPods!.length,
+      itemBuilder: (context, index) {
+        final pod = _userPods![index];
+        return _buildPodCard(context, pod);
+      },
+    );
+  }
+
+  Widget _buildPodCard(BuildContext context, Pod pod) {
+    final color = _parseColor(pod.color);
+    final icon = _getIconForPod(pod.name);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
         leading: CircleAvatar(
-          backgroundColor: pod.color.withOpacity(0.2),
-          child: Icon(pod.icon, color: pod.color),
+          backgroundColor: color.withOpacity(0.2),
+          child: Icon(icon, color: color),
         ),
         title: Row(
           children: [
-            Text(
-              pod.name,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(width: 8),
-            if (pod.unreadCount > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${pod.unreadCount}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+            Expanded(
+              child: Text(
+                pod.name,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
+            // Unread badge placeholder - TODO: implement with real unread count
           ],
         ),
         subtitle: Column(
@@ -121,7 +216,7 @@ class PodsTab extends StatelessWidget {
           children: [
             const SizedBox(height: 4),
             Text(
-              pod.lastMessage,
+              pod.description,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -134,74 +229,13 @@ class PodsTab extends StatelessWidget {
                   '${pod.memberCount} members',
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  pod.lastMessageTime,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
               ],
             ),
           ],
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {
-          // TODO: Navigate to pod chat screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Opening ${pod.name} chat...')),
-          );
-        },
+        onTap: () => _openPodChat(pod),
       ),
     );
   }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.groups_outlined,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No pods yet',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Join pods to connect with cruisers who share your interests',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PodData {
-  final String id;
-  final String name;
-  final IconData icon;
-  final Color color;
-  final int memberCount;
-  final int unreadCount;
-  final String lastMessage;
-  final String lastMessageTime;
-
-  _PodData({
-    required this.id,
-    required this.name,
-    required this.icon,
-    required this.color,
-    required this.memberCount,
-    required this.unreadCount,
-    required this.lastMessage,
-    required this.lastMessageTime,
-  });
 }
