@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
+import '../../widgets/app_background.dart';
 
 /// Select Sailing Screen
 ///
@@ -132,7 +133,21 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
   String? _selectedCruiseLine;
   String? _selectedShip;
   DateTime? _selectedDate;
+  int? _selectedDuration;
   bool _isLoading = false;
+
+  // Common cruise durations (nights)
+  final List<int> _durations = [3, 4, 5, 6, 7, 8, 10, 12, 14];
+
+  DateTime? get _returnDate {
+    if (_selectedDate == null || _selectedDuration == null) return null;
+    return _selectedDate!.add(Duration(days: _selectedDuration!));
+  }
+
+  String _formatDate(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
 
   List<String> get _availableShips {
     if (_selectedCruiseLine == null) return [];
@@ -280,7 +295,14 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
 
     if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a sailing date')),
+        const SnackBar(content: Text('Please select a departure date')),
+      );
+      return;
+    }
+
+    if (_selectedDuration == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select your cruise duration')),
       );
       return;
     }
@@ -326,6 +348,7 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
         cruiseLineId: cruiseLineId,
         shipId: shipId,
         departureDate: _selectedDate!,
+        durationNights: _selectedDuration!,
       );
 
       // Update user's current sailing
@@ -359,13 +382,15 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Choose Your Cruise'),
+    return AppBackground(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
+        appBar: AppBar(
+          title: const Text('Choose Your Cruise'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -447,21 +472,66 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Date Picker
+              // Departure Date Picker
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.calendar_today),
-                  title: const Text('Sailing Date'),
+                  leading: const Icon(Icons.flight_takeoff),
+                  title: const Text('Departure Date'),
                   subtitle: Text(
                     _selectedDate == null
                         ? 'Tap to select date'
-                        : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                        : _formatDate(_selectedDate!),
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: _selectDate,
                 ),
               ),
               const SizedBox(height: 16),
+
+              // Duration Selector
+              const Text(
+                'Cruise Duration',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _durations.map((nights) {
+                  final isSelected = _selectedDuration == nights;
+                  return ChoiceChip(
+                    label: Text('$nights nights'),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedDuration = selected ? nights : null;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+
+              // Return Date Display (calculated)
+              if (_returnDate != null)
+                Card(
+                  color: Colors.green[50],
+                  child: ListTile(
+                    leading: Icon(Icons.flight_land, color: Colors.green[700]),
+                    title: const Text('Return Date'),
+                    subtitle: Text(
+                      _formatDate(_returnDate!),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                  ),
+                ),
+              if (_returnDate != null) const SizedBox(height: 16),
 
               // 30-Day Info Card
               Card(
@@ -507,6 +577,7 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

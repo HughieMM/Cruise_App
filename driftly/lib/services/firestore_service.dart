@@ -113,6 +113,7 @@ class FirestoreService {
     required String cruiseLineId,
     required String shipId,
     required DateTime departureDate,
+    int durationNights = 7,
   }) async {
     try {
       // Search for existing sailing with same ship and departure date
@@ -136,7 +137,7 @@ class FirestoreService {
         shipId: shipId,
         departureDate: DateTime(departureDate.year, departureDate.month, departureDate.day),
         returnDate: DateTime(departureDate.year, departureDate.month, departureDate.day)
-            .add(const Duration(days: 7)), // Default 7-day cruise
+            .add(Duration(days: durationNights)),
         memberCount: 0,
         active: true,
         createdAt: DateTime.now(),

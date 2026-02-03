@@ -4,6 +4,7 @@ import 'tabs/pods_tab.dart';
 import 'tabs/hangouts_tab.dart';
 import 'tabs/hot_zones_tab.dart';
 import 'tabs/profile_tab.dart';
+import '../../widgets/app_background.dart';
 
 /// Home Shell
 ///
@@ -64,11 +65,13 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _tabs,
-      ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _tabs,
+        ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
@@ -103,6 +106,7 @@ class _HomeShellState extends State<HomeShell> {
             label: 'Profile',
           ),
         ],
+      ),
       ),
     );
   }
