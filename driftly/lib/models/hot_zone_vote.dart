@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart' show Color;
 
 /// HotZoneVote Model
 ///
@@ -123,6 +124,3 @@ class HotZoneVote {
     return 'HotZoneVote(location: $location, vibe: $vibe, time: $timeAgo)';
   }
 }
-
-// Import for Color class
-import 'package:flutter/material.dart' show Color;

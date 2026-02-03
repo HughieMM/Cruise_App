@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     // Check authentication and profile status
-    if (authProvider.isAuthenticated) {
+    if (authProvider.isSignedIn) {
       // User is logged in, check profile completeness
       if (authProvider.hasProfile) {
         // Profile exists, check if it's complete

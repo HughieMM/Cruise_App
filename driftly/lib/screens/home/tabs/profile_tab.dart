@@ -75,6 +75,20 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
+  String _formatCruiseLineId(String id) {
+    // Convert cruise_line_id to display name
+    return id.split('_').map((word) =>
+      word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : ''
+    ).join(' ');
+  }
+
+  String _formatShipId(String id) {
+    // Convert ship_id to display name
+    return id.split('_').map((word) =>
+      word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : ''
+    ).join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
@@ -319,10 +333,10 @@ class _ProfileTabState extends State<ProfileTab> {
             _buildInfoRow(
               Icons.directions_boat,
               'Cruise Line',
-              _sailing!.cruiseLine,
+              _formatCruiseLineId(_sailing!.cruiseLineId),
             ),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.sailing, 'Ship', _sailing!.shipName),
+            _buildInfoRow(Icons.sailing, 'Ship', _formatShipId(_sailing!.shipId)),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.calendar_today, 'Sailing Date', dateStr),
           ],

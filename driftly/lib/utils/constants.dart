@@ -100,7 +100,7 @@ class AppConstants {
 
   /// Regex pattern for name validation (letters, spaces, hyphens, apostrophes)
   static final RegExp nameRegex = RegExp(
-    r'^[a-zA-Z\s\-\']+$',
+    r"^[a-zA-Z\s\-']+$",
   );
 
   /// Minimum password length

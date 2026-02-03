@@ -5,8 +5,8 @@ import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
 import '../../chat/pod_chat_screen.dart';
 import '../../../widgets/shimmer_loading.dart';
-import '../../../widgets/error_state.dart';
-import '../../../widgets/empty_state.dart';
+import '../../../widgets/error_state.dart' as error_widget;
+import '../../../widgets/empty_state.dart' as empty_widget;
 
 /// Pods Tab
 ///
@@ -160,18 +160,24 @@ class _PodsTabState extends State<PodsTab> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const ShimmerLoading(itemCount: 3);
+      return ListView(
+        children: const [
+          ShimmerListItem(),
+          ShimmerListItem(),
+          ShimmerListItem(),
+        ],
+      );
     }
 
     if (_error != null) {
-      return ErrorStateWidget(
+      return error_widget.ErrorState(
         message: _error!,
         onRetry: _loadUserPods,
       );
     }
 
     if (_userPods == null || _userPods!.isEmpty) {
-      return const EmptyStateWidget(
+      return empty_widget.EmptyState(
         icon: Icons.groups_outlined,
         title: 'No pods yet',
         message: 'Join pods to connect with cruisers who share your interests',
