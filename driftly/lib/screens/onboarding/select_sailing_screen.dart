@@ -24,23 +24,108 @@ class SelectSailingScreen extends StatefulWidget {
 class _SelectSailingScreenState extends State<SelectSailingScreen> {
   final _firestoreService = FirestoreService();
 
-  // Hard-coded cruise data for testing
-  // In production, this would be loaded from Firestore
+  // Cruise line and ship data
   final Map<String, List<String>> _cruiseData = {
     'Royal Caribbean': [
+      // Icon Class
+      'Icon of the Seas',
+      'Star of the Seas',
+      'Legend of the Seas',
+      // Oasis Class
+      'Oasis of the Seas',
+      'Allure of the Seas',
       'Harmony of the Seas',
       'Symphony of the Seas',
-      'Oasis of the Seas',
+      'Wonder of the Seas',
+      'Utopia of the Seas',
+      // Quantum Class
+      'Quantum of the Seas',
+      'Anthem of the Seas',
+      'Ovation of the Seas',
+      'Spectrum of the Seas',
+      'Odyssey of the Seas',
+      // Freedom Class
+      'Freedom of the Seas',
+      'Liberty of the Seas',
+      'Independence of the Seas',
+      // Voyager Class
+      'Voyager of the Seas',
+      'Explorer of the Seas',
+      'Adventure of the Seas',
+      'Navigator of the Seas',
+      'Mariner of the Seas',
+      // Radiance Class
+      'Radiance of the Seas',
+      'Brilliance of the Seas',
+      'Serenade of the Seas',
+      'Jewel of the Seas',
+      // Vision Class
+      'Grandeur of the Seas',
+      'Rhapsody of the Seas',
+      'Enchantment of the Seas',
+      'Vision of the Seas',
     ],
-    'Carnival': [
+    'Norwegian Cruise Line': [
+      'Norwegian Aqua',
+      'Norwegian Viva',
+      'Norwegian Prima',
+      'Norwegian Encore',
+      'Norwegian Bliss',
+      'Norwegian Joy',
+      'Norwegian Escape',
+      'Norwegian Getaway',
+      'Norwegian Breakaway',
+      'Norwegian Epic',
+      'Norwegian Gem',
+      'Norwegian Pearl',
+      'Norwegian Jade',
+      'Norwegian Jewel',
+      'Norwegian Star',
+      'Norwegian Dawn',
+      'Pride of America',
+      'Norwegian Sun',
+      'Norwegian Sky',
+      'Norwegian Spirit',
+    ],
+    'Carnival Cruise Line': [
+      // Excel Class
+      'Mardi Gras',
+      'Carnival Celebration',
+      'Carnival Jubilee',
+      // Upcoming
+      'Carnival Adventure',
+      'Carnival Encounter',
+      // Vista Class
       'Carnival Vista',
       'Carnival Horizon',
       'Carnival Panorama',
-    ],
-    'Norwegian': [
-      'Norwegian Escape',
-      'Norwegian Bliss',
-      'Norwegian Encore',
+      'Carnival Venezia',
+      'Carnival Firenze',
+      // Dream Class
+      'Carnival Dream',
+      'Carnival Magic',
+      'Carnival Breeze',
+      // Sunshine/Sunrise
+      'Carnival Sunshine',
+      'Carnival Sunrise',
+      'Carnival Radiance',
+      // Conquest Class
+      'Carnival Conquest',
+      'Carnival Glory',
+      'Carnival Valor',
+      'Carnival Liberty',
+      'Carnival Freedom',
+      // Splendor
+      'Carnival Splendor',
+      'Carnival Luminosa',
+      // Spirit Class
+      'Carnival Spirit',
+      'Carnival Pride',
+      'Carnival Legend',
+      'Carnival Miracle',
+      // Fantasy Class
+      'Carnival Elation',
+      'Carnival Paradise',
     ],
   };
 
@@ -69,6 +154,112 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
         _selectedDate = picked;
       });
     }
+  }
+
+  void _showShipSelector() {
+    String searchQuery = '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final filteredShips = _availableShips
+              .where((ship) => ship.toLowerCase().contains(searchQuery.toLowerCase()))
+              .toList();
+
+          return DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.9,
+            expand: false,
+            builder: (context, scrollController) => Column(
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Title
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Select Ship',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search ships...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    onChanged: (value) {
+                      setModalState(() {
+                        searchQuery = value;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Ship count
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    '${filteredShips.length} ships available',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Ship list
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: filteredShips.length,
+                    itemBuilder: (context, index) {
+                      final ship = filteredShips[index];
+                      final isSelected = ship == _selectedShip;
+                      return ListTile(
+                        leading: Icon(
+                          Icons.sailing,
+                          color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                        ),
+                        title: Text(
+                          ship,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? Icon(Icons.check, color: Theme.of(context).primaryColor)
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            _selectedShip = ship;
+                          });
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _handleContinue() async {
@@ -228,27 +419,31 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Ship Dropdown (enabled only after cruise line is selected)
-              DropdownButtonFormField<String>(
-                value: _selectedShip,
-                decoration: const InputDecoration(
-                  labelText: 'Ship',
-                  prefixIcon: Icon(Icons.sailing),
-                  border: OutlineInputBorder(),
-                ),
-                items: _availableShips.map((ship) {
-                  return DropdownMenuItem(
-                    value: ship,
-                    child: Text(ship),
-                  );
-                }).toList(),
-                onChanged: _selectedCruiseLine == null
+              // Ship Selector (tap to open searchable list)
+              InkWell(
+                onTap: _selectedCruiseLine == null
                     ? null
-                    : (value) {
-                        setState(() {
-                          _selectedShip = value;
-                        });
-                      },
+                    : () => _showShipSelector(),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Ship',
+                    prefixIcon: const Icon(Icons.sailing),
+                    border: const OutlineInputBorder(),
+                    enabled: _selectedCruiseLine != null,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _selectedShip ?? 'Select a ship',
+                        style: TextStyle(
+                          color: _selectedShip == null ? Colors.grey[600] : null,
+                        ),
+                      ),
+                      Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
 
