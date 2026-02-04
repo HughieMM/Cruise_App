@@ -86,6 +86,26 @@ class Sailing {
     return 'Future (Access Locked)';
   }
 
+  /// Check if it's time for profile completion prompt (Day 30 or less)
+  bool get shouldPromptProfileCompletion => daysUntilDeparture <= 30;
+
+  /// Check if tribe matching should happen (Day 25 or less)
+  bool get shouldTriggerTribeMatching => daysUntilDeparture <= 25;
+
+  /// Check if we're in the final countdown (Day 7 or less)
+  bool get isInFinalCountdown => daysUntilDeparture <= 7;
+
+  /// Get countdown message for UI
+  String get countdownMessage {
+    final days = daysUntilDeparture;
+    if (days <= 0) return 'Departing today!';
+    if (days == 1) return '1 day until departure!';
+    if (days <= 7) return '$days days until departure!';
+    if (days <= 25) return 'Tribes matching in ${days - 25} days';
+    if (days <= 30) return '$days days to go - complete your profile!';
+    return '$days days until departure';
+  }
+
   /// Create a copy with updated fields
   Sailing copyWith({
     String? id,

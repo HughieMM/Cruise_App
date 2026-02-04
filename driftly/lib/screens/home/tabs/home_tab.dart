@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/tribe_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
+import '../../../models/sailing.dart';
 import '../../chat/pod_chat_screen.dart';
 
 /// Home Tab
@@ -26,12 +29,21 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   final _firestoreService = FirestoreService();
   List<Pod> _userPods = [];
+  Sailing? _sailing;
   bool _isLoadingPods = true;
+  bool _isLoadingSailing = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserPods();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadUserPods(),
+      _loadSailing(),
+    ]);
   }
 
   Future<void> _loadUserPods() async {
@@ -56,6 +68,27 @@ class _HomeTabState extends State<HomeTab> {
       });
     } catch (e) {
       setState(() => _isLoadingPods = false);
+    }
+  }
+
+  Future<void> _loadSailing() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.appUser;
+      final sailingId = user?.currentSailingId;
+
+      if (sailingId == null) {
+        setState(() => _isLoadingSailing = false);
+        return;
+      }
+
+      final sailing = await _firestoreService.getSailing(sailingId);
+      setState(() {
+        _sailing = sailing;
+        _isLoadingSailing = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingSailing = false);
     }
   }
 
@@ -87,6 +120,160 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
+  List<Widget> _buildTimelinePrompts() {
+    final widgets = <Widget>[];
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final tribeProvider = Provider.of<TribeProvider>(context, listen: false);
+    final user = authProvider.appUser;
+
+    if (_sailing == null || user == null) return widgets;
+
+    // Profile completion prompt (Day 30 or less, profile incomplete)
+    if (_sailing!.shouldPromptProfileCompletion && !user.hasAllPhotos) {
+      widgets.add(
+        Card(
+          color: Colors.amber[50],
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person_add, color: Colors.amber),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Complete Your Profile',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Add your photos to be matched with a tribe!',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.go('/onboarding/photos'),
+                  child: const Text('Add Photos'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      widgets.add(const SizedBox(height: 12));
+    }
+
+    // Tribe matching info (Day 25 or less, no tribe yet)
+    if (_sailing!.shouldTriggerTribeMatching && !tribeProvider.hasTribe) {
+      widgets.add(
+        Card(
+          color: Colors.purple[50],
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.diversity_3, color: Colors.purple),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tribe Matching Active',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'You\'ll be matched with your tribe soon!',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.hourglass_empty, color: Colors.purple),
+              ],
+            ),
+          ),
+        ),
+      );
+      widgets.add(const SizedBox(height: 12));
+    }
+
+    // Tribe assigned notification
+    if (tribeProvider.hasTribe) {
+      widgets.add(
+        Card(
+          color: Colors.green[50],
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check_circle, color: Colors.green),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'You\'re in ${tribeProvider.currentTribe?.name ?? "a Tribe"}!',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '${tribeProvider.memberCount} members ready to cruise together',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Navigate to tribe tab (index 2)
+                  },
+                  child: const Text('View'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      widgets.add(const SizedBox(height: 12));
+    }
+
+    return widgets;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,7 +293,7 @@ class _HomeTabState extends State<HomeTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Welcome Card
+            // Welcome Card with Countdown
             Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
                 final user = authProvider.appUser;
@@ -119,22 +306,73 @@ class _HomeTabState extends State<HomeTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Welcome aboard, $name! 🚢',
-                          style: Theme.of(context).textTheme.headlineSmall,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Welcome aboard, $name!',
+                                style: Theme.of(context).textTheme.headlineSmall,
+                              ),
+                            ),
+                            const Text('🚢', style: TextStyle(fontSize: 32)),
+                          ],
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          'Ready to connect with your cruise crew',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
+                        if (_sailing != null && !_isLoadingSailing) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _sailing!.isInFinalCountdown
+                                  ? Colors.orange.withOpacity(0.2)
+                                  : Colors.white.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _sailing!.isInFinalCountdown
+                                      ? Icons.celebration
+                                      : Icons.calendar_today,
+                                  size: 16,
+                                  color: _sailing!.isInFinalCountdown
+                                      ? Colors.orange[800]
+                                      : null,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _sailing!.countdownMessage,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: _sailing!.isInFinalCountdown
+                                        ? Colors.orange[800]
+                                        : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ] else ...[
+                          Text(
+                            'Ready to connect with your cruise crew',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
                       ],
                     ),
                   ),
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Timeline Prompts
+            ..._buildTimelinePrompts(),
+
+            const SizedBox(height: 8),
 
             // Quick Stats
             Row(
