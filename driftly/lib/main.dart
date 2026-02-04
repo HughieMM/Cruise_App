@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'core/router/app_router.dart';
 import 'providers/auth_provider.dart';
+import 'providers/tribe_provider.dart';
 
 /// Driftly - A social app for cruise passengers aged 21-30
 ///
@@ -23,8 +24,11 @@ class DriftlyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AuthProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => TribeProvider()),
+      ],
       child: MaterialApp.router(
         title: 'Driftly',
         theme: ThemeData(

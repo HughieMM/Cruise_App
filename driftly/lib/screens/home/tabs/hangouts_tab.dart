@@ -7,6 +7,7 @@ import '../../../models/micro_hangout.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/error_state.dart';
 import '../../hangouts/create_hangout_dialog.dart';
+import 'hot_zones_tab.dart';
 
 /// Hangouts Tab
 ///
@@ -29,6 +30,7 @@ class HangoutsTab extends StatefulWidget {
 class _HangoutsTabState extends State<HangoutsTab> {
   final _firestoreService = FirestoreService();
   String? _errorMessage;
+  int _selectedView = 0; // 0 = Hangouts, 1 = Hot Zones
 
   Future<void> _refreshHangouts() async {
     // StreamBuilder automatically refreshes, just show feedback
@@ -106,9 +108,47 @@ class _HangoutsTabState extends State<HangoutsTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hangouts'),
+        title: const Text('Hangouts & Vibes'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SegmentedButton<int>(
+              segments: const [
+                ButtonSegment<int>(
+                  value: 0,
+                  icon: Icon(Icons.location_on, size: 18),
+                  label: Text('Hangouts'),
+                ),
+                ButtonSegment<int>(
+                  value: 1,
+                  icon: Icon(Icons.whatshot, size: 18),
+                  label: Text('Hot Zones'),
+                ),
+              ],
+              selected: {_selectedView},
+              onSelectionChanged: (Set<int> selection) {
+                setState(() {
+                  _selectedView = selection.first;
+                });
+              },
+            ),
+          ),
+        ),
       ),
-      body: Consumer<AuthProvider>(
+      body: _selectedView == 0 ? _buildHangoutsView() : const HotZonesContent(),
+      floatingActionButton: _selectedView == 0
+          ? FloatingActionButton.extended(
+              onPressed: () => _showCreateHangoutDialog(context),
+              icon: const Icon(Icons.add_location),
+              label: const Text('I\'m Here'),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildHangoutsView() {
+    return Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           final user = authProvider.appUser;
           final sailingId = user?.currentSailingId;
@@ -231,11 +271,6 @@ class _HangoutsTabState extends State<HangoutsTab> {
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateHangoutDialog(context),
-        icon: const Icon(Icons.add_location),
-        label: const Text('I\'m Here'),
       ),
     );
   }

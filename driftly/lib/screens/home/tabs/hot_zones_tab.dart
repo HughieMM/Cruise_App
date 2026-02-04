@@ -16,14 +16,29 @@ import '../../hot_zones/vote_dialog.dart';
 /// - One vote per location per hour per user
 /// - Real-time vote aggregation from last 60 minutes
 /// - Display dominant vibe and vote count per location
-class HotZonesTab extends StatefulWidget {
+class HotZonesTab extends StatelessWidget {
   const HotZonesTab({super.key});
 
   @override
-  State<HotZonesTab> createState() => _HotZonesTabState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Hot Zones'),
+      ),
+      body: const HotZonesContent(),
+    );
+  }
 }
 
-class _HotZonesTabState extends State<HotZonesTab> {
+/// Extracted Hot Zones content for reuse in HangoutsTab
+class HotZonesContent extends StatefulWidget {
+  const HotZonesContent({super.key});
+
+  @override
+  State<HotZonesContent> createState() => _HotZonesContentState();
+}
+
+class _HotZonesContentState extends State<HotZonesContent> {
   final _firestoreService = FirestoreService();
 
   Future<void> _refreshVotes() async {
@@ -140,44 +155,40 @@ class _HotZonesTabState extends State<HotZonesTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hot Zones'),
-      ),
-      body: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
-          final user = authProvider.appUser;
-          final sailingId = user?.currentSailingId;
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final user = authProvider.appUser;
+        final sailingId = user?.currentSailingId;
 
-          if (user == null || sailingId == null) {
-            return const Center(
-              child: Text('Please select a sailing first'),
-            );
-          }
+        if (user == null || sailingId == null) {
+          return const Center(
+            child: Text('Please select a sailing first'),
+          );
+        }
 
-          return StreamBuilder<List<HotZoneVote>>(
-            stream: _firestoreService.streamRecentVotesForSailing(
-              sailingId: sailingId,
-            ),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return ErrorState(
-                  message: 'Error loading hot zones: ${snapshot.error}',
-                  onRetry: _refreshVotes,
-                );
-              }
+        return StreamBuilder<List<HotZoneVote>>(
+          stream: _firestoreService.streamRecentVotesForSailing(
+            sailingId: sailingId,
+          ),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return ErrorState(
+                message: 'Error loading hot zones: ${snapshot.error}',
+                onRetry: _refreshVotes,
+              );
+            }
 
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              final votes = snapshot.data!;
-              final locationSummaries = _aggregateVotes(votes);
+            final votes = snapshot.data!;
+            final locationSummaries = _aggregateVotes(votes);
 
-              return RefreshIndicator(
-                onRefresh: _refreshVotes,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
+            return RefreshIndicator(
+              onRefresh: _refreshVotes,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -226,12 +237,11 @@ class _HotZonesTabState extends State<HotZonesTab> {
                     const SizedBox(height: 16),
                   ],
                 ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

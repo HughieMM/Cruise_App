@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/pods_tab.dart';
+import 'tabs/tribe_tab.dart';
 import 'tabs/hangouts_tab.dart';
 import 'tabs/hot_zones_tab.dart';
 import 'tabs/profile_tab.dart';
@@ -34,8 +35,8 @@ class _HomeShellState extends State<HomeShell> {
   final List<Widget> _tabs = const [
     HomeTab(),
     PodsTab(),
+    TribeTab(),
     HangoutsTab(),
-    HotZonesTab(),
     ProfileTab(),
   ];
 
@@ -52,9 +53,10 @@ class _HomeShellState extends State<HomeShell> {
         return 0;
       case 'pods':
         return 1;
-      case 'hangouts':
+      case 'tribe':
         return 2;
-      case 'hot_zones':
+      case 'hangouts':
+      case 'hot_zones': // Hot zones now accessible from hangouts tab
         return 3;
       case 'profile':
         return 4;
@@ -91,14 +93,14 @@ class _HomeShellState extends State<HomeShell> {
             label: 'Pods',
           ),
           NavigationDestination(
+            icon: Icon(Icons.diversity_3_outlined),
+            selectedIcon: Icon(Icons.diversity_3),
+            label: 'Tribe',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.location_on_outlined),
             selectedIcon: Icon(Icons.location_on),
             label: 'Hangouts',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.whatshot_outlined),
-            selectedIcon: Icon(Icons.whatshot),
-            label: 'Hot Zones',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
