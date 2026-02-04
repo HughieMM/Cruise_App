@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../screens/splash/splash_screen.dart';
 import '../../screens/auth/sign_in_sign_up_screen.dart';
 import '../../screens/onboarding/onboarding_profile_screen.dart';
+import '../../screens/onboarding/onboarding_photos_screen.dart';
 import '../../screens/onboarding/select_sailing_screen.dart';
 import '../../screens/onboarding/choose_pods_screen.dart';
 import '../../screens/home/home_shell.dart';
@@ -13,6 +14,7 @@ import '../../screens/home/home_shell.dart';
 /// - / (splash) → Auth gate checks if user is logged in
 /// - /auth → Sign in / Sign up screen
 /// - /onboarding/profile → User profile setup
+/// - /onboarding/photos → Upload 3 photos + face verification
 /// - /onboarding/sailing → Choose cruise line, ship, and date
 /// - /onboarding/pods → Select 1-3 pods to join
 /// - /home → Main app with bottom navigation (Home, Pods, Hangouts, Hot Zones, Profile)
@@ -40,6 +42,11 @@ class AppRouter {
         path: '/onboarding/profile',
         name: 'onboarding-profile',
         builder: (context, state) => const OnboardingProfileScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/photos',
+        name: 'onboarding-photos',
+        builder: (context, state) => const OnboardingPhotosScreen(),
       ),
       GoRoute(
         path: '/onboarding/sailing',

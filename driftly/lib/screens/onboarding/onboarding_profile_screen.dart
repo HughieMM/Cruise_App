@@ -193,8 +193,8 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Navigate to sailing selection
-      context.go('/onboarding/sailing');
+      // Navigate to photo upload
+      context.go('/onboarding/photos');
     } else {
       // Show error
       final error = authProvider.errorMessage ?? 'Failed to save profile';
