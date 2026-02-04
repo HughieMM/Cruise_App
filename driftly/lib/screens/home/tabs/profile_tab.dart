@@ -708,29 +708,72 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Age Band
-                  const Text(
-                    'Age Band',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  // Age Band (Read-only - verified during signup)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Age Band',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.verified, color: Colors.green, size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              'Verified',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: AppConstants.ageBands.map((ageBand) {
-                      final isSelected = selectedAgeBand == ageBand;
-                      return ChoiceChip(
-                        label: Text(ageBand),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setModalState(() {
-                            selectedAgeBand = selected ? ageBand : null;
-                          });
-                        },
-                      );
-                    }).toList(),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.cake, color: Colors.grey[600]),
+                        const SizedBox(width: 12),
+                        Text(
+                          selectedAgeBand ?? 'Not set',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(Icons.lock, size: 16, color: Colors.grey[500]),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Age band cannot be changed after verification',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
                   ),
                   const SizedBox(height: 16),
 

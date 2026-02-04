@@ -28,6 +28,8 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
   final _nameController = TextEditingController();
 
   String? _selectedAgeBand;
+  int? _verifiedAge;
+  bool _ageVerified = false;
   final List<String> _ageBands = AppConstants.ageBands;
 
   final List<String> _availableInterests = AppConstants.availableInterests;
@@ -41,12 +43,125 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
     super.dispose();
   }
 
+  /// Shows age verification dialog when user selects an age band
+  void _showAgeVerificationDialog(String ageBand) {
+    final ageController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Verify Your Age'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You selected the $ageBand age group.',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Please enter your age to confirm:',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ageController,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Your Age',
+                hintText: 'e.g. 25',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.cake),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final ageText = ageController.text.trim();
+              final age = int.tryParse(ageText);
+
+              if (age == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a valid age')),
+                );
+                return;
+              }
+
+              // Verify age matches the selected band
+              if (!_isAgeInBand(age, ageBand)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Age $age doesn\'t match the $ageBand group. Please select the correct age band.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                Navigator.pop(context);
+                return;
+              }
+
+              // Age verified!
+              Navigator.pop(context);
+              setState(() {
+                _selectedAgeBand = ageBand;
+                _verifiedAge = age;
+                _ageVerified = true;
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text('Age verified! You\'re in the $ageBand group.'),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            child: const Text('Verify'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Check if the entered age falls within the selected age band
+  bool _isAgeInBand(int age, String ageBand) {
+    switch (ageBand) {
+      case '14-17':
+        return age >= 14 && age <= 17;
+      case '18-20':
+        return age >= 18 && age <= 20;
+      case '21-30':
+        return age >= 21 && age <= 30;
+      case '31-40':
+        return age >= 31 && age <= 40;
+      case '40+':
+        return age > 40;
+      default:
+        return false;
+    }
+  }
+
   Future<void> _handleContinue() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedAgeBand == null) {
+    if (_selectedAgeBand == null || !_ageVerified) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your age band')),
+        const SnackBar(content: Text('Please select and verify your age band')),
       );
       return;
     }
@@ -151,12 +266,40 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                 const SizedBox(height: 24),
 
                 // Age Band Selection
-                const Text(
-                  'Age Band',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Age Band',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (_ageVerified)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.verified, color: Colors.green, size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Age $_verifiedAge verified',
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -167,9 +310,17 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                       label: Text(ageBand),
                       selected: isSelected,
                       onSelected: (selected) {
-                        setState(() {
-                          _selectedAgeBand = selected ? ageBand : null;
-                        });
+                        if (selected) {
+                          // Show verification dialog
+                          _showAgeVerificationDialog(ageBand);
+                        } else {
+                          // Deselecting clears verification
+                          setState(() {
+                            _selectedAgeBand = null;
+                            _verifiedAge = null;
+                            _ageVerified = false;
+                          });
+                        }
                       },
                     );
                   }).toList(),
