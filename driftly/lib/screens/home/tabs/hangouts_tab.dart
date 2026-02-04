@@ -183,7 +183,7 @@ class _HangoutsTabState extends State<HangoutsTab> {
                 onRefresh: _refreshHangouts,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Info Card
@@ -266,12 +266,11 @@ class _HangoutsTabState extends State<HangoutsTab> {
                     const SizedBox(height: 80), // Space for FAB
                   ],
                 ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
