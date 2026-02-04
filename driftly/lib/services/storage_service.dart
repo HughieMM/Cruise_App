@@ -120,4 +120,34 @@ class StorageService {
       throw Exception('Failed to get user photos: $e');
     }
   }
+
+  /// Upload daily photo (BeReal-style)
+  /// Stored in sailings/{sailingId}/daily_photos/{userId}/{date}.jpg
+  Future<String> uploadDailyPhoto({
+    required String userId,
+    required String sailingId,
+    required File photo,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final String fileName = '${dateStr}_${now.millisecondsSinceEpoch}.jpg';
+      final Reference ref = _storage.ref().child('sailings/$sailingId/daily_photos/$userId/$fileName');
+
+      // Upload file
+      final UploadTask uploadTask = ref.putFile(
+        photo,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+
+      // Wait for upload to complete
+      final TaskSnapshot snapshot = await uploadTask;
+
+      // Get download URL
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      throw Exception('Failed to upload daily photo: $e');
+    }
+  }
 }

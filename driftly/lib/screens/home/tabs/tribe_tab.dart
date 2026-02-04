@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/tribe_provider.dart';
 import '../../../models/tribe.dart';
+import '../../tribe/daily_photo_screen.dart';
 
 /// Tribe Tab
 ///
@@ -537,10 +538,11 @@ class _TribeTabState extends State<TribeTab> {
                     if (!tribeProvider.hasSubmittedDailyPhoto)
                       ElevatedButton.icon(
                         onPressed: () {
-                          // TODO: Implement daily photo
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Daily photo feature coming soon!'),
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => DailyPhotoScreen(
+                                promptedAt: DateTime.now(),
+                              ),
                             ),
                           );
                         },
