@@ -135,8 +135,8 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> createUserProfile({
     required String name,
     required String ageBand,
+    required String gender,
     required List<String> interests,
-    bool selfieVerified = false,
   }) async {
     try {
       if (_firebaseUser == null) {
@@ -152,8 +152,9 @@ class AuthProvider extends ChangeNotifier {
         email: _firebaseUser!.email ?? '',
         name: name,
         ageBand: ageBand,
+        gender: gender,
         interests: interests,
-        selfieVerified: selfieVerified,
+        selfieVerified: false,
         currentSailingId: null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),

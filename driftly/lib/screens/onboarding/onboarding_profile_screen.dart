@@ -27,15 +27,16 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
+  String? _selectedGender;
   String? _selectedAgeBand;
   int? _verifiedAge;
   bool _ageVerified = false;
   final List<String> _ageBands = AppConstants.ageBands;
+  final List<String> _genders = ['Male', 'Female', 'Other'];
 
   final List<String> _availableInterests = AppConstants.availableInterests;
 
   final Set<String> _selectedInterests = {};
-  bool _selfieVerified = false;
 
   @override
   void dispose() {
@@ -159,6 +160,13 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
   Future<void> _handleContinue() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_selectedGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select your gender')),
+      );
+      return;
+    }
+
     if (_selectedAgeBand == null || !_ageVerified) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select and verify your age band')),
@@ -186,8 +194,8 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
     final success = await authProvider.createUserProfile(
       name: _nameController.text.trim(),
       ageBand: _selectedAgeBand!,
+      gender: _selectedGender!.toLowerCase(),
       interests: _selectedInterests.toList(),
-      selfieVerified: _selfieVerified,
     );
 
     if (!mounted) return;
@@ -262,6 +270,52 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 24),
+
+                // Gender Selection
+                const Text(
+                  'Gender',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Used for balanced tribe matching',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  children: _genders.map((gender) {
+                    final isSelected = _selectedGender == gender;
+                    IconData icon;
+                    switch (gender) {
+                      case 'Male':
+                        icon = Icons.male;
+                        break;
+                      case 'Female':
+                        icon = Icons.female;
+                        break;
+                      default:
+                        icon = Icons.person_outline;
+                    }
+                    return ChoiceChip(
+                      avatar: Icon(icon, size: 18),
+                      label: Text(gender),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedGender = selected ? gender : null;
+                        });
+                      },
+                    );
+                  }).toList(),
                 ),
                 const SizedBox(height: 24),
 
@@ -370,30 +424,6 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                       },
                     );
                   }).toList(),
-                ),
-                const SizedBox(height: 24),
-
-                // Selfie Verification (Placeholder)
-                Card(
-                  child: ListTile(
-                    leading: Icon(
-                      _selfieVerified ? Icons.check_circle : Icons.camera_alt,
-                      color: _selfieVerified ? Colors.green : null,
-                    ),
-                    title: const Text('Selfie Verification'),
-                    subtitle: Text(_selfieVerified
-                        ? 'Verified ✓'
-                        : 'Upload a selfie (optional for now)'),
-                    trailing: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Implement image picker
-                        setState(() {
-                          _selfieVerified = true;
-                        });
-                      },
-                      child: const Text('Upload'),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 32),
 
