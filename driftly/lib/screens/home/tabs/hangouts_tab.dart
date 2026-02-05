@@ -184,90 +184,90 @@ class _HangoutsTabState extends State<HangoutsTab> {
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Info Card
-                    Container(
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.blue[700]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Hangouts last 45 minutes. Check in when you\'re at a location!',
-                              style: TextStyle(color: Colors.blue[900]),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Active Hangouts Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Active in Your Age Group',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          if (hangouts.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.green[100],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Info Card
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline, color: Colors.blue[700]),
+                            const SizedBox(width: 12),
+                            Expanded(
                               child: Text(
-                                '${hangouts.length}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green[800],
+                                'Hangouts last 45 minutes. Check in when you\'re at a location!',
+                                style: TextStyle(color: Colors.blue[900]),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Active Hangouts Section
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Active in Your Age Group',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            if (hangouts.isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green[100],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${hangouts.length}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green[800],
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    if (hangouts.isEmpty)
-                      EmptyState(
-                        icon: Icons.location_off,
-                        title: 'No Active Hangouts',
-                        message: 'No one is hanging out in your age group right now.\nBe the first to create one!',
-                        actionLabel: 'Create Hangout',
-                        onAction: () => _showCreateHangoutDialog(context),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: hangouts.length,
-                        itemBuilder: (context, index) {
-                          return _buildHangoutCard(
-                            context,
-                            hangouts[index],
-                            user.uid,
-                          );
-                        },
-                      ),
+                      if (hangouts.isEmpty)
+                        EmptyState(
+                          icon: Icons.location_off,
+                          title: 'No Active Hangouts',
+                          message: 'No one is hanging out in your age group right now.\nBe the first to create one!',
+                          actionLabel: 'Create Hangout',
+                          onAction: () => _showCreateHangoutDialog(context),
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: hangouts.length,
+                          itemBuilder: (context, index) {
+                            return _buildHangoutCard(
+                              context,
+                              hangouts[index],
+                              user.uid,
+                            );
+                          },
+                        ),
 
-                    const SizedBox(height: 80), // Space for FAB
-                  ],
+                      const SizedBox(height: 80), // Space for FAB
+                    ],
+                  ),
                 ),
-              ),
-            );
+              );
           },
         );
       },
