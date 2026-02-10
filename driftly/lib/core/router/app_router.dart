@@ -7,6 +7,7 @@ import '../../screens/onboarding/onboarding_photos_screen.dart';
 import '../../screens/onboarding/select_sailing_screen.dart';
 import '../../screens/onboarding/choose_pods_screen.dart';
 import '../../screens/home/home_shell.dart';
+import '../../screens/memories/memories_screen.dart';
 
 /// Driftly App Router Configuration
 ///
@@ -68,6 +69,13 @@ class AppRouter {
           final tab = state.uri.queryParameters['tab'] ?? 'home';
           return HomeShell(initialTab: tab);
         },
+      ),
+
+      // Cruise Memories
+      GoRoute(
+        path: '/memories',
+        name: 'memories',
+        builder: (context, state) => const MemoriesScreen(),
       ),
     ],
 

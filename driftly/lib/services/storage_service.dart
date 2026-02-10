@@ -150,4 +150,50 @@ class StorageService {
       throw Exception('Failed to upload daily photo: $e');
     }
   }
+
+  /// Upload cruise memory photo
+  /// Stored in sailings/{sailingId}/memories/{userId}/{milestone}_{timestamp}.jpg
+  Future<String> uploadMemoryPhoto({
+    required String userId,
+    required String sailingId,
+    required String milestone,
+    required File imageFile,
+  }) async {
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final String fileName = '${milestone}_$timestamp.jpg';
+      final Reference ref = _storage.ref().child(
+        'sailings/$sailingId/memories/$userId/$fileName',
+      );
+
+      // Upload file
+      final UploadTask uploadTask = ref.putFile(
+        imageFile,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+
+      // Wait for upload to complete
+      final TaskSnapshot snapshot = await uploadTask;
+
+      // Get download URL
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      throw Exception('Failed to upload memory photo: $e');
+    }
+  }
+
+  /// Delete a memory photo from storage
+  Future<void> deleteMemoryPhoto(String photoUrl) async {
+    try {
+      final Reference ref = _storage.refFromURL(photoUrl);
+      await ref.delete();
+    } catch (e) {
+      // Ignore if file doesn't exist
+      if (e is FirebaseException && e.code == 'object-not-found') {
+        return;
+      }
+      throw Exception('Failed to delete memory photo: $e');
+    }
+  }
 }

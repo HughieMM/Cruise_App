@@ -372,6 +372,53 @@ class _HomeTabState extends State<HomeTab> {
             // Timeline Prompts
             ..._buildTimelinePrompts(),
 
+            // Cruise Memories Card
+            if (_sailing != null && _sailing!.hasDeparted)
+              Card(
+                color: Colors.indigo[900]?.withOpacity(0.3),
+                child: InkWell(
+                  onTap: () => context.push('/memories'),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.indigo.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.photo_camera, color: Colors.indigo),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Cruise Memories',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Capture your journey moments!',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.chevron_right, color: Colors.grey[400]),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (_sailing != null && _sailing!.hasDeparted)
+              const SizedBox(height: 12),
+
             const SizedBox(height: 8),
 
             // Quick Stats

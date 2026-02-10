@@ -6,6 +6,7 @@ import '../models/pod_member.dart';
 import '../models/message.dart';
 import '../models/micro_hangout.dart';
 import '../models/hot_zone_vote.dart';
+import '../models/cruise_memory.dart';
 import '../utils/input_validator.dart';
 import '../utils/constants.dart';
 
@@ -808,6 +809,95 @@ class FirestoreService {
       return locationSummaries;
     } catch (e) {
       throw Exception('Failed to get vote summary: $e');
+    }
+  }
+
+  // ==================== Cruise Memory Methods ====================
+
+  /// Get memories collection for a sailing
+  CollectionReference memoriesCollection(String sailingId) {
+    return sailingsCollection.doc(sailingId).collection('memories');
+  }
+
+  /// Get user's memories for a sailing
+  Future<List<CruiseMemory>> getUserMemories({
+    required String sailingId,
+    required String userId,
+  }) async {
+    try {
+      final querySnapshot = await memoriesCollection(sailingId)
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: false)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => CruiseMemory.fromMap(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get user memories: $e');
+    }
+  }
+
+  /// Add a new cruise memory
+  Future<String> addCruiseMemory({
+    required String sailingId,
+    required String userId,
+    required MemoryMilestone milestone,
+    required String photoUrl,
+    String? caption,
+    required int dayNumber,
+  }) async {
+    try {
+      final memory = CruiseMemory(
+        id: '', // Will be set by Firestore
+        userId: userId,
+        sailingId: sailingId,
+        milestone: milestone,
+        photoUrl: photoUrl,
+        caption: caption,
+        createdAt: DateTime.now(),
+        dayNumber: dayNumber,
+      );
+
+      final docRef = await memoriesCollection(sailingId).add(memory.toMap());
+      return docRef.id;
+    } catch (e) {
+      throw Exception('Failed to add cruise memory: $e');
+    }
+  }
+
+  /// Delete a cruise memory
+  Future<void> deleteCruiseMemory({
+    required String sailingId,
+    required String memoryId,
+  }) async {
+    try {
+      await memoriesCollection(sailingId).doc(memoryId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete memory: $e');
+    }
+  }
+
+  /// Get all memories for a sailing (for collage generation)
+  Future<List<CruiseMemory>> getAllMemoriesForSailing({
+    required String sailingId,
+  }) async {
+    try {
+      final querySnapshot = await memoriesCollection(sailingId)
+          .orderBy('createdAt', descending: false)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => CruiseMemory.fromMap(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get sailing memories: $e');
     }
   }
 }
