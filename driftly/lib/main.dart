@@ -47,7 +47,7 @@ class DriftlyApp extends StatelessWidget {
             foregroundColor: Colors.white,
             elevation: 0,
           ),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             color: const Color(0xFF2A2A2A),
             elevation: 2,
             shape: RoundedRectangleBorder(
