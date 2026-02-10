@@ -32,7 +32,33 @@ class DriftlyApp extends StatelessWidget {
       child: MaterialApp.router(
         title: 'Driftly',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          brightness: Brightness.dark,
+          colorScheme: ColorScheme.dark(
+            primary: Colors.blue[400]!,
+            secondary: Colors.blue[300]!,
+            surface: const Color(0xFF1E1E1E),
+            onPrimary: Colors.white,
+            onSecondary: Colors.white,
+            onSurface: Colors.white,
+          ),
+          scaffoldBackgroundColor: Colors.black,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            elevation: 0,
+          ),
+          cardTheme: CardTheme(
+            color: const Color(0xFF2A2A2A),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: Color(0xFF1A1A1A),
+            selectedItemColor: Colors.blue,
+            unselectedItemColor: Colors.grey,
+          ),
           useMaterial3: true,
         ),
         routerConfig: AppRouter.router,

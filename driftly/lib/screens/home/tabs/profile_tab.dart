@@ -138,7 +138,7 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.black.withOpacity(0.7),
               ),
               child: SafeArea(
                 child: RefreshIndicator(
@@ -195,65 +195,105 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   Widget _buildProfileHeader(BuildContext context, dynamic user, AuthProvider authProvider) {
+    final backgroundImage = _getCruiseLineBackground(_sailing?.cruiseLineId);
+
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              backgroundImage: user.selfieUrl != null
-                  ? NetworkImage(user.selfieUrl!)
-                  : null,
-              child: user.selfieUrl == null
-                  ? Text(
-                      user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                      style: TextStyle(
-                        fontSize: 48,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              user.name,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          // Banner with cruise line background
+          Container(
+            height: 120,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(backgroundImage),
+                fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Age: ${user.ageBand}',
-              style: TextStyle(color: Colors.grey[600]),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.3),
+                  ],
+                ),
+              ),
             ),
-            if (user.selfieVerified) ...[
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.verified, size: 16, color: Colors.green[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Verified',
-                    style: TextStyle(
-                      color: Colors.green[600],
-                      fontSize: 12,
-                    ),
+          ),
+          // Profile content
+          Transform.translate(
+            offset: const Offset(0, -40),
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Theme.of(context).cardColor, width: 4),
+                  ),
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    backgroundImage: user.selfieUrl != null
+                        ? NetworkImage(user.selfieUrl!)
+                        : null,
+                    child: user.selfieUrl == null
+                        ? Text(
+                            user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                            style: TextStyle(
+                              fontSize: 48,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  user.name,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Age: ${user.ageBand}',
+                  style: TextStyle(color: Colors.grey[400]),
+                ),
+                if (user.selfieVerified) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.verified, size: 16, color: Colors.green[400]),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Verified',
+                        style: TextStyle(
+                          color: Colors.green[400],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => _showEditProfileDialog(context, user, authProvider),
-              icon: const Icon(Icons.edit),
-              label: const Text('Edit Profile'),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showEditProfileDialog(context, user, authProvider),
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Edit Profile'),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

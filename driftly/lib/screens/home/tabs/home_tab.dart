@@ -132,7 +132,7 @@ class _HomeTabState extends State<HomeTab> {
     if (_sailing!.shouldPromptProfileCompletion && !user.hasAllPhotos) {
       widgets.add(
         Card(
-          color: Colors.amber[50],
+          color: Colors.amber[900]?.withOpacity(0.3),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -158,7 +158,7 @@ class _HomeTabState extends State<HomeTab> {
                         'Add your photos to be matched with a tribe!',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[700],
+                          color: Colors.grey[400],
                         ),
                       ),
                     ],
@@ -180,7 +180,7 @@ class _HomeTabState extends State<HomeTab> {
     if (_sailing!.shouldTriggerTribeMatching && !tribeProvider.hasTribe) {
       widgets.add(
         Card(
-          color: Colors.purple[50],
+          color: Colors.purple[900]?.withOpacity(0.3),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -191,7 +191,7 @@ class _HomeTabState extends State<HomeTab> {
                     color: Colors.purple.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.diversity_3, color: Colors.purple),
+                  child: Icon(Icons.diversity_3, color: Colors.purple[300]),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -206,13 +206,13 @@ class _HomeTabState extends State<HomeTab> {
                         'You\'ll be matched with your tribe soon!',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[700],
+                          color: Colors.grey[400],
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.hourglass_empty, color: Colors.purple),
+                Icon(Icons.hourglass_empty, color: Colors.purple[300]),
               ],
             ),
           ),
@@ -225,7 +225,7 @@ class _HomeTabState extends State<HomeTab> {
     if (tribeProvider.hasTribe) {
       widgets.add(
         Card(
-          color: Colors.green[50],
+          color: Colors.green[900]?.withOpacity(0.3),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -236,7 +236,7 @@ class _HomeTabState extends State<HomeTab> {
                     color: Colors.green.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check_circle, color: Colors.green),
+                  child: Icon(Icons.check_circle, color: Colors.green[400]),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -326,8 +326,8 @@ class _HomeTabState extends State<HomeTab> {
                             ),
                             decoration: BoxDecoration(
                               color: _sailing!.isInFinalCountdown
-                                  ? Colors.orange.withOpacity(0.2)
-                                  : Colors.white.withOpacity(0.3),
+                                  ? Colors.orange.withOpacity(0.3)
+                                  : Colors.black.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
