@@ -8,6 +8,21 @@ import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
 import '../../../utils/constants.dart';
 
+/// Helper to get cruise line background image path
+String _getCruiseLineBackground(String? cruiseLineId) {
+  if (cruiseLineId == null) return 'assets/images/background.png';
+
+  final id = cruiseLineId.toLowerCase();
+  if (id.contains('royal') || id.contains('caribbean')) {
+    return 'assets/images/royal_caribbean_bg.png';
+  } else if (id.contains('carnival')) {
+    return 'assets/images/carnival_bg.png';
+  } else if (id.contains('ncl') || id.contains('norwegian')) {
+    return 'assets/images/ncl_bg.png';
+  }
+  return 'assets/images/background.png';
+}
+
 /// Profile Tab
 ///
 /// Features:
@@ -99,9 +114,14 @@ class _ProfileTabState extends State<ProfileTab> {
           return const Center(child: CircularProgressIndicator());
         }
 
+        final backgroundImage = _getCruiseLineBackground(_sailing?.cruiseLineId);
+
         return Scaffold(
+          extendBodyBehindAppBar: true,
           appBar: AppBar(
             title: const Text('Profile'),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings),
@@ -109,51 +129,66 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
             ],
           ),
-          body: RefreshIndicator(
-            onRefresh: () async {
-              await authProvider.refreshUserData();
-              await _loadExtras();
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Profile Header
-                  _buildProfileHeader(context, user, authProvider),
-                  const SizedBox(height: 16),
+          body: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(backgroundImage),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.85),
+              ),
+              child: SafeArea(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await authProvider.refreshUserData();
+                    await _loadExtras();
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Profile Header
+                        _buildProfileHeader(context, user, authProvider),
+                        const SizedBox(height: 16),
 
-                  // Interests
-                  _buildInterestsCard(user.interests),
-                  const SizedBox(height: 16),
+                        // Interests
+                        _buildInterestsCard(user.interests),
+                        const SizedBox(height: 16),
 
-                  // Sailing Info
-                  _buildSailingCard(),
-                  const SizedBox(height: 16),
+                        // Sailing Info
+                        _buildSailingCard(),
+                        const SizedBox(height: 16),
 
-                  // My Pods
-                  _buildPodsCard(),
-                  const SizedBox(height: 24),
+                        // My Pods
+                        _buildPodsCard(),
+                        const SizedBox(height: 24),
 
-                  // Sign Out Button
-                  _buildSignOutButton(context, authProvider),
-                  const SizedBox(height: 16),
+                        // Sign Out Button
+                        _buildSignOutButton(context, authProvider),
+                        const SizedBox(height: 16),
 
-                  // App Version
-                  Center(
-                    child: Text(
-                      'Driftly v1.0.0',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                    ),
+                        // App Version
+                        Center(
+                          child: Text(
+                            'Driftly v1.0.0',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
+        ),
         );
       },
     );
