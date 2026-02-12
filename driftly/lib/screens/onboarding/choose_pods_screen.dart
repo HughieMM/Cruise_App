@@ -118,8 +118,8 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen> {
 
       if (!mounted) return;
 
-      // Complete onboarding → Navigate to home
-      context.go('/home');
+      // Navigate to notification permission screen
+      context.go('/onboarding/notifications');
     } catch (e) {
       if (!mounted) return;
 

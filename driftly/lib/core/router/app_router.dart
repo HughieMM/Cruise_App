@@ -6,8 +6,11 @@ import '../../screens/onboarding/onboarding_profile_screen.dart';
 import '../../screens/onboarding/onboarding_photos_screen.dart';
 import '../../screens/onboarding/select_sailing_screen.dart';
 import '../../screens/onboarding/choose_pods_screen.dart';
+import '../../screens/onboarding/notification_permission_screen.dart';
 import '../../screens/home/home_shell.dart';
 import '../../screens/memories/memories_screen.dart';
+import '../../screens/legal/privacy_policy_screen.dart';
+import '../../screens/legal/terms_of_service_screen.dart';
 
 /// Driftly App Router Configuration
 ///
@@ -59,6 +62,11 @@ class AppRouter {
         name: 'onboarding-pods',
         builder: (context, state) => const ChoosePodsScreen(),
       ),
+      GoRoute(
+        path: '/onboarding/notifications',
+        name: 'onboarding-notifications',
+        builder: (context, state) => const NotificationPermissionScreen(),
+      ),
 
       // Main App (Home Shell with Bottom Navigation)
       GoRoute(
@@ -76,6 +84,18 @@ class AppRouter {
         path: '/memories',
         name: 'memories',
         builder: (context, state) => const MemoriesScreen(),
+      ),
+
+      // Legal Pages
+      GoRoute(
+        path: '/privacy-policy',
+        name: 'privacy-policy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: '/terms-of-service',
+        name: 'terms-of-service',
+        builder: (context, state) => const TermsOfServiceScreen(),
       ),
     ],
 

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/router/app_router.dart';
 import 'providers/auth_provider.dart';
 import 'providers/tribe_provider.dart';
+import 'services/notification_service.dart';
 
 /// Driftly - A social app for cruise passengers aged 21-30
 ///
@@ -14,6 +15,9 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // Initialize notification service
+  await NotificationService().initialize();
 
   runApp(const DriftlyApp());
 }

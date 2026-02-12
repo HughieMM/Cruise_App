@@ -670,9 +670,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Terms of Service coming soon')),
-                  );
+                  context.push('/terms-of-service');
                 },
               ),
               ListTile(
@@ -681,9 +679,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Privacy Policy coming soon')),
-                  );
+                  context.push('/privacy-policy');
                 },
               ),
               const SizedBox(height: 8),
