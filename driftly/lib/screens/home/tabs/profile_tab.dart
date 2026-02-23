@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
@@ -279,6 +280,21 @@ class _ProfileTabState extends State<ProfileTab> {
                         ),
                       ),
                     ],
+                  ),
+                ],
+                // Social Links
+                if (user.socialLinks != null && (user.socialLinks as Map).isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: (user.socialLinks as Map<String, String>).entries.map((entry) {
+                      return _SocialLinkButton(
+                        platform: entry.key,
+                        handle: entry.value,
+                      );
+                    }).toList(),
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -733,6 +749,13 @@ class _ProfileTabState extends State<ProfileTab> {
     String? selectedAgeBand = user.ageBand;
     Set<String> selectedInterests = Set.from(user.interests);
 
+    // Social links controllers
+    final socialLinks = Map<String, String>.from(user.socialLinks ?? {});
+    final Map<String, TextEditingController> socialControllers = {};
+    for (final platform in AppConstants.socialPlatforms) {
+      socialControllers[platform] = TextEditingController(text: socialLinks[platform] ?? '');
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -893,6 +916,41 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: 24),
 
+                  // Social Links Section
+                  const Text(
+                    'Social Links',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Add your social handles so others can connect with you',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...AppConstants.socialPlatforms.map((platform) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: TextField(
+                        controller: socialControllers[platform],
+                        decoration: InputDecoration(
+                          labelText: platform,
+                          hintText: 'Your $platform username',
+                          prefixIcon: Icon(_getSocialIcon(platform)),
+                          prefixIconColor: _getSocialColor(platform),
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 16),
+
                   // Save Button
                   ElevatedButton(
                     onPressed: () async {
@@ -917,10 +975,23 @@ class _ProfileTabState extends State<ProfileTab> {
                         return;
                       }
 
+                      // Collect non-empty social links
+                      final updatedSocialLinks = <String, String>{};
+                      for (final platform in AppConstants.socialPlatforms) {
+                        final handle = socialControllers[platform]?.text.trim() ?? '';
+                        if (handle.isNotEmpty) {
+                          // Remove @ symbol if user included it
+                          updatedSocialLinks[platform] = handle.startsWith('@')
+                              ? handle.substring(1)
+                              : handle;
+                        }
+                      }
+
                       final success = await authProvider.updateProfile({
                         'name': nameController.text.trim(),
                         'ageBand': selectedAgeBand,
                         'interests': selectedInterests.toList(),
+                        'socialLinks': updatedSocialLinks,
                         'updatedAt': DateTime.now().toIso8601String(),
                       });
 
@@ -1466,6 +1537,132 @@ class _ProfileTabState extends State<ProfileTab> {
             child: const Text('Submit'),
           ),
         ],
+      ),
+    );
+  }
+
+  IconData _getSocialIcon(String platform) {
+    switch (platform.toLowerCase()) {
+      case 'instagram':
+        return Icons.camera_alt;
+      case 'snapchat':
+        return Icons.chat_bubble;
+      case 'tiktok':
+        return Icons.music_note;
+      case 'twitter':
+        return Icons.alternate_email;
+      default:
+        return Icons.link;
+    }
+  }
+
+  Color _getSocialColor(String platform) {
+    switch (platform.toLowerCase()) {
+      case 'instagram':
+        return const Color(0xFFE4405F);
+      case 'snapchat':
+        return const Color(0xFFFFFC00);
+      case 'tiktok':
+        return const Color(0xFF00F2EA);
+      case 'twitter':
+        return const Color(0xFF1DA1F2);
+      default:
+        return Colors.blue;
+    }
+  }
+}
+
+/// Social link button for profile display
+class _SocialLinkButton extends StatelessWidget {
+  final String platform;
+  final String handle;
+
+  const _SocialLinkButton({
+    required this.platform,
+    required this.handle,
+  });
+
+  IconData _getIcon() {
+    switch (platform.toLowerCase()) {
+      case 'instagram':
+        return Icons.camera_alt;
+      case 'snapchat':
+        return Icons.chat_bubble;
+      case 'tiktok':
+        return Icons.music_note;
+      case 'twitter':
+        return Icons.alternate_email;
+      default:
+        return Icons.link;
+    }
+  }
+
+  Color _getColor() {
+    switch (platform.toLowerCase()) {
+      case 'instagram':
+        return const Color(0xFFE4405F);
+      case 'snapchat':
+        return const Color(0xFFFFFC00);
+      case 'tiktok':
+        return const Color(0xFF00F2EA);
+      case 'twitter':
+        return const Color(0xFF1DA1F2);
+      default:
+        return Colors.blue;
+    }
+  }
+
+  Future<void> _openSocialLink() async {
+    String? url;
+    switch (platform.toLowerCase()) {
+      case 'instagram':
+        url = 'https://instagram.com/$handle';
+        break;
+      case 'snapchat':
+        url = 'https://snapchat.com/add/$handle';
+        break;
+      case 'tiktok':
+        url = 'https://tiktok.com/@$handle';
+        break;
+      case 'twitter':
+        url = 'https://twitter.com/$handle';
+        break;
+    }
+    if (url != null) {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _getColor();
+    return GestureDetector(
+      onTap: _openSocialLink,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_getIcon(), size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(
+              '@$handle',
+              style: TextStyle(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

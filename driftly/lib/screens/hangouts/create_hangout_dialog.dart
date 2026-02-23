@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
+import '../../utils/constants.dart';
 
 /// Dialog for creating a new micro hangout
 /// Allows users to select location and vibe
@@ -15,20 +16,46 @@ class CreateHangoutDialog extends StatefulWidget {
 class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
   final _firestoreService = FirestoreService();
 
-  // Fixed locations as per requirements
+  // Fixed locations with their category colors
   final List<Map<String, dynamic>> _locations = [
-    {'name': 'Pool Deck', 'icon': Icons.pool},
-    {'name': 'Sports Court', 'icon': Icons.sports_tennis},
-    {'name': 'Nightclub', 'icon': Icons.nightlife},
-    {'name': 'Atrium', 'icon': Icons.domain},
-    {'name': 'Buffet', 'icon': Icons.restaurant},
-    {'name': 'Coffee Bar', 'icon': Icons.local_cafe},
+    {'name': 'Pool', 'icon': Icons.pool, 'category': 'Pool'},
+    {'name': 'Sports Court', 'icon': Icons.sports_tennis, 'category': 'Gym'},
+    {'name': 'Nightclub', 'icon': Icons.nightlife, 'category': 'Bar'},
+    {'name': 'Atrium', 'icon': Icons.domain, 'category': 'Other'},
+    {'name': 'Buffet', 'icon': Icons.restaurant, 'category': 'Restaurant'},
+    {'name': 'Coffee Bar', 'icon': Icons.local_cafe, 'category': 'Restaurant'},
+    {'name': 'Casino', 'icon': Icons.casino, 'category': 'Casino'},
+    {'name': 'Spa', 'icon': Icons.spa, 'category': 'Spa'},
+    {'name': 'Theatre', 'icon': Icons.theater_comedy, 'category': 'Theatre'},
+    {'name': 'Shore Excursion', 'icon': Icons.beach_access, 'category': 'Shore Excursion'},
   ];
 
+  // Get vibe color from constants
+  Color _getVibeColor(String vibe) {
+    final hexColor = AppConstants.hangoutMoodColors[vibe];
+    if (hexColor != null) {
+      final hex = hexColor.replaceAll('#', '');
+      return Color(int.parse('FF$hex', radix: 16));
+    }
+    return Colors.blue;
+  }
+
+  // Get location color from constants
+  Color _getLocationColor(String category) {
+    final hexColor = AppConstants.hangoutCategoryColors[category];
+    if (hexColor != null) {
+      final hex = hexColor.replaceAll('#', '');
+      return Color(int.parse('FF$hex', radix: 16));
+    }
+    return Colors.grey;
+  }
+
   final List<Map<String, dynamic>> _vibes = [
-    {'name': 'Chill', 'value': 'chill', 'emoji': '😌', 'color': Colors.blue},
-    {'name': 'Lively', 'value': 'lively', 'emoji': '🎉', 'color': Colors.orange},
-    {'name': 'Party', 'value': 'party', 'emoji': '🔥', 'color': Colors.red},
+    {'name': 'Chill', 'value': 'chill', 'emoji': '😌'},
+    {'name': 'Lively', 'value': 'lively', 'emoji': '🎉'},
+    {'name': 'Party', 'value': 'party', 'emoji': '🔥'},
+    {'name': 'Adventure', 'value': 'adventurous', 'emoji': '🌊'},
+    {'name': 'Social', 'value': 'social', 'emoji': '💬'},
   ];
 
   String? _selectedLocation;
@@ -143,6 +170,7 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
               runSpacing: 8,
               children: _locations.map((location) {
                 final isSelected = _selectedLocation == location['name'];
+                final locationColor = _getLocationColor(location['category'] as String);
                 return ChoiceChip(
                   label: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -150,7 +178,7 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
                       Icon(
                         location['icon'] as IconData,
                         size: 18,
-                        color: isSelected ? Colors.white : Colors.grey[700],
+                        color: isSelected ? Colors.white : locationColor,
                       ),
                       const SizedBox(width: 6),
                       Text(location['name'] as String),
@@ -162,9 +190,11 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
                       _selectedLocation = selected ? location['name'] as String : null;
                     });
                   },
-                  selectedColor: Theme.of(context).colorScheme.primary,
+                  selectedColor: locationColor,
+                  backgroundColor: locationColor.withOpacity(0.1),
+                  side: BorderSide(color: locationColor.withOpacity(0.3)),
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey[700],
+                    color: isSelected ? Colors.white : Colors.grey[300],
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 );
@@ -180,40 +210,40 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
                   ),
             ),
             const SizedBox(height: 12),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: _vibes.map((vibe) {
                 final isSelected = _selectedVibe == vibe['value'];
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ChoiceChip(
-                      label: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            vibe['emoji'] as String,
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            vibe['name'] as String,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isSelected ? Colors.white : Colors.grey[700],
-                            ),
-                          ),
-                        ],
+                final vibeColor = _getVibeColor(vibe['value'] as String);
+                return ChoiceChip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        vibe['emoji'] as String,
+                        style: const TextStyle(fontSize: 18),
                       ),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedVibe = vibe['value'] as String;
-                        });
-                      },
-                      selectedColor: vibe['color'] as Color,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
+                      const SizedBox(width: 6),
+                      Text(
+                        vibe['name'] as String,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isSelected ? Colors.white : Colors.grey[300],
+                        ),
+                      ),
+                    ],
                   ),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      _selectedVibe = vibe['value'] as String;
+                    });
+                  },
+                  selectedColor: vibeColor,
+                  backgroundColor: vibeColor.withOpacity(0.1),
+                  side: BorderSide(color: vibeColor.withOpacity(0.3)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 );
               }).toList(),
             ),
@@ -223,19 +253,20 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: Colors.blue.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.timer, color: Colors.blue[700], size: 20),
+                  Icon(Icons.timer, color: Colors.blue[300], size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Your hangout will be visible for 45 minutes',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.blue[900],
+                        color: Colors.blue[200],
                       ),
                     ),
                   ),

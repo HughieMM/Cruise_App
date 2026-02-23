@@ -32,6 +32,7 @@ dependencies:
   intl: ^0.19.0              # Date formatting for 30-day logic
   image_picker: ^1.1.2       # Selfie uploads
   cached_network_image: ^3.4.1  # Profile images
+  url_launcher: ^6.3.1       # Open social media links
 
   # Icons
   cupertino_icons: ^1.0.8
