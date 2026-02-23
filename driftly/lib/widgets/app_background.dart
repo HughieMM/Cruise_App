@@ -25,7 +25,7 @@ class AppBackground extends StatelessWidget {
       child: showOverlay
           ? Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(overlayOpacity),
+                color: Colors.black.withOpacity(overlayOpacity),
               ),
               child: child,
             )

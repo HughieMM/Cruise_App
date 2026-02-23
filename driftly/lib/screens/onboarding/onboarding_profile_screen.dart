@@ -117,6 +117,12 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                 _selectedAgeBand = ageBand;
                 _verifiedAge = age;
                 _ageVerified = true;
+                // Clear any restricted interests if switching to 16-17
+                if (ageBand == AppConstants.restrictedAgeBand) {
+                  _selectedInterests.removeWhere(
+                    (i) => AppConstants.restrictedInterests.contains(i),
+                  );
+                }
               });
 
               ScaffoldMessenger.of(context).showSnackBar(
@@ -142,8 +148,8 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
   /// Check if the entered age falls within the selected age band
   bool _isAgeInBand(int age, String ageBand) {
     switch (ageBand) {
-      case '14-17':
-        return age >= 14 && age <= 17;
+      case '16-17':
+        return age >= 16 && age <= 17;
       case '18-20':
         return age >= 18 && age <= 20;
       case '21-30':
@@ -155,6 +161,20 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
       default:
         return false;
     }
+  }
+
+  /// Get available interests based on age band (16-17 has restrictions)
+  List<String> _getAvailableInterests() {
+    if (_selectedAgeBand == AppConstants.restrictedAgeBand) {
+      return AppConstants.underageInterests;
+    }
+    return AppConstants.availableInterests;
+  }
+
+  /// Check if interest is restricted for current age band
+  bool _isInterestRestricted(String interest) {
+    return _selectedAgeBand == AppConstants.restrictedAgeBand &&
+        AppConstants.restrictedInterests.contains(interest);
   }
 
   Future<void> _handleContinue() async {
@@ -404,11 +424,37 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                     ),
                   ],
                 ),
+                if (_selectedAgeBand == AppConstants.restrictedAgeBand) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Some interests (Casino, Nightlife) are not available for users under 18.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange[800],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: _availableInterests.map((interest) {
+                  children: _getAvailableInterests().map((interest) {
                     final isSelected = _selectedInterests.contains(interest);
                     return FilterChip(
                       label: Text(interest),

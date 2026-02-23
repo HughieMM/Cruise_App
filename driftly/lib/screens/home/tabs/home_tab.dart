@@ -6,6 +6,8 @@ import '../../../providers/tribe_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
+import '../../../utils/constants.dart';
+import '../../../widgets/app_background.dart';
 import '../../chat/pod_chat_screen.dart';
 
 /// Home Tab
@@ -274,11 +276,23 @@ class _HomeTabState extends State<HomeTab> {
     return widgets;
   }
 
+  /// Get pod color from name
+  Color _getPodColor(String podName) {
+    final colorHex = AppConstants.podColors[podName];
+    if (colorHex != null) {
+      return _parseColor(colorHex);
+    }
+    return Colors.blue;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Driftly'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
@@ -288,11 +302,14 @@ class _HomeTabState extends State<HomeTab> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: AppBackground(
+        overlayOpacity: 0.7,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
             // Welcome Card with Countdown
             Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
@@ -511,16 +528,25 @@ class _HomeTabState extends State<HomeTab> {
               )
             else
               ..._userPods.map((pod) {
-                final color = _parseColor(pod.color);
+                final podColor = _getPodColor(pod.name);
                 final icon = _getIconData(pod.icon);
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
+                  color: podColor.withOpacity(0.15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: podColor.withOpacity(0.3), width: 1),
+                  ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(12),
-                    leading: CircleAvatar(
-                      backgroundColor: color.withOpacity(0.2),
-                      child: Icon(icon, color: color),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: podColor.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: podColor),
                     ),
                     title: Text(
                       pod.name,
@@ -528,9 +554,9 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     subtitle: Text(
                       '${pod.memberCount} members',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(color: Colors.grey[400]),
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Icon(Icons.chevron_right, color: podColor),
                     onTap: () {
                       final authProvider =
                           Provider.of<AuthProvider>(context, listen: false);
@@ -593,6 +619,8 @@ class _HomeTabState extends State<HomeTab> {
               ),
             ),
           ],
+            ),
+          ),
         ),
       ),
     );

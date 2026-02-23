@@ -40,13 +40,16 @@ class AppConstants {
 
   // ==================== Age Bands ====================
 
-  static const List<String> ageBands = ['14-17', '18-20', '21-30', '31-40', '40+'];
+  static const List<String> ageBands = ['16-17', '18-20', '21-30', '31-40', '40+'];
 
-  static const String ageBand1417 = '14-17';
+  static const String ageBand1617 = '16-17';
   static const String ageBand1820 = '18-20';
   static const String ageBand2130 = '21-30';
   static const String ageBand3140 = '31-40';
   static const String ageBand40Plus = '40+';
+
+  /// Age band that has restrictions (no alcohol, no gambling)
+  static const String restrictedAgeBand = '16-17';
 
   // ==================== Interests ====================
 
@@ -62,6 +65,16 @@ class AppConstants {
     'Casino',
     'On Island Hangout',
   ];
+
+  /// Interests restricted for 16-17 age group
+  static const List<String> restrictedInterests = [
+    'Casino',
+    'Nightlife', // Often involves alcohol
+  ];
+
+  /// Interests available for 16-17 age group
+  static List<String> get underageInterests =>
+      availableInterests.where((i) => !restrictedInterests.contains(i)).toList();
 
   // ==================== Hot Zones ====================
 
@@ -83,13 +96,43 @@ class AppConstants {
     'good_vibes',
   ];
 
-  // ==================== Micro Hangout Vibes ====================
+  // ==================== Micro Hangout Vibes & Colors ====================
 
   static const List<String> hangoutVibes = [
     'chill',
     'lively',
     'party',
+    'adventurous',
+    'social',
   ];
+
+  /// Mood colors for hangouts (hex colors)
+  static const Map<String, String> hangoutMoodColors = {
+    'chill': '#4A90A4',      // Calm blue
+    'lively': '#FF9500',     // Energetic orange
+    'party': '#FF2D55',      // Hot pink/red
+    'adventurous': '#34C759', // Green
+    'social': '#AF52DE',     // Purple
+  };
+
+  /// Hangout category colors
+  static const Map<String, String> hangoutCategoryColors = {
+    'Pool': '#00CED1',       // Turquoise
+    'Bar': '#8B0000',        // Dark red
+    'Restaurant': '#FF8C00', // Dark orange
+    'Deck': '#87CEEB',       // Sky blue
+    'Casino': '#FFD700',     // Gold
+    'Spa': '#DDA0DD',        // Plum
+    'Gym': '#32CD32',        // Lime green
+    'Theatre': '#9370DB',    // Medium purple
+    'Shore Excursion': '#20B2AA', // Light sea green
+    'Other': '#708090',      // Slate gray
+  };
+
+  // ==================== Message Settings ====================
+
+  /// Duration before messages expire in pod chats
+  static const Duration messageExpiryDuration = Duration(hours: 10);
 
   // ==================== Validation ====================
 
@@ -120,6 +163,38 @@ class AppConstants {
   static const String noMessagesMessage = 'No messages yet.\nStart the conversation!';
   static const String noPodsMessage = 'No pods available.\nCheck back later!';
   static const String noVotesMessage = 'No votes yet.\nBe the first to vote!';
+
+  // ==================== Social Media Platforms ====================
+
+  static const List<String> socialPlatforms = [
+    'Instagram',
+    'Snapchat',
+    'TikTok',
+    'Twitter',
+  ];
+
+  /// Social media icons (using material icons names)
+  static const Map<String, String> socialIcons = {
+    'Instagram': 'camera_alt',
+    'Snapchat': 'chat_bubble',
+    'TikTok': 'music_note',
+    'Twitter': 'alternate_email',
+  };
+
+  // ==================== Pod Colors ====================
+
+  static const Map<String, String> podColors = {
+    'Nightlife': '#6B2D5C',     // Deep purple
+    'Fitness': '#2E7D32',       // Forest green
+    'Excursions': '#1565C0',    // Ocean blue
+    'Relaxation': '#00ACC1',    // Cyan
+    'Food & Dining': '#EF6C00', // Orange
+    'Sports': '#C62828',        // Red
+    'Photography': '#6A1B9A',   // Purple
+    'Music': '#AD1457',         // Pink
+    'Casino': '#F9A825',        // Gold
+    'On Island Hangout': '#00897B', // Teal
+  };
 
   // ==================== Firestore Collection Names ====================
 

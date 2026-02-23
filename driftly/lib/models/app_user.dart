@@ -9,7 +9,7 @@ class AppUser {
   final String uid;
   final String email;
   final String name;
-  final String ageBand; // "14-17", "18-20", "21-30", "31-40", "40+"
+  final String ageBand; // "16-17", "18-20", "21-30", "31-40", "40+"
   final String gender; // "male", "female", "other"
   final List<String> interests;
   final bool selfieVerified;
@@ -22,6 +22,7 @@ class AppUser {
   final String? currentTribeId;    // Tribe they're assigned to
   final String? siblingRequestId;  // If they requested to join with a sibling
   final bool profileComplete;      // True after Day 30 profile completion
+  final Map<String, String> socialLinks; // Social media handles
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -42,9 +43,13 @@ class AppUser {
     this.currentTribeId,
     this.siblingRequestId,
     this.profileComplete = false,
+    this.socialLinks = const {},
     required this.createdAt,
     required this.updatedAt,
   });
+
+  /// Check if user is underage (16-17) for content restrictions
+  bool get isUnderage => ageBand == '16-17';
 
   /// Create AppUser from Firestore document
   factory AppUser.fromMap(Map<String, dynamic> map, String documentId) {
@@ -65,6 +70,7 @@ class AppUser {
       currentTribeId: map['currentTribeId'] as String?,
       siblingRequestId: map['siblingRequestId'] as String?,
       profileComplete: map['profileComplete'] as bool? ?? false,
+      socialLinks: Map<String, String>.from(map['socialLinks'] as Map? ?? {}),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -89,6 +95,7 @@ class AppUser {
       'currentTribeId': currentTribeId,
       'siblingRequestId': siblingRequestId,
       'profileComplete': profileComplete,
+      'socialLinks': socialLinks,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
@@ -112,6 +119,7 @@ class AppUser {
     String? currentTribeId,
     String? siblingRequestId,
     bool? profileComplete,
+    Map<String, String>? socialLinks,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -132,6 +140,7 @@ class AppUser {
       currentTribeId: currentTribeId ?? this.currentTribeId,
       siblingRequestId: siblingRequestId ?? this.siblingRequestId,
       profileComplete: profileComplete ?? this.profileComplete,
+      socialLinks: socialLinks ?? this.socialLinks,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
