@@ -113,15 +113,15 @@ class InputValidator {
 
   // ==================== Age Band Validation ====================
 
-  /// Validate age is within cruise requirements (14+)
+  /// Validate age is within cruise requirements (16+)
   static bool isValidAge(int age) {
-    return age >= 14;
+    return age >= 16;
   }
 
   /// Get age band from age
   static String? getAgeBand(int age) {
     if (!isValidAge(age)) return null;
-    if (age >= 14 && age <= 17) return AppConstants.ageBand1417;
+    if (age >= 16 && age <= 17) return AppConstants.ageBand1617;
     if (age >= 18 && age <= 20) return AppConstants.ageBand1820;
     if (age >= 21 && age <= 30) return AppConstants.ageBand2130;
     if (age >= 31 && age <= 40) return AppConstants.ageBand3140;
