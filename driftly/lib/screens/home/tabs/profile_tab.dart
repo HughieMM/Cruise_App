@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,36 @@ import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
 import '../../../utils/constants.dart';
+
+/// Glass card widget with 60% transparency and blur effect
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+
+  const _GlassCard({required this.child, this.padding});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          padding: padding ?? const EdgeInsets.all(16),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
 
 /// Helper to get cruise line background image path
 String _getCruiseLineBackground(String? cruiseLineId) {
@@ -139,7 +170,7 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withOpacity(0.4),
               ),
               child: SafeArea(
                 child: RefreshIndicator(
@@ -198,218 +229,177 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget _buildProfileHeader(BuildContext context, dynamic user, AuthProvider authProvider) {
     final backgroundImage = _getCruiseLineBackground(_sailing?.cruiseLineId);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          // Banner with cruise line background
-          Container(
-            height: 120,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(backgroundImage),
-                fit: BoxFit.cover,
-              ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1,
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.3),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              // Banner with cruise line background
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(backgroundImage),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.3),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Profile content
+              Transform.translate(
+                offset: const Offset(0, -40),
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 4),
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        backgroundImage: user.selfieUrl != null
+                            ? NetworkImage(user.selfieUrl!)
+                            : null,
+                        child: user.selfieUrl == null
+                            ? Text(
+                                user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      user.name,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Age: ${user.ageBand}',
+                      style: TextStyle(color: Colors.grey[300]),
+                    ),
+                    if (user.selfieVerified) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.verified, size: 16, color: Colors.green[400]),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Verified',
+                            style: TextStyle(
+                              color: Colors.green[400],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    // Social Links
+                    if (user.socialLinks != null && (user.socialLinks as Map).isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: (user.socialLinks as Map<String, String>).entries.map((entry) {
+                          return _SocialLinkButton(
+                            platform: entry.key,
+                            handle: entry.value,
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showEditProfileDialog(context, user, authProvider),
+                        icon: const Icon(Icons.edit),
+                        label: const Text('Edit Profile'),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-          // Profile content
-          Transform.translate(
-            offset: const Offset(0, -40),
-            child: Column(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Theme.of(context).cardColor, width: 4),
-                  ),
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    backgroundImage: user.selfieUrl != null
-                        ? NetworkImage(user.selfieUrl!)
-                        : null,
-                    child: user.selfieUrl == null
-                        ? Text(
-                            user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                            style: TextStyle(
-                              fontSize: 48,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          )
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  user.name,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Age: ${user.ageBand}',
-                  style: TextStyle(color: Colors.grey[400]),
-                ),
-                if (user.selfieVerified) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.verified, size: 16, color: Colors.green[400]),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Verified',
-                        style: TextStyle(
-                          color: Colors.green[400],
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                // Social Links
-                if (user.socialLinks != null && (user.socialLinks as Map).isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.center,
-                    children: (user.socialLinks as Map<String, String>).entries.map((entry) {
-                      return _SocialLinkButton(
-                        platform: entry.key,
-                        handle: entry.value,
-                      );
-                    }).toList(),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showEditProfileDialog(context, user, authProvider),
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Edit Profile'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildInterestsCard(List<String> interests) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Interests',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+    return _GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Interests',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
-            const SizedBox(height: 12),
-            interests.isEmpty
-                ? Text(
-                    'No interests selected',
-                    style: TextStyle(color: Colors.grey[600]),
-                  )
-                : Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: interests
-                        .map((interest) => Chip(
-                              label: Text(interest),
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
-                            ))
-                        .toList(),
-                  ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          interests.isEmpty
+              ? Text(
+                  'No interests selected',
+                  style: TextStyle(color: Colors.grey[400]),
+                )
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: interests
+                      .map((interest) => Chip(
+                            label: Text(interest),
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer
+                                .withOpacity(0.8),
+                          ))
+                      .toList(),
+                ),
+        ],
       ),
     );
   }
 
   Widget _buildSailingCard() {
     if (_isLoadingExtras) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'My Sailing',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.grey[400],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_sailing == null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'My Sailing',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'No sailing selected',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final dateStr = DateFormat('dd MMM yyyy').format(_sailing!.departureDate);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      return _GlassCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -418,55 +408,76 @@ class _ProfileTabState extends State<ProfileTab> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 12),
-            _buildInfoRow(
-              Icons.directions_boat,
-              'Cruise Line',
-              _formatCruiseLineId(_sailing!.cruiseLineId),
+            Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.grey[400],
+              ),
             ),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.sailing, 'Ship', _formatShipId(_sailing!.shipId)),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.calendar_today, 'Sailing Date', dateStr),
           ],
         ),
+      );
+    }
+
+    if (_sailing == null) {
+      return _GlassCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'My Sailing',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No sailing selected',
+              style: TextStyle(color: Colors.grey[400]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final dateStr = DateFormat('dd MMM yyyy').format(_sailing!.departureDate);
+
+    return _GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'My Sailing',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            Icons.directions_boat,
+            'Cruise Line',
+            _formatCruiseLineId(_sailing!.cruiseLineId),
+          ),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.sailing, 'Ship', _formatShipId(_sailing!.shipId)),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.calendar_today, 'Sailing Date', dateStr),
+        ],
       ),
     );
   }
 
   Widget _buildPodsCard() {
     if (_isLoadingExtras) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'My Pods',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.grey[400],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      return _GlassCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -475,24 +486,48 @@ class _ProfileTabState extends State<ProfileTab> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 12),
-            if (_userPods == null || _userPods!.isEmpty)
-              Text(
-                'No pods joined yet',
-                style: TextStyle(color: Colors.grey[600]),
-              )
-            else
-              ..._userPods!.map((pod) {
-                final color = _parseColor(pod.color);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _buildPodBadge(pod.name, color),
-                );
-              }),
+            Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.grey[400],
+              ),
+            ),
           ],
         ),
+      );
+    }
+
+    return _GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'My Pods',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (_userPods == null || _userPods!.isEmpty)
+            Text(
+              'No pods joined yet',
+              style: TextStyle(color: Colors.grey[400]),
+            )
+          else
+            ..._userPods!.map((pod) {
+              final color = _parseColor(pod.color);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildPodBadge(pod.name, color),
+              );
+            }),
+        ],
       ),
     );
   }
@@ -512,7 +547,7 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 20, color: Colors.grey[400]),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -522,7 +557,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: Colors.grey[400],
                 ),
               ),
               Text(
@@ -530,6 +565,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
+                  color: Colors.white,
                 ),
               ),
             ],
