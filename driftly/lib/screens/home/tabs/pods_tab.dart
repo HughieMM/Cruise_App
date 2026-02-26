@@ -7,6 +7,7 @@ import '../../chat/pod_chat_screen.dart';
 import '../../../widgets/shimmer_loading.dart';
 import '../../../widgets/error_state.dart' as error_widget;
 import '../../../widgets/empty_state.dart' as empty_widget;
+import '../../../widgets/app_background.dart';
 
 /// Pods Tab
 ///
@@ -129,9 +130,13 @@ class _PodsTabState extends State<PodsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
+      extendBodyBehindAppBar: true,
+      overlayOpacity: 0.5,
       appBar: AppBar(
         title: const Text('My Pods'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -141,9 +146,11 @@ class _PodsTabState extends State<PodsTab> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadUserPods,
-        child: _buildBody(),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadUserPods,
+          child: _buildBody(),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

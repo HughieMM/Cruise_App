@@ -6,6 +6,7 @@ import '../../../services/firestore_service.dart';
 import '../../../models/micro_hangout.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/error_state.dart';
+import '../../../widgets/app_background.dart';
 import '../../hangouts/create_hangout_dialog.dart';
 import 'hot_zones_tab.dart';
 
@@ -106,9 +107,13 @@ class _HangoutsTabState extends State<HangoutsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
+      extendBodyBehindAppBar: true,
+      overlayOpacity: 0.5,
       appBar: AppBar(
         title: const Text('Hangouts & Vibes'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Padding(
@@ -136,7 +141,9 @@ class _HangoutsTabState extends State<HangoutsTab> {
           ),
         ),
       ),
-      body: _selectedView == 0 ? _buildHangoutsView() : const HotZonesContent(),
+      body: SafeArea(
+        child: _selectedView == 0 ? _buildHangoutsView() : const HotZonesContent(),
+      ),
       floatingActionButton: _selectedView == 0
           ? FloatingActionButton.extended(
               onPressed: () => _showCreateHangoutDialog(context),

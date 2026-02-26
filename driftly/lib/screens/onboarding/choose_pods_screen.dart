@@ -10,6 +10,7 @@ import '../../models/pod.dart';
 /// User selects 1-3 Pods to join
 /// Loads pods from Firestore for the current sailing
 /// Creates pod memberships when user confirms selection
+/// Dynamic gradient background based on selected pod colors
 ///
 /// After selection → /home (complete onboarding)
 class ChoosePodsScreen extends StatefulWidget {
@@ -19,17 +20,29 @@ class ChoosePodsScreen extends StatefulWidget {
   State<ChoosePodsScreen> createState() => _ChoosePodsScreenState();
 }
 
-class _ChoosePodsScreenState extends State<ChoosePodsScreen> {
+class _ChoosePodsScreenState extends State<ChoosePodsScreen>
+    with SingleTickerProviderStateMixin {
   final _firestoreService = FirestoreService();
   List<Pod> _pods = [];
   final Set<String> _selectedPodIds = {};
   bool _isLoading = false;
   bool _isLoadingPods = true;
+  late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
     _loadPods();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPods() async {
@@ -85,6 +98,37 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen> {
         }
       }
     });
+    _animationController.forward(from: 0);
+  }
+
+  /// Get gradient colors based on selected pods
+  List<Color> _getGradientColors() {
+    if (_selectedPodIds.isEmpty) {
+      // Default dark gradient when nothing selected
+      return [
+        const Color(0xFF1a1a2e),
+        const Color(0xFF16213e),
+        const Color(0xFF0f0f23),
+      ];
+    }
+
+    // Get colors from selected pods
+    final selectedColors = _pods
+        .where((pod) => _selectedPodIds.contains(pod.id))
+        .map((pod) => _parseColor(pod.color).withOpacity(0.7))
+        .toList();
+
+    // Always have at least 2 colors for gradient
+    if (selectedColors.length == 1) {
+      return [
+        selectedColors[0],
+        selectedColors[0].withOpacity(0.3),
+        const Color(0xFF0f0f23),
+      ];
+    }
+
+    // Add dark at the end for readability
+    return [...selectedColors, const Color(0xFF0f0f23)];
   }
 
   Future<void> _handleContinue() async {
@@ -164,131 +208,166 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final gradientColors = _getGradientColors();
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Choose Your Pods'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: SafeArea(
-        child: _isLoadingPods
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  // Progress Indicator
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: LinearProgressIndicator(
-                      value: 3 / 3, // Step 3 of 3
-                      backgroundColor: Colors.grey[200],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Join your tribes',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Select 1-3 pods to join. You can change these later.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${_selectedPodIds.length}/3 selected',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Pods List
-                  Expanded(
-                    child: ListView.builder(
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+            stops: gradientColors.length == 3
+                ? const [0.0, 0.5, 1.0]
+                : gradientColors.length == 4
+                    ? const [0.0, 0.33, 0.66, 1.0]
+                    : null,
+          ),
+        ),
+        child: SafeArea(
+          child: _isLoadingPods
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  children: [
+                    // Progress Indicator
+                    Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      itemCount: _pods.length,
-                      itemBuilder: (context, index) {
-                        final pod = _pods[index];
-                        final isSelected = _selectedPodIds.contains(pod.id);
-                        final color = _parseColor(pod.color);
+                      child: LinearProgressIndicator(
+                        value: 3 / 3, // Step 3 of 3
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
 
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          elevation: isSelected ? 4 : 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? color
-                                  : Colors.grey.withOpacity(0.2),
-                              width: isSelected ? 2 : 1,
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Join your tribes',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(16),
-                            leading: CircleAvatar(
-                              backgroundColor: color.withOpacity(0.2),
-                              child: Icon(_getIconData(pod.icon), color: color),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Select 1-3 pods to join. You can change these later.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[300],
                             ),
-                            title: Text(
-                              pod.name,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_selectedPodIds.length}/3 selected',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Pods List
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        itemCount: _pods.length,
+                        itemBuilder: (context, index) {
+                          final pod = _pods[index];
+                          final isSelected = _selectedPodIds.contains(pod.id);
+                          final color = _parseColor(pod.color);
+
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: isSelected
+                                  ? color.withOpacity(0.2)
+                                  : Colors.white.withOpacity(0.1),
+                              border: Border.all(
+                                color: isSelected
+                                    ? color
+                                    : Colors.white.withOpacity(0.2),
+                                width: isSelected ? 2 : 1,
                               ),
                             ),
-                            subtitle: Text(pod.description),
-                            trailing: isSelected
-                                ? Icon(Icons.check_circle, color: color)
-                                : const Icon(Icons.circle_outlined),
-                            onTap: () => _togglePod(pod.id),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  // Continue Button
-                  Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleContinue,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        minimumSize: const Size(double.infinity, 48),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text(
-                              'Complete Setup',
-                              style: TextStyle(fontSize: 16),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              leading: CircleAvatar(
+                                backgroundColor: color.withOpacity(0.3),
+                                child: Icon(_getIconData(pod.icon), color: color),
+                              ),
+                              title: Text(
+                                pod.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              subtitle: Text(
+                                pod.description,
+                                style: TextStyle(
+                                  color: Colors.grey[300],
+                                ),
+                              ),
+                              trailing: isSelected
+                                  ? Icon(Icons.check_circle, color: color)
+                                  : Icon(
+                                      Icons.circle_outlined,
+                                      color: Colors.grey[400],
+                                    ),
+                              onTap: () => _togglePod(pod.id),
                             ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
+
+                    // Continue Button
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handleContinue,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text(
+                                'Complete Setup',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
