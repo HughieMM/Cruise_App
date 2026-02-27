@@ -134,7 +134,7 @@ class _HomeTabState extends State<HomeTab> {
     if (_sailing!.shouldPromptProfileCompletion && !user.hasAllPhotos) {
       widgets.add(
         Card(
-          color: Colors.amber[900]?.withOpacity(0.3),
+          color: const Color(0xFF007f97).withOpacity(0.3),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -142,10 +142,10 @@ class _HomeTabState extends State<HomeTab> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.2),
+                    color: const Color(0xFF007f97).withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person_add, color: Colors.amber),
+                  child: const Icon(Icons.person_add, color: Color(0xFFa4bcbc)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -168,6 +168,9 @@ class _HomeTabState extends State<HomeTab> {
                 ),
                 TextButton(
                   onPressed: () => context.go('/onboarding/photos'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFa4bcbc),
+                  ),
                   child: const Text('Add Photos'),
                 ),
               ],
@@ -317,73 +320,87 @@ class _HomeTabState extends State<HomeTab> {
                 final name = user?.name ?? 'Cruiser';
 
                 return Card(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: Colors.blue[900]?.withOpacity(0.3),
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Welcome aboard, $name!',
-                                style: Theme.of(context).textTheme.headlineSmall,
-                              ),
-                            ),
-                            const Text('🚢', style: TextStyle(fontSize: 32)),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.sailing, color: Colors.blue[300]),
                         ),
-                        const SizedBox(height: 8),
-                        if (_sailing != null && !_isLoadingSailing) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _sailing!.isInFinalCountdown
-                                  ? Colors.orange.withOpacity(0.3)
-                                  : Colors.black.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _sailing!.isInFinalCountdown
-                                      ? Icons.celebration
-                                      : Icons.calendar_today,
-                                  size: 16,
-                                  color: _sailing!.isInFinalCountdown
-                                      ? Colors.orange[800]
-                                      : null,
-                                ),
-                                const SizedBox(width: 6),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome aboard, $name!',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              if (_sailing != null && !_isLoadingSailing) ...[
+                                const SizedBox(height: 4),
                                 Text(
-                                  _sailing!.countdownMessage,
+                                  'Ready to connect with your cruise crew',
                                   style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: _sailing!.isInFinalCountdown
-                                        ? Colors.orange[800]
-                                        : null,
+                                    fontSize: 13,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              ] else ...[
+                                Text(
+                                  'Ready to connect with your cruise crew',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[400],
                                   ),
                                 ),
                               ],
-                            ),
+                            ],
                           ),
-                        ] else ...[
-                          Text(
-                            'Ready to connect with your cruise crew',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ],
+                        ),
+                        Icon(Icons.chevron_right, color: Colors.blue[300]),
                       ],
                     ),
                   ),
                 );
               },
             ),
+            const SizedBox(height: 8),
+
+            // Days countdown (separate card)
+            if (_sailing != null && !_isLoadingSailing)
+              Card(
+                color: const Color(0xFF1a4a5e).withOpacity(0.8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _sailing!.isInFinalCountdown
+                            ? Icons.celebration
+                            : Icons.calendar_today,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        _sailing!.countdownMessage,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             const SizedBox(height: 16),
 
             // Timeline Prompts
@@ -391,8 +408,11 @@ class _HomeTabState extends State<HomeTab> {
 
             // Cruise Memories Card
             if (_sailing != null && _sailing!.hasDeparted)
-              Card(
-                color: Colors.indigo[900]?.withOpacity(0.3),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: InkWell(
                   onTap: () => context.push('/memories'),
                   borderRadius: BorderRadius.circular(12),
@@ -403,31 +423,34 @@ class _HomeTabState extends State<HomeTab> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.indigo.withOpacity(0.2),
+                            color: Colors.blue[100],
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.photo_camera, color: Colors.indigo),
+                          child: Icon(Icons.photo_camera, color: Colors.blue[700]),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Cruise Memories',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue[900],
+                                ),
                               ),
                               Text(
                                 'Capture your journey moments!',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: Colors.grey[400],
+                                  color: Colors.blue[800],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Icon(Icons.chevron_right, color: Colors.grey[400]),
+                        Icon(Icons.chevron_right, color: Colors.blue[700]),
                       ],
                     ),
                   ),
@@ -499,31 +522,35 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               )
             else if (_userPods.isEmpty)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.groups_outlined,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No pods joined yet',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Join pods to connect with other cruisers',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[600],
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+              Container(
+                padding: const EdgeInsets.all(24.0),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.groups_outlined,
+                      size: 64,
+                      color: Colors.blue[700],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No pods joined yet',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Colors.blue[900],
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Join pods to connect with other cruisers',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.blue[800],
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               )
             else
@@ -597,25 +624,27 @@ class _HomeTabState extends State<HomeTab> {
             const SizedBox(height: 12),
 
             // Placeholder for future activity feed
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.notifications_none,
-                      size: 48,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No recent activity',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
-                    ),
-                  ],
-                ),
+            Container(
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.notifications_none,
+                    size: 48,
+                    color: Colors.blue[700],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No recent activity',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.blue[800],
+                        ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -632,23 +661,29 @@ class _HomeTabState extends State<HomeTab> {
     required String label,
     required String value,
   }) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 32, color: Colors.blue[700]),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.blue[900],
+                ),
+          ),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.blue[800],
+                ),
+          ),
+        ],
       ),
     );
   }

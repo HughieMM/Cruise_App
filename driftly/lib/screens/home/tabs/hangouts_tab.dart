@@ -232,14 +232,14 @@ class _HangoutsTabState extends State<HangoutsTab> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.green[100],
+                                  color: Colors.blue[100],
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   '${hangouts.length}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.green[800],
+                                    color: Colors.blue[800],
                                   ),
                                 ),
                               ),
@@ -289,133 +289,139 @@ class _HangoutsTabState extends State<HangoutsTab> {
     final vibeColor = _getVibeColor(hangout.vibe);
     final hasJoined = hangout.hasUserJoined(currentUserId);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.location_on,
-                    color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    hangout.location,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.location_on, color: Colors.blue[700]),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  hangout.location,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue[900],
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[100],
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.timer, size: 16, color: Colors.orange[800]),
-                      const SizedBox(width: 4),
-                      Text(
-                        hangout.timeRemaining,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange[800],
-                        ),
-                      ),
-                    ],
-                  ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange[100],
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                  child: Text(
-                    hangout.createdByName.isNotEmpty
-                        ? hangout.createdByName[0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    Icon(Icons.timer, size: 16, color: Colors.orange[800]),
+                    const SizedBox(width: 4),
                     Text(
-                      hangout.createdByName,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      _formatCreatedTime(hangout.startTime),
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      hangout.timeRemaining,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange[800],
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(Icons.people, size: 20, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  '${hangout.attendeeCount} ${hangout.attendeeCount == 1 ? "person" : "people"} here',
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: vibeColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        hangout.vibeEmoji,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        hangout.vibe.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: vibeColor.withOpacity(0.9),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: hasJoined ? null : () => _joinHangout(hangout.id),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 40),
-                backgroundColor: hasJoined ? Colors.grey : null,
               ),
-              child: Text(hasJoined ? 'You\'re Here!' : 'Join Hangout'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: Colors.blue[100],
+                child: Text(
+                  hangout.createdByName.isNotEmpty
+                      ? hangout.createdByName[0].toUpperCase()
+                      : '?',
+                  style: TextStyle(
+                    color: Colors.blue[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hangout.createdByName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue[900],
+                    ),
+                  ),
+                  Text(
+                    _formatCreatedTime(hangout.startTime),
+                    style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.people, size: 20, color: Colors.blue[700]),
+              const SizedBox(width: 4),
+              Text(
+                '${hangout.attendeeCount} ${hangout.attendeeCount == 1 ? "person" : "people"} here',
+                style: TextStyle(color: Colors.blue[800]),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: vibeColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      hangout.vibeEmoji,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      hangout.vibe.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: vibeColor.withOpacity(0.9),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: hasJoined ? null : () => _joinHangout(hangout.id),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 40),
+              backgroundColor: hasJoined ? Colors.grey : Colors.blue[700],
+              foregroundColor: Colors.white,
             ),
-          ],
-        ),
+            child: Text(hasJoined ? 'You\'re Here!' : 'Join Hangout'),
+          ),
+        ],
       ),
     );
   }

@@ -204,20 +204,31 @@ class _PodsTabState extends State<PodsTab> {
     final color = _parseColor(pod.color);
     final icon = _getIconForPod(pod.name);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.2),
-          child: Icon(icon, color: color),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.blue[100],
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: Colors.blue[700]),
         ),
         title: Row(
           children: [
             Expanded(
               child: Text(
                 pod.name,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue[900],
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -232,21 +243,22 @@ class _PodsTabState extends State<PodsTab> {
               pod.description,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.blue[800]),
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(Icons.people, size: 14, color: Colors.grey[600]),
+                Icon(Icons.people, size: 14, color: Colors.blue[700]),
                 const SizedBox(width: 4),
                 Text(
                   '${pod.memberCount} members',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 12, color: Colors.blue[700]),
                 ),
               ],
             ),
           ],
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.blue[700]),
         onTap: () => _openPodChat(pod),
       ),
     );

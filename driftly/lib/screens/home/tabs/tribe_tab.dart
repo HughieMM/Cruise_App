@@ -347,88 +347,111 @@ class _TribeTabState extends State<TribeTab> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'You haven\'t been matched to a tribe yet',
               style: TextStyle(
-                color: Colors.grey[600],
+                color: Colors.black87,
                 fontSize: 16,
               ),
             ),
             const SizedBox(height: 32),
 
             // Info card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    Icon(
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[100],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
                       Icons.groups,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
+                      size: 48,
+                      color: Colors.blue[700],
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Tribes are Small Groups',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Tribes are Small Groups',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'You\'ll be randomly matched with 3-5 other cruisers in your age group who share some of your interests.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'You\'ll be randomly matched with 3-5 other cruisers in your age group who share some of your interests.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.blue[800],
                     ),
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    _buildFeatureRow(
-                      Icons.cake,
-                      'Same age band as you',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureRow(
-                      Icons.favorite,
-                      '1-2 shared interests',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureRow(
-                      Icons.wc,
-                      'Balanced gender mix',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureRow(
-                      Icons.calendar_today,
-                      'Matching happens 5 days before sailing',
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  Divider(color: Colors.blue[200]),
+                  const SizedBox(height: 16),
+                  _buildFeatureRow(
+                    Icons.cake,
+                    'Same age band as you',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildFeatureRow(
+                    Icons.favorite,
+                    '1-2 shared interests',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildFeatureRow(
+                    Icons.wc,
+                    'Balanced gender mix',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildFeatureRow(
+                    Icons.calendar_today,
+                    'Matching happens 5 days before sailing',
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
 
             // Pending requests
             if (tribeProvider.pendingRequests.isNotEmpty) ...[
-              const Text(
+              Text(
                 'Friend Requests',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
+                  color: Colors.blue[900],
                 ),
               ),
               const SizedBox(height: 12),
               ...tribeProvider.pendingRequests.map((request) {
-                return Card(
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.person_add),
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue[100],
+                      child: Icon(Icons.person_add, color: Colors.blue[700]),
                     ),
-                    title: Text(request.requesterName),
-                    subtitle: const Text('Wants to be in your tribe'),
+                    title: Text(
+                      request.requesterName,
+                      style: TextStyle(color: Colors.blue[900]),
+                    ),
+                    subtitle: Text(
+                      'Wants to be in your tribe',
+                      style: TextStyle(color: Colors.blue[800]),
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -486,12 +509,12 @@ class _TribeTabState extends State<TribeTab> {
   Widget _buildFeatureRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 20, color: Colors.blue[700]),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(color: Colors.grey[700]),
+            style: TextStyle(color: Colors.blue[800]),
           ),
         ),
       ],
