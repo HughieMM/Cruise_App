@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -255,106 +256,122 @@ class _HotZonesContentState extends State<HotZonesContent> {
     final vibeColor = _getVibeColor(dominantVibe);
     final hasVotes = totalVotes > 0;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: () => _showVoteDialog(locationName),
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
+            ),
+            child: InkWell(
+              onTap: () => _showVoteDialog(locationName),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          locationName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            icon,
+                            color: Colors.white,
+                            size: 24,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          hasVotes
-                              ? '$totalVotes ${totalVotes == 1 ? "vote" : "votes"} in last hour'
-                              : 'No recent votes',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                locationName,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                hasVotes
+                                    ? '$totalVotes ${totalVotes == 1 ? "vote" : "votes"} in last hour'
+                                    : 'No recent votes',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        if (hasVotes)
+                          Text(
+                            _getVibeEmoji(dominantVibe),
+                            style: const TextStyle(fontSize: 32),
+                          ),
                       ],
                     ),
-                  ),
-                  if (hasVotes)
-                    Text(
-                      _getVibeEmoji(dominantVibe),
-                      style: const TextStyle(fontSize: 32),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: vibeColor.withOpacity(0.15),
-                  border: Border.all(
-                    color: vibeColor.withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Current Vibe: ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: vibeColor.withOpacity(0.25),
+                        border: Border.all(
+                          color: vibeColor.withOpacity(0.5),
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Current Vibe: ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.8),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            _getVibeDisplay(dominantVibe),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: vibeColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      _getVibeDisplay(dominantVibe),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: vibeColor,
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => _showVoteDialog(locationName),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 40),
+                        foregroundColor: Colors.white,
+                        side: BorderSide(color: Colors.white.withOpacity(0.5)),
                       ),
+                      icon: const Icon(Icons.how_to_vote, size: 18),
+                      label: const Text('Vote on Vibe'),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () => _showVoteDialog(locationName),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 40),
-                ),
-                icon: const Icon(Icons.how_to_vote, size: 18),
-                label: const Text('Vote on Vibe'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

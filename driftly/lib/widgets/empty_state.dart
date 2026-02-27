@@ -29,14 +29,14 @@ class EmptyState extends StatelessWidget {
             Icon(
               icon,
               size: 80,
-              color: Colors.grey[400],
+              color: Colors.black54,
             ),
             const SizedBox(height: 24),
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey[700],
+                    color: Colors.black87,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -44,7 +44,7 @@ class EmptyState extends StatelessWidget {
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
+                    color: Colors.black87,
                   ),
               textAlign: TextAlign.center,
             ),
