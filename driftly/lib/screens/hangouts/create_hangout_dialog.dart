@@ -157,120 +157,131 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
             ),
             const SizedBox(height: 24),
 
-            // Location Selection
-            Text(
-              'Where are you?',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _locations.map((location) {
-                final isSelected = _selectedLocation == location['name'];
-                final locationColor = _getLocationColor(location['category'] as String);
-                return ChoiceChip(
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        location['icon'] as IconData,
-                        size: 18,
-                        color: isSelected ? Colors.white : locationColor,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(location['name'] as String),
-                    ],
-                  ),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      _selectedLocation = selected ? location['name'] as String : null;
-                    });
-                  },
-                  selectedColor: locationColor,
-                  backgroundColor: locationColor.withOpacity(0.1),
-                  side: BorderSide(color: locationColor.withOpacity(0.3)),
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey[300],
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
+            // Scrollable content section
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Location Selection
+                    Text(
+                      'Where are you?',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _locations.map((location) {
+                        final isSelected = _selectedLocation == location['name'];
+                        final locationColor = _getLocationColor(location['category'] as String);
+                        return ChoiceChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                location['icon'] as IconData,
+                                size: 18,
+                                color: isSelected ? Colors.white : locationColor,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(location['name'] as String),
+                            ],
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedLocation = selected ? location['name'] as String : null;
+                            });
+                          },
+                          selectedColor: locationColor,
+                          backgroundColor: locationColor.withOpacity(0.1),
+                          side: BorderSide(color: locationColor.withOpacity(0.3)),
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.grey[300],
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
 
-            // Vibe Selection
-            Text(
-              'What\'s the vibe?',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _vibes.map((vibe) {
-                final isSelected = _selectedVibe == vibe['value'];
-                final vibeColor = _getVibeColor(vibe['value'] as String);
-                return ChoiceChip(
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        vibe['emoji'] as String,
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        vibe['name'] as String,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected ? Colors.white : Colors.grey[300],
-                        ),
-                      ),
-                    ],
-                  ),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      _selectedVibe = vibe['value'] as String;
-                    });
-                  },
-                  selectedColor: vibeColor,
-                  backgroundColor: vibeColor.withOpacity(0.1),
-                  side: BorderSide(color: vibeColor.withOpacity(0.3)),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
+                    // Vibe Selection
+                    Text(
+                      'What\'s the vibe?',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _vibes.map((vibe) {
+                        final isSelected = _selectedVibe == vibe['value'];
+                        final vibeColor = _getVibeColor(vibe['value'] as String);
+                        return ChoiceChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                vibe['emoji'] as String,
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                vibe['name'] as String,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isSelected ? Colors.white : Colors.grey[300],
+                                ),
+                              ),
+                            ],
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedVibe = vibe['value'] as String;
+                            });
+                          },
+                          selectedColor: vibeColor,
+                          backgroundColor: vibeColor.withOpacity(0.1),
+                          side: BorderSide(color: vibeColor.withOpacity(0.3)),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
 
-            // Info Banner
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.timer, color: Colors.blue[300], size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Your hangout will be visible for 45 minutes',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.blue[200],
+                    // Info Banner
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.timer, color: Colors.blue[300], size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Your hangout will be visible for 45 minutes',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blue[200],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),

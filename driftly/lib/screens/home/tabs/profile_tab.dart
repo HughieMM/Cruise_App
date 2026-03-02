@@ -676,7 +676,7 @@ class _ProfileTabState extends State<ProfileTab> {
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
