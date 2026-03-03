@@ -2,19 +2,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Tribe Model
 ///
-/// Represents a randomly matched group of 4-6 cruisers
+/// Represents a randomly matched group of 3-5 cruisers
 /// Similar to university dorm groups - not based on looks
+///
+/// Tribe sizes: Minimum 3, Maximum 5, Ideal 4-5
+/// Example: 22 people in age bracket = 4 tribes of 4, 2 tribes of 3
 ///
 /// Firestore path: /sailings/{sailingId}/tribes/{tribeId}
 class Tribe {
   final String id;
   final String sailingId;
   final String name; // Auto-generated fun name like "The Wave Riders"
-  final String ageBand; // All members must be same age band
+  final String ageBand; // Primary age band (or 'mixed' for mixed-age tribes)
+  final List<String> ageBands; // All age bands represented (for mixed tribes)
   final List<String> memberIds; // User IDs
   final List<String> commonInterests; // Interests shared by all members
-  final int maxMembers; // 4 or 6
+  final int maxMembers; // 3-5 members
   final bool isFull;
+  final bool isMixedAgeGroup; // True if tribe has multiple age groups (18-39 only)
   final DateTime createdAt;
   final DateTime? lastActivityAt;
 
@@ -23,10 +28,12 @@ class Tribe {
     required this.sailingId,
     required this.name,
     required this.ageBand,
+    this.ageBands = const [],
     required this.memberIds,
     required this.commonInterests,
-    this.maxMembers = 4,
+    this.maxMembers = 5,
     this.isFull = false,
+    this.isMixedAgeGroup = false,
     required this.createdAt,
     this.lastActivityAt,
   });
@@ -37,10 +44,12 @@ class Tribe {
       sailingId: map['sailingId'] as String? ?? '',
       name: map['name'] as String? ?? 'Unnamed Tribe',
       ageBand: map['ageBand'] as String? ?? '',
+      ageBands: List<String>.from(map['ageBands'] as List? ?? []),
       memberIds: List<String>.from(map['memberIds'] as List? ?? []),
       commonInterests: List<String>.from(map['commonInterests'] as List? ?? []),
-      maxMembers: map['maxMembers'] as int? ?? 4,
+      maxMembers: map['maxMembers'] as int? ?? 5,
       isFull: map['isFull'] as bool? ?? false,
+      isMixedAgeGroup: map['isMixedAgeGroup'] as bool? ?? false,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastActivityAt: (map['lastActivityAt'] as Timestamp?)?.toDate(),
     );
@@ -51,10 +60,12 @@ class Tribe {
       'sailingId': sailingId,
       'name': name,
       'ageBand': ageBand,
+      'ageBands': ageBands,
       'memberIds': memberIds,
       'commonInterests': commonInterests,
       'maxMembers': maxMembers,
       'isFull': isFull,
+      'isMixedAgeGroup': isMixedAgeGroup,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastActivityAt': lastActivityAt != null
           ? Timestamp.fromDate(lastActivityAt!)
@@ -67,10 +78,12 @@ class Tribe {
     String? sailingId,
     String? name,
     String? ageBand,
+    List<String>? ageBands,
     List<String>? memberIds,
     List<String>? commonInterests,
     int? maxMembers,
     bool? isFull,
+    bool? isMixedAgeGroup,
     DateTime? createdAt,
     DateTime? lastActivityAt,
   }) {
@@ -79,10 +92,12 @@ class Tribe {
       sailingId: sailingId ?? this.sailingId,
       name: name ?? this.name,
       ageBand: ageBand ?? this.ageBand,
+      ageBands: ageBands ?? this.ageBands,
       memberIds: memberIds ?? this.memberIds,
       commonInterests: commonInterests ?? this.commonInterests,
       maxMembers: maxMembers ?? this.maxMembers,
       isFull: isFull ?? this.isFull,
+      isMixedAgeGroup: isMixedAgeGroup ?? this.isMixedAgeGroup,
       createdAt: createdAt ?? this.createdAt,
       lastActivityAt: lastActivityAt ?? this.lastActivityAt,
     );

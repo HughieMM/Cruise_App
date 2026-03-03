@@ -2,15 +2,21 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_user.dart';
 import '../models/tribe.dart';
+import '../utils/constants.dart';
 
 /// TribeService
 ///
 /// Handles tribe creation, matching algorithm, and sibling requests.
-/// Tribes are randomly matched groups of 4-6 cruisers with:
-/// - Same age band
+/// Tribes are randomly matched groups of 3-5 cruisers with:
+/// - Same age band (or mixed 18-39 if opted in and numbers are low)
 /// - 1-2 shared interests
-/// - Equal gender ratio (2 boys + 2 girls for 4-person tribe)
+/// - Gender balance attempted where possible
 /// - Sibling/friend requests honored
+///
+/// Safety Rules:
+/// - 16-17: NEVER mix with other age groups (minor protection)
+/// - 39+: NEVER mix with other age groups (community preference)
+/// - 18-39: CAN mix if user opts in and numbers are insufficient
 class TribeService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -80,18 +86,25 @@ class TribeService {
     required String sailingId,
     required String ageBand,
     required List<String> commonInterests,
-    int maxMembers = 4,
+    int maxMembers = 5,
+    bool isMixedAgeGroup = false,
+    List<String> ageBands = const [],
   }) async {
     try {
       final tribe = Tribe(
         id: '',
         sailingId: sailingId,
         name: _getRandomTribeName(),
-        ageBand: ageBand,
+        ageBand: isMixedAgeGroup ? 'mixed' : ageBand,
+        ageBands: ageBands.isNotEmpty ? ageBands : [ageBand],
         memberIds: [],
         commonInterests: commonInterests,
-        maxMembers: maxMembers,
+        maxMembers: maxMembers.clamp(
+          AppConstants.minTribeSize,
+          AppConstants.maxTribeSize,
+        ),
         isFull: false,
+        isMixedAgeGroup: isMixedAgeGroup,
         createdAt: DateTime.now(),
       );
 
@@ -329,6 +342,67 @@ class TribeService {
     }
   }
 
+  // ==================== Tribe Size Calculation ====================
+
+  /// Calculate optimal tribe sizes for a given number of users
+  /// Example: 22 users → [4, 4, 4, 4, 3, 3] (4 tribes of 4, 2 tribes of 3)
+  ///
+  /// Rules:
+  /// - Minimum tribe size: 3
+  /// - Maximum tribe size: 5
+  /// - Prefer sizes of 4-5 over 3
+  List<int> calculateOptimalTribeSizes(int userCount) {
+    if (userCount < AppConstants.minTribeSize) {
+      return []; // Not enough users for a tribe
+    }
+
+    final sizes = <int>[];
+    int remaining = userCount;
+
+    // First, try to make tribes of 5
+    while (remaining >= 5 && remaining != 6 && remaining != 7) {
+      sizes.add(5);
+      remaining -= 5;
+    }
+
+    // Then, make tribes of 4
+    while (remaining >= 4 && remaining != 6) {
+      sizes.add(4);
+      remaining -= 4;
+    }
+
+    // Handle edge cases
+    if (remaining == 6) {
+      // 6 = 3 + 3 is better than leaving 2 out
+      sizes.add(3);
+      sizes.add(3);
+      remaining = 0;
+    } else if (remaining == 7) {
+      // 7 = 4 + 3
+      sizes.add(4);
+      sizes.add(3);
+      remaining = 0;
+    } else if (remaining >= 3) {
+      sizes.add(remaining);
+      remaining = 0;
+    }
+    // If 1-2 remaining, they'll be added to existing tribes later
+
+    return sizes;
+  }
+
+  /// Check if age mixing is needed for a sailing
+  /// Returns true if any mixable age band has fewer than minTribeSize users
+  bool needsAgeMixing(Map<String, List<AppUser>> usersByAgeBand) {
+    for (var ageBand in AppConstants.mixableAgeBands) {
+      final users = usersByAgeBand[ageBand] ?? [];
+      if (users.isNotEmpty && users.length < AppConstants.minTribeSize) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // ==================== Tribe Matching Algorithm ====================
 
   /// Match users into tribes for a sailing
@@ -337,10 +411,15 @@ class TribeService {
   /// Algorithm:
   /// 1. Get all unmatched users for the sailing
   /// 2. Group by age band
-  /// 3. Within each age band, find users with shared interests
-  /// 4. Balance by gender (2 male + 2 female for 4-person tribes)
-  /// 5. Honor sibling requests (place siblings in same tribe)
-  /// 6. Create tribes and assign members
+  /// 3. Check if age mixing is needed (small numbers)
+  /// 4. Within each age band (or mixed pool), find users with shared interests
+  /// 5. Attempt gender balance where possible
+  /// 6. Honor sibling requests (place siblings in same tribe)
+  /// 7. Create tribes with optimal sizes (3-5 members)
+  ///
+  /// Safety Rules:
+  /// - 16-17 and 39+ NEVER mix with other age groups
+  /// - 18-39 can mix only if opted in
   Future<int> runTribeMatching(String sailingId) async {
     try {
       // Get all users on this sailing who don't have a tribe
@@ -378,207 +457,147 @@ class TribeService {
       }
 
       int tribesCreated = 0;
+      final processedUserIds = <String>{};
 
-      // Process each age band
-      for (var entry in usersByAgeBand.entries) {
-        final ageBand = entry.key;
-        final ageBandUsers = List<AppUser>.from(entry.value);
+      // ========== PHASE 1: Process protected age bands (16-17 and 39+) ==========
+      // These NEVER mix with other age groups
+      for (var protectedBand in AppConstants.noMixingAgeBands) {
+        final bandUsers = usersByAgeBand[protectedBand] ?? [];
+        if (bandUsers.isEmpty) continue;
 
-        // Shuffle for randomness
-        ageBandUsers.shuffle();
+        tribesCreated += await _processAgeBandUsers(
+          sailingId: sailingId,
+          ageBand: protectedBand,
+          users: List.from(bandUsers),
+          siblingPairs: siblingPairs,
+          siblingSnapshot: siblingSnapshot,
+          processedUserIds: processedUserIds,
+          isMixedAgeGroup: false,
+        );
+      }
 
-        // Separate by gender
-        final males =
-            ageBandUsers.where((u) => u.gender == 'male').toList();
-        final females =
-            ageBandUsers.where((u) => u.gender == 'female').toList();
-        final others =
-            ageBandUsers.where((u) => u.gender == 'other').toList();
+      // ========== PHASE 2: Check if mixable bands need mixing (18-39) ==========
+      final mixableUsers = <AppUser>[];
+      final mixableBandCounts = <String, int>{};
 
-        // Process sibling pairs first
-        final processedUserIds = <String>{};
+      for (var band in AppConstants.mixableAgeBands) {
+        final bandUsers = (usersByAgeBand[band] ?? [])
+            .where((u) => !processedUserIds.contains(u.uid))
+            .toList();
+        mixableBandCounts[band] = bandUsers.length;
+      }
 
-        for (var pair in siblingPairs) {
-          // Find the two users in this age band
-          final user1 = ageBandUsers
-              .where((u) => pair.contains(u.uid))
+      // Check if any mixable band has insufficient users
+      final needsMixing = mixableBandCounts.values
+          .any((count) => count > 0 && count < AppConstants.minTribeSize);
+
+      if (needsMixing) {
+        // Collect users who opted in to age mixing
+        for (var band in AppConstants.mixableAgeBands) {
+          final bandUsers = (usersByAgeBand[band] ?? [])
+              .where((u) => !processedUserIds.contains(u.uid) && u.canMixAgeGroups)
               .toList();
-
-          if (user1.length == 2 &&
-              !processedUserIds.contains(user1[0].uid) &&
-              !processedUserIds.contains(user1[1].uid)) {
-            // Both siblings are in this age band and unmatched
-            // Find 2 more users to complete the tribe
-            final commonInterests = _findCommonInterests(
-              user1[0].interests,
-              user1[1].interests,
-            );
-
-            // Find complementary users with shared interests
-            final candidates = ageBandUsers
-                .where((u) =>
-                    !pair.contains(u.uid) &&
-                    !processedUserIds.contains(u.uid) &&
-                    _hasSharedInterest(u.interests, commonInterests))
-                .toList();
-
-            if (candidates.length >= 2) {
-              // Try to balance genders
-              final neededGenders = _getNeededGenders(user1);
-              final selectedCandidates =
-                  _selectByGender(candidates, neededGenders, 2);
-
-              if (selectedCandidates.length >= 2) {
-                // Create tribe with siblings + 2 others
-                final tribeMembers = [...user1, ...selectedCandidates.take(2)];
-                final allInterests =
-                    tribeMembers.expand((u) => u.interests).toList();
-                final sharedInterests = _findAllSharedInterests(allInterests);
-
-                final tribeId = await createTribe(
-                  sailingId: sailingId,
-                  ageBand: ageBand,
-                  commonInterests: sharedInterests.take(2).toList(),
-                );
-
-                // Add members
-                bool isFirst = true;
-                for (var member in tribeMembers) {
-                  await addMemberToTribe(
-                    sailingId: sailingId,
-                    tribeId: tribeId,
-                    user: member,
-                    isLeader: isFirst,
-                  );
-                  processedUserIds.add(member.uid);
-                  isFirst = false;
-                }
-
-                // Mark sibling request as matched
-                final requestDoc = siblingSnapshot.docs.firstWhere(
-                  (doc) {
-                    final r = SiblingRequest.fromMap(
-                        doc.data() as Map<String, dynamic>, doc.id);
-                    return pair.contains(r.requesterId) &&
-                        pair.contains(r.targetId);
-                  },
-                  orElse: () => throw Exception('Sibling request not found'),
-                );
-                await siblingRequestsCollection(sailingId)
-                    .doc(requestDoc.id)
-                    .update({'status': 'matched'});
-
-                tribesCreated++;
-              }
-            }
-          }
+          mixableUsers.addAll(bandUsers);
         }
 
-        // Remove processed users from gender lists
-        males.removeWhere((u) => processedUserIds.contains(u.uid));
-        females.removeWhere((u) => processedUserIds.contains(u.uid));
-        others.removeWhere((u) => processedUserIds.contains(u.uid));
-
-        // Now match remaining users into tribes of 4
-        // Try to make balanced tribes (2 male + 2 female)
-        while (males.length >= 2 && females.length >= 2) {
-          final selectedMales = males.take(2).toList();
-          final selectedFemales = females.take(2).toList();
-
-          final tribeMembers = [...selectedMales, ...selectedFemales];
-          final allInterests =
-              tribeMembers.expand((u) => u.interests).toList();
-          final sharedInterests = _findAllSharedInterests(allInterests);
-
-          final tribeId = await createTribe(
+        // Process mixed group if we have enough opt-in users
+        if (mixableUsers.length >= AppConstants.minTribeSize) {
+          tribesCreated += await _processMixedAgeUsers(
             sailingId: sailingId,
-            ageBand: ageBand,
-            commonInterests: sharedInterests.take(2).toList(),
+            users: mixableUsers,
+            siblingPairs: siblingPairs,
+            siblingSnapshot: siblingSnapshot,
+            processedUserIds: processedUserIds,
+          );
+        }
+      }
+
+      // ========== PHASE 3: Process remaining mixable bands normally ==========
+      for (var band in AppConstants.mixableAgeBands) {
+        final bandUsers = (usersByAgeBand[band] ?? [])
+            .where((u) => !processedUserIds.contains(u.uid))
+            .toList();
+        if (bandUsers.isEmpty) continue;
+
+        tribesCreated += await _processAgeBandUsers(
+          sailingId: sailingId,
+          ageBand: band,
+          users: bandUsers,
+          siblingPairs: siblingPairs,
+          siblingSnapshot: siblingSnapshot,
+          processedUserIds: processedUserIds,
+          isMixedAgeGroup: false,
+        );
+      }
+
+      return tribesCreated;
+    } catch (e) {
+      throw Exception('Failed to run tribe matching: $e');
+    }
+  }
+
+  /// Process users from a single age band into tribes
+  Future<int> _processAgeBandUsers({
+    required String sailingId,
+    required String ageBand,
+    required List<AppUser> users,
+    required List<Set<String>> siblingPairs,
+    required QuerySnapshot siblingSnapshot,
+    required Set<String> processedUserIds,
+    required bool isMixedAgeGroup,
+    List<String> ageBands = const [],
+  }) async {
+    if (users.isEmpty) return 0;
+
+    int tribesCreated = 0;
+    final ageBandUsers = List<AppUser>.from(users);
+    ageBandUsers.shuffle();
+
+    // Separate by gender
+    final males = ageBandUsers.where((u) => u.gender == 'male').toList();
+    final females = ageBandUsers.where((u) => u.gender == 'female').toList();
+    final others = ageBandUsers.where((u) => u.gender == 'other').toList();
+
+    // Process sibling pairs first
+    for (var pair in siblingPairs) {
+      final pairUsers = ageBandUsers
+          .where((u) => pair.contains(u.uid) && !processedUserIds.contains(u.uid))
+          .toList();
+
+      if (pairUsers.length == 2) {
+        final commonInterests = _findCommonInterests(
+          pairUsers[0].interests,
+          pairUsers[1].interests,
+        );
+
+        final candidates = ageBandUsers
+            .where((u) =>
+                !pair.contains(u.uid) &&
+                !processedUserIds.contains(u.uid) &&
+                _hasSharedInterest(u.interests, commonInterests))
+            .toList();
+
+        // Need at least 1 more for minimum tribe size of 3
+        if (candidates.isNotEmpty) {
+          final neededCount = AppConstants.minTribeSize - 2; // Already have 2 siblings
+          final selectedCandidates = _selectByGenderBalanced(
+            candidates,
+            pairUsers,
+            neededCount.clamp(1, 3),
           );
 
-          bool isFirst = true;
-          for (var member in tribeMembers) {
-            await addMemberToTribe(
-              sailingId: sailingId,
-              tribeId: tribeId,
-              user: member,
-              isLeader: isFirst,
-            );
-            isFirst = false;
-          }
-
-          males.removeRange(0, 2);
-          females.removeRange(0, 2);
-          tribesCreated++;
-        }
-
-        // Handle remaining users (less balanced tribes)
-        final remaining = [...males, ...females, ...others];
-        while (remaining.length >= 4) {
-          final tribeMembers = remaining.take(4).toList();
-          final allInterests =
-              tribeMembers.expand((u) => u.interests).toList();
-          final sharedInterests = _findAllSharedInterests(allInterests);
-
-          final tribeId = await createTribe(
-            sailingId: sailingId,
-            ageBand: ageBand,
-            commonInterests: sharedInterests.take(2).toList(),
-          );
-
-          bool isFirst = true;
-          for (var member in tribeMembers) {
-            await addMemberToTribe(
-              sailingId: sailingId,
-              tribeId: tribeId,
-              user: member,
-              isLeader: isFirst,
-            );
-            isFirst = false;
-          }
-
-          remaining.removeRange(0, 4);
-          tribesCreated++;
-        }
-
-        // If 2-3 users remain, add them to an existing non-full tribe
-        // or create a smaller tribe
-        if (remaining.isNotEmpty) {
-          // Find non-full tribe with same age band
-          final existingTribes = await tribesCollection(sailingId)
-              .where('ageBand', isEqualTo: ageBand)
-              .where('isFull', isEqualTo: false)
-              .limit(1)
-              .get();
-
-          if (existingTribes.docs.isNotEmpty) {
-            final tribe = Tribe.fromMap(
-              existingTribes.docs.first.data() as Map<String, dynamic>,
-              existingTribes.docs.first.id,
-            );
-
-            // Add remaining users to this tribe (up to max)
-            for (var user in remaining) {
-              if (tribe.memberIds.length < tribe.maxMembers) {
-                await addMemberToTribe(
-                  sailingId: sailingId,
-                  tribeId: tribe.id,
-                  user: user,
-                );
-              }
-            }
-          } else if (remaining.length >= 2) {
-            // Create a smaller tribe if at least 2 users
-            final tribeMembers = remaining;
-            final allInterests =
-                tribeMembers.expand((u) => u.interests).toList();
+          final tribeMembers = [...pairUsers, ...selectedCandidates];
+          if (tribeMembers.length >= AppConstants.minTribeSize) {
+            final allInterests = tribeMembers.expand((u) => u.interests).toList();
             final sharedInterests = _findAllSharedInterests(allInterests);
 
             final tribeId = await createTribe(
               sailingId: sailingId,
               ageBand: ageBand,
               commonInterests: sharedInterests.take(2).toList(),
-              maxMembers: 6, // Allow more to join later
+              maxMembers: AppConstants.maxTribeSize,
+              isMixedAgeGroup: isMixedAgeGroup,
+              ageBands: ageBands,
             );
 
             bool isFirst = true;
@@ -589,17 +608,177 @@ class TribeService {
                 user: member,
                 isLeader: isFirst,
               );
+              processedUserIds.add(member.uid);
               isFirst = false;
             }
+
+            // Mark sibling request as matched
+            try {
+              final requestDoc = siblingSnapshot.docs.firstWhere((doc) {
+                final r = SiblingRequest.fromMap(
+                    doc.data() as Map<String, dynamic>, doc.id);
+                return pair.contains(r.requesterId) && pair.contains(r.targetId);
+              });
+              await siblingRequestsCollection(sailingId)
+                  .doc(requestDoc.id)
+                  .update({'status': 'matched'});
+            } catch (_) {
+              // Sibling request not found, continue
+            }
+
             tribesCreated++;
           }
         }
       }
-
-      return tribesCreated;
-    } catch (e) {
-      throw Exception('Failed to run tribe matching: $e');
     }
+
+    // Remove processed users
+    males.removeWhere((u) => processedUserIds.contains(u.uid));
+    females.removeWhere((u) => processedUserIds.contains(u.uid));
+    others.removeWhere((u) => processedUserIds.contains(u.uid));
+
+    // Calculate optimal tribe sizes for remaining users
+    final remainingUsers = [...males, ...females, ...others];
+    final tribeSizes = calculateOptimalTribeSizes(remainingUsers.length);
+
+    // Create tribes based on optimal sizes
+    for (var size in tribeSizes) {
+      if (remainingUsers.length < size) break;
+
+      // Try to balance genders
+      final tribeMembers = <AppUser>[];
+
+      // Add balanced genders first
+      final malesNeeded = (size / 2).floor();
+      final femalesNeeded = size - malesNeeded;
+
+      final availableMales = remainingUsers.where((u) => u.gender == 'male').toList();
+      final availableFemales = remainingUsers.where((u) => u.gender == 'female').toList();
+      final availableOthers = remainingUsers.where((u) => u.gender == 'other').toList();
+
+      tribeMembers.addAll(availableMales.take(malesNeeded));
+      tribeMembers.addAll(availableFemales.take(femalesNeeded));
+
+      // Fill remaining spots
+      while (tribeMembers.length < size && remainingUsers.isNotEmpty) {
+        final nextUser = remainingUsers.firstWhere(
+          (u) => !tribeMembers.contains(u),
+          orElse: () => remainingUsers.first,
+        );
+        if (!tribeMembers.contains(nextUser)) {
+          tribeMembers.add(nextUser);
+        } else {
+          break;
+        }
+      }
+
+      if (tribeMembers.length >= AppConstants.minTribeSize) {
+        final allInterests = tribeMembers.expand((u) => u.interests).toList();
+        final sharedInterests = _findAllSharedInterests(allInterests);
+
+        final tribeId = await createTribe(
+          sailingId: sailingId,
+          ageBand: ageBand,
+          commonInterests: sharedInterests.take(2).toList(),
+          maxMembers: AppConstants.maxTribeSize,
+          isMixedAgeGroup: isMixedAgeGroup,
+          ageBands: ageBands,
+        );
+
+        bool isFirst = true;
+        for (var member in tribeMembers) {
+          await addMemberToTribe(
+            sailingId: sailingId,
+            tribeId: tribeId,
+            user: member,
+            isLeader: isFirst,
+          );
+          processedUserIds.add(member.uid);
+          remainingUsers.remove(member);
+          isFirst = false;
+        }
+
+        tribesCreated++;
+      }
+    }
+
+    // Handle leftover users (1-2 remaining) - add to existing tribes
+    if (remainingUsers.isNotEmpty && remainingUsers.length < AppConstants.minTribeSize) {
+      final existingTribes = await tribesCollection(sailingId)
+          .where('ageBand', isEqualTo: ageBand)
+          .where('isFull', isEqualTo: false)
+          .limit(remainingUsers.length)
+          .get();
+
+      for (var doc in existingTribes.docs) {
+        if (remainingUsers.isEmpty) break;
+        final tribe = Tribe.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        if (tribe.memberCount < tribe.maxMembers) {
+          final user = remainingUsers.removeAt(0);
+          await addMemberToTribe(
+            sailingId: sailingId,
+            tribeId: tribe.id,
+            user: user,
+          );
+          processedUserIds.add(user.uid);
+        }
+      }
+    }
+
+    return tribesCreated;
+  }
+
+  /// Process users from multiple age bands (18-39) who opted into mixing
+  Future<int> _processMixedAgeUsers({
+    required String sailingId,
+    required List<AppUser> users,
+    required List<Set<String>> siblingPairs,
+    required QuerySnapshot siblingSnapshot,
+    required Set<String> processedUserIds,
+  }) async {
+    // Collect unique age bands
+    final uniqueAgeBands = users.map((u) => u.ageBand).toSet().toList();
+
+    return _processAgeBandUsers(
+      sailingId: sailingId,
+      ageBand: 'mixed',
+      users: users,
+      siblingPairs: siblingPairs,
+      siblingSnapshot: siblingSnapshot,
+      processedUserIds: processedUserIds,
+      isMixedAgeGroup: true,
+      ageBands: uniqueAgeBands,
+    );
+  }
+
+  /// Select users for gender balance in a tribe
+  List<AppUser> _selectByGenderBalanced(
+    List<AppUser> candidates,
+    List<AppUser> existingMembers,
+    int needed,
+  ) {
+    final maleCount = existingMembers.where((u) => u.gender == 'male').length;
+    final femaleCount = existingMembers.where((u) => u.gender == 'female').length;
+
+    final selected = <AppUser>[];
+    final maleCandidates = candidates.where((u) => u.gender == 'male').toList();
+    final femaleCandidates = candidates.where((u) => u.gender == 'female').toList();
+    final otherCandidates = candidates.where((u) => u.gender == 'other').toList();
+
+    // Try to balance
+    if (maleCount < femaleCount && maleCandidates.isNotEmpty) {
+      selected.add(maleCandidates.removeAt(0));
+    } else if (femaleCount < maleCount && femaleCandidates.isNotEmpty) {
+      selected.add(femaleCandidates.removeAt(0));
+    }
+
+    // Fill remaining with any available
+    final remaining = [...maleCandidates, ...femaleCandidates, ...otherCandidates];
+    while (selected.length < needed && remaining.isNotEmpty) {
+      selected.add(remaining.removeAt(0));
+    }
+
+    return selected;
   }
 
   /// Find common interests between two lists
@@ -631,47 +810,6 @@ class TribeService {
         .toList()
       ..sort((a, b) =>
           (counts[b] ?? 0).compareTo(counts[a] ?? 0)); // Most common first
-  }
-
-  /// Get needed genders to balance a tribe
-  Map<String, int> _getNeededGenders(List<AppUser> currentMembers) {
-    final maleCount =
-        currentMembers.where((u) => u.gender == 'male').length;
-    final femaleCount =
-        currentMembers.where((u) => u.gender == 'female').length;
-
-    // For a balanced tribe of 4: 2 male + 2 female
-    return {
-      'male': (2 - maleCount).clamp(0, 2),
-      'female': (2 - femaleCount).clamp(0, 2),
-    };
-  }
-
-  /// Select users by gender preference
-  List<AppUser> _selectByGender(
-    List<AppUser> candidates,
-    Map<String, int> neededGenders,
-    int total,
-  ) {
-    final selected = <AppUser>[];
-
-    // First, try to fulfill gender needs
-    for (var gender in neededGenders.keys) {
-      final needed = neededGenders[gender] ?? 0;
-      final available =
-          candidates.where((u) => u.gender == gender).take(needed).toList();
-      selected.addAll(available);
-    }
-
-    // If we still need more, add any remaining
-    if (selected.length < total) {
-      final remaining = candidates
-          .where((u) => !selected.contains(u))
-          .take(total - selected.length);
-      selected.addAll(remaining);
-    }
-
-    return selected;
   }
 
   // ==================== Daily Photo Methods ====================

@@ -22,6 +22,7 @@ class AppUser {
   final String? currentTribeId;    // Tribe they're assigned to
   final String? siblingRequestId;  // If they requested to join with a sibling
   final bool profileComplete;      // True after Day 30 profile completion
+  final bool allowAgeMixing;       // Opt-in to mix with other age groups (18-39 only)
   final Map<String, String> socialLinks; // Social media handles
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -43,6 +44,7 @@ class AppUser {
     this.currentTribeId,
     this.siblingRequestId,
     this.profileComplete = false,
+    this.allowAgeMixing = false,
     this.socialLinks = const {},
     required this.createdAt,
     required this.updatedAt,
@@ -50,6 +52,12 @@ class AppUser {
 
   /// Check if user is underage (16-17) for content restrictions
   bool get isUnderage => ageBand == '16-17';
+
+  /// Check if user is in a protected age group that cannot mix (16-17 or 39+)
+  bool get isProtectedAgeGroup => ageBand == '16-17' || ageBand == '39+';
+
+  /// Check if user can mix with other age groups (18-39 and opted in)
+  bool get canMixAgeGroups => !isProtectedAgeGroup && allowAgeMixing;
 
   /// Create AppUser from Firestore document
   factory AppUser.fromMap(Map<String, dynamic> map, String documentId) {
@@ -70,6 +78,7 @@ class AppUser {
       currentTribeId: map['currentTribeId'] as String?,
       siblingRequestId: map['siblingRequestId'] as String?,
       profileComplete: map['profileComplete'] as bool? ?? false,
+      allowAgeMixing: map['allowAgeMixing'] as bool? ?? false,
       socialLinks: Map<String, String>.from(map['socialLinks'] as Map? ?? {}),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -95,6 +104,7 @@ class AppUser {
       'currentTribeId': currentTribeId,
       'siblingRequestId': siblingRequestId,
       'profileComplete': profileComplete,
+      'allowAgeMixing': allowAgeMixing,
       'socialLinks': socialLinks,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
@@ -119,6 +129,7 @@ class AppUser {
     String? currentTribeId,
     String? siblingRequestId,
     bool? profileComplete,
+    bool? allowAgeMixing,
     Map<String, String>? socialLinks,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -140,6 +151,7 @@ class AppUser {
       currentTribeId: currentTribeId ?? this.currentTribeId,
       siblingRequestId: siblingRequestId ?? this.siblingRequestId,
       profileComplete: profileComplete ?? this.profileComplete,
+      allowAgeMixing: allowAgeMixing ?? this.allowAgeMixing,
       socialLinks: socialLinks ?? this.socialLinks,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

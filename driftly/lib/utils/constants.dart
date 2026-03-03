@@ -15,6 +15,21 @@ class AppConstants {
   /// Duration for sailing access window (30 days)
   static const Duration sailingAccessWindow = Duration(days: 30);
 
+  /// Duration for end of cruise period (72 hours post-cruise access)
+  static const Duration endOfCruiseDuration = Duration(hours: 72);
+
+  // ==================== BeReal / Daily Photo ====================
+
+  /// BeReal prompts per day per cruise (strictly once)
+  static const int beRealPromptsPerDay = 1;
+
+  /// BeReal is tribe-only for now (not cruise-wide)
+  static const bool beRealTribeOnly = true;
+
+  /// BeReal prompt window - random time between these hours (10am-10pm)
+  static const int beRealStartHour = 10;
+  static const int beRealEndHour = 22;
+
   /// Default timeout for network requests
   static const Duration networkTimeout = Duration(seconds: 30);
 
@@ -38,18 +53,46 @@ class AppConstants {
   /// Maximum characters for user bio
   static const int maxBioLength = 300;
 
+  // ==================== Tribe Configuration ====================
+
+  /// Minimum members for a valid tribe
+  static const int minTribeSize = 3;
+
+  /// Maximum members for a tribe
+  static const int maxTribeSize = 5;
+
+  /// Ideal tribe sizes (prefer these over min/max edges)
+  static const List<int> idealTribeSizes = [4, 5, 3];
+
   // ==================== Age Bands ====================
 
-  static const List<String> ageBands = ['16-17', '18-20', '21-30', '31-40', '40+'];
+  static const List<String> ageBands = ['16-17', '18-20', '21-30', '31-39', '39+'];
 
   static const String ageBand1617 = '16-17';
   static const String ageBand1820 = '18-20';
   static const String ageBand2130 = '21-30';
-  static const String ageBand3140 = '31-40';
-  static const String ageBand40Plus = '40+';
+  static const String ageBand3139 = '31-39';
+  static const String ageBand39Plus = '39+';
 
   /// Age band that has restrictions (no alcohol, no gambling)
   static const String restrictedAgeBand = '16-17';
+
+  // ==================== Age Mixing Safety Rules ====================
+
+  /// Age bands that can NEVER mix with other age groups (safety protection)
+  /// - 16-17: Minors must stay with minors (predator protection)
+  /// - 39+: Older users stay with their age group (community preference)
+  static const List<String> noMixingAgeBands = ['16-17', '39+'];
+
+  /// Age bands that CAN mix when user opts-in (for small cruise numbers)
+  /// Only 18-39 age ranges can mix together
+  static const List<String> mixableAgeBands = ['18-20', '21-30', '31-39'];
+
+  /// Check if an age band can potentially mix with others
+  static bool canAgeBandMix(String ageBand) => mixableAgeBands.contains(ageBand);
+
+  /// Check if an age band is protected (never mixes)
+  static bool isProtectedAgeBand(String ageBand) => noMixingAgeBands.contains(ageBand);
 
   // ==================== Interests ====================
 
