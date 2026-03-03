@@ -83,8 +83,8 @@ class ModerationService {
         // This handles hangout photos and other photo records
         await _deletePhotoFromFirestore(photoUrl);
       }
-    } catch (e) {
-      print('Error checking/deleting reported photo: $e');
+    } catch (_) {
+      // Silently handle moderation errors - photo may already be deleted
     }
   }
 
@@ -110,8 +110,8 @@ class ModerationService {
       for (final doc in messages.docs) {
         await doc.reference.delete();
       }
-    } catch (e) {
-      print('Error deleting photo from Firestore: $e');
+    } catch (_) {
+      // Silently handle cleanup errors - documents may already be deleted
     }
   }
 

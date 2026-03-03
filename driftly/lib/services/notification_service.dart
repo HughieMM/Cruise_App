@@ -9,7 +9,7 @@ import 'package:timezone/data/latest.dart' as tz_data;
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('Handling background message: ${message.messageId}');
+  // Background message handled silently
 }
 
 /// NotificationService
@@ -187,14 +187,14 @@ class NotificationService {
 
   /// Handle notification tap
   void _handleNotificationTap(RemoteMessage message) {
-    final type = message.data['type'];
-    print('Notification tapped: $type');
+    // Navigate based on notification type
+    // TODO: Implement deep linking based on message.data['type']
   }
 
   /// Handle local notification tap
   void _onLocalNotificationTap(NotificationResponse response) {
-    final payload = response.payload;
-    print('Local notification tapped: $payload');
+    // Navigate based on notification payload
+    // TODO: Implement deep linking based on response.payload
   }
 
   /// Show a local notification
