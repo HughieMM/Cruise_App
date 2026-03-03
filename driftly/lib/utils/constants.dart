@@ -18,17 +18,20 @@ class AppConstants {
   /// Duration for end of cruise period (72 hours post-cruise access)
   static const Duration endOfCruiseDuration = Duration(hours: 72);
 
-  // ==================== BeReal / Daily Photo ====================
+  // ==================== Sea Ya (Daily Photo Feature) ====================
 
-  /// BeReal prompts per day per cruise (strictly once)
-  static const int beRealPromptsPerDay = 1;
+  /// Sea Ya feature name
+  static const String seaYaFeatureName = 'Sea Ya';
 
-  /// BeReal is tribe-only for now (not cruise-wide)
-  static const bool beRealTribeOnly = true;
+  /// Sea Ya prompts per day per cruise (strictly once)
+  static const int seaYaPromptsPerDay = 1;
 
-  /// BeReal prompt window - random time between these hours (10am-10pm)
-  static const int beRealStartHour = 10;
-  static const int beRealEndHour = 22;
+  /// Sea Ya is tribe-only for now (not cruise-wide)
+  static const bool seaYaTribeOnly = true;
+
+  /// Sea Ya prompt window - random time between these hours (10am-10pm)
+  static const int seaYaStartHour = 10;
+  static const int seaYaEndHour = 22;
 
   /// Default timeout for network requests
   static const Duration networkTimeout = Duration(seconds: 30);

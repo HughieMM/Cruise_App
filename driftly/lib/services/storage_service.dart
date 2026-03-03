@@ -121,9 +121,9 @@ class StorageService {
     }
   }
 
-  /// Upload daily photo (BeReal-style)
-  /// Stored in sailings/{sailingId}/daily_photos/{userId}/{date}.jpg
-  Future<String> uploadDailyPhoto({
+  /// Upload Sea Ya photo
+  /// Stored in sailings/{sailingId}/sea_ya_photos/{userId}/{date}.jpg
+  Future<String> uploadSeaYaPhoto({
     required String userId,
     required String sailingId,
     required File photo,
@@ -132,7 +132,7 @@ class StorageService {
       final now = DateTime.now();
       final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final String fileName = '${dateStr}_${now.millisecondsSinceEpoch}.jpg';
-      final Reference ref = _storage.ref().child('sailings/$sailingId/daily_photos/$userId/$fileName');
+      final Reference ref = _storage.ref().child('sailings/$sailingId/sea_ya_photos/$userId/$fileName');
 
       // Upload file
       final UploadTask uploadTask = ref.putFile(
@@ -147,7 +147,7 @@ class StorageService {
       final String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
-      throw Exception('Failed to upload daily photo: $e');
+      throw Exception('Failed to upload Sea Ya photo: $e');
     }
   }
 

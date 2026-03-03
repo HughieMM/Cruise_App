@@ -6,17 +6,17 @@ import '../services/tribe_service.dart';
 
 /// TribeProvider
 ///
-/// Manages tribe state, sibling requests, and daily photos
+/// Manages tribe state, sibling requests, and Sea Ya photos
 class TribeProvider extends ChangeNotifier {
   final TribeService _tribeService = TribeService();
 
   Tribe? _currentTribe;
   List<TribeMember> _tribeMembers = [];
   List<SiblingRequest> _pendingRequests = [];
-  List<DailyPhoto> _dailyPhotos = [];
+  List<SeaYaPhoto> _seaYaPhotos = [];
   bool _isLoading = false;
   String? _errorMessage;
-  bool _hasSubmittedDailyPhoto = false;
+  bool _hasSubmittedSeaYa = false;
 
   StreamSubscription? _tribeSubscription;
   StreamSubscription? _membersSubscription;
@@ -26,11 +26,11 @@ class TribeProvider extends ChangeNotifier {
   Tribe? get currentTribe => _currentTribe;
   List<TribeMember> get tribeMembers => _tribeMembers;
   List<SiblingRequest> get pendingRequests => _pendingRequests;
-  List<DailyPhoto> get dailyPhotos => _dailyPhotos;
+  List<SeaYaPhoto> get seaYaPhotos => _seaYaPhotos;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get hasTribe => _currentTribe != null;
-  bool get hasSubmittedDailyPhoto => _hasSubmittedDailyPhoto;
+  bool get hasSubmittedSeaYa => _hasSubmittedSeaYa;
   int get memberCount => _tribeMembers.length;
 
   @override
@@ -81,17 +81,17 @@ class TribeProvider extends ChangeNotifier {
           notifyListeners();
         });
 
-        // Stream daily photos
+        // Stream Sea Ya photos
         _photosSubscription?.cancel();
         _photosSubscription = _tribeService
-            .streamTribeDailyPhotos(sailingId: sailingId, tribeId: tribeId)
+            .streamTribeSeaYaPhotos(sailingId: sailingId, tribeId: tribeId)
             .listen((photos) {
-          _dailyPhotos = photos;
+          _seaYaPhotos = photos;
           notifyListeners();
         });
 
-        // Check if user has submitted daily photo
-        _hasSubmittedDailyPhoto = await _tribeService.hasSubmittedDailyPhoto(
+        // Check if user has submitted Sea Ya photo today
+        _hasSubmittedSeaYa = await _tribeService.hasSubmittedSeaYaPhoto(
           sailingId: sailingId,
           userId: userId,
         );
@@ -204,8 +204,8 @@ class TribeProvider extends ChangeNotifier {
     }
   }
 
-  /// Submit daily photo
-  Future<bool> submitDailyPhoto({
+  /// Submit Sea Ya photo
+  Future<bool> submitSeaYaPhoto({
     required String sailingId,
     required String userId,
     required String userName,
@@ -219,7 +219,7 @@ class TribeProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      await _tribeService.submitDailyPhoto(
+      await _tribeService.submitSeaYaPhoto(
         sailingId: sailingId,
         userId: userId,
         userName: userName,
@@ -230,7 +230,7 @@ class TribeProvider extends ChangeNotifier {
         promptedAt: promptedAt,
       );
 
-      _hasSubmittedDailyPhoto = true;
+      _hasSubmittedSeaYa = true;
       _isLoading = false;
       notifyListeners();
       return true;
@@ -263,8 +263,8 @@ class TribeProvider extends ChangeNotifier {
     _currentTribe = null;
     _tribeMembers = [];
     _pendingRequests = [];
-    _dailyPhotos = [];
-    _hasSubmittedDailyPhoto = false;
+    _seaYaPhotos = [];
+    _hasSubmittedSeaYa = false;
     notifyListeners();
   }
 

@@ -5,14 +5,15 @@ import '../../providers/auth_provider.dart';
 import '../../providers/tribe_provider.dart';
 import '../../services/storage_service.dart';
 
-/// Daily Photo Screen (BeReal-style)
+/// Sea Ya Screen - Daily photo feature
 ///
 /// Users take a photo in response to the daily prompt.
 /// Features:
-/// - Random daily prompt time (10am-10pm during cruise)
+/// - One prompt per day per cruise (10am-10pm during cruise)
 /// - Shows response time after submission
-/// - View tribe members' daily photos
-class DailyPhotoScreen extends StatefulWidget {
+/// - View tribe members' Sea Ya photos
+/// - Tribe-only for now
+class SeaYaScreen extends StatefulWidget {
   final DateTime promptedAt;
 
   const DailyPhotoScreen({
@@ -21,10 +22,10 @@ class DailyPhotoScreen extends StatefulWidget {
   });
 
   @override
-  State<DailyPhotoScreen> createState() => _DailyPhotoScreenState();
+  State<SeaYaScreen> createState() => _SeaYaScreenState();
 }
 
-class _DailyPhotoScreenState extends State<DailyPhotoScreen> {
+class _SeaYaScreenState extends State<SeaYaScreen> {
   final StorageService _storageService = StorageService();
   File? _photo;
   bool _isUploading = false;
@@ -58,14 +59,14 @@ class _DailyPhotoScreenState extends State<DailyPhotoScreen> {
       }
 
       // Upload photo
-      final photoUrl = await _storageService.uploadDailyPhoto(
+      final photoUrl = await _storageService.uploadSeaYaPhoto(
         userId: user.uid,
         sailingId: user.currentSailingId!,
         photo: _photo!,
       );
 
       // Submit to tribe
-      final success = await tribeProvider.submitDailyPhoto(
+      final success = await tribeProvider.submitSeaYaPhoto(
         sailingId: user.currentSailingId!,
         userId: user.uid,
         userName: user.name,
@@ -151,7 +152,7 @@ class _DailyPhotoScreenState extends State<DailyPhotoScreen> {
         title: Column(
           children: [
             const Text(
-              'Daily Pic',
+              'Sea Ya',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text(
@@ -227,7 +228,7 @@ class _DailyPhotoScreenState extends State<DailyPhotoScreen> {
           ),
           const SizedBox(height: 24),
           const Text(
-            'Time for your daily pic!',
+            'Sea Ya!',
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,

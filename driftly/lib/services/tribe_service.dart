@@ -41,12 +41,12 @@ class TribeService {
     return tribesCollection(sailingId).doc(tribeId).collection('members');
   }
 
-  /// Daily photos collection for a sailing
-  CollectionReference dailyPhotosCollection(String sailingId) {
+  /// Sea Ya photos collection for a sailing
+  CollectionReference seaYaPhotosCollection(String sailingId) {
     return _firestore
         .collection('sailings')
         .doc(sailingId)
-        .collection('dailyPhotos');
+        .collection('seaYaPhotos');
   }
 
   /// Fun tribe names for random assignment
@@ -812,10 +812,10 @@ class TribeService {
           (counts[b] ?? 0).compareTo(counts[a] ?? 0)); // Most common first
   }
 
-  // ==================== Daily Photo Methods ====================
+  // ==================== Sea Ya Photo Methods ====================
 
-  /// Submit a daily photo
-  Future<String> submitDailyPhoto({
+  /// Submit a Sea Ya photo
+  Future<String> submitSeaYaPhoto({
     required String sailingId,
     required String userId,
     required String userName,
@@ -829,7 +829,7 @@ class TribeService {
       final now = DateTime.now();
       final responseTime = now.difference(promptedAt).inSeconds;
 
-      final photo = DailyPhoto(
+      final photo = SeaYaPhoto(
         id: '',
         userId: userId,
         userName: userName,
@@ -844,15 +844,15 @@ class TribeService {
         createdAt: now,
       );
 
-      final docRef = await dailyPhotosCollection(sailingId).add(photo.toMap());
+      final docRef = await seaYaPhotosCollection(sailingId).add(photo.toMap());
       return docRef.id;
     } catch (e) {
-      throw Exception('Failed to submit daily photo: $e');
+      throw Exception('Failed to submit Sea Ya photo: $e');
     }
   }
 
-  /// Get today's daily photos for a tribe
-  Future<List<DailyPhoto>> getTribeDailyPhotos({
+  /// Get today's Sea Ya photos for a tribe
+  Future<List<SeaYaPhoto>> getTribeSeaYaPhotos({
     required String sailingId,
     required String tribeId,
   }) async {
@@ -864,7 +864,7 @@ class TribeService {
         millisecond: 0,
       );
 
-      final querySnapshot = await dailyPhotosCollection(sailingId)
+      final querySnapshot = await seaYaPhotosCollection(sailingId)
           .where('tribeId', isEqualTo: tribeId)
           .where('createdAt', isGreaterThan: Timestamp.fromDate(todayStart))
           .orderBy('createdAt', descending: true)
@@ -872,15 +872,15 @@ class TribeService {
 
       return querySnapshot.docs
           .map((doc) =>
-              DailyPhoto.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+              SeaYaPhoto.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
-      throw Exception('Failed to get tribe daily photos: $e');
+      throw Exception('Failed to get tribe Sea Ya photos: $e');
     }
   }
 
-  /// Stream daily photos for a tribe
-  Stream<List<DailyPhoto>> streamTribeDailyPhotos({
+  /// Stream Sea Ya photos for a tribe
+  Stream<List<SeaYaPhoto>> streamTribeSeaYaPhotos({
     required String sailingId,
     required String tribeId,
   }) {
@@ -891,19 +891,19 @@ class TribeService {
       millisecond: 0,
     );
 
-    return dailyPhotosCollection(sailingId)
+    return seaYaPhotosCollection(sailingId)
         .where('tribeId', isEqualTo: tribeId)
         .where('createdAt', isGreaterThan: Timestamp.fromDate(todayStart))
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) =>
-                DailyPhoto.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+                SeaYaPhoto.fromMap(doc.data() as Map<String, dynamic>, doc.id))
             .toList());
   }
 
-  /// Check if user has submitted daily photo today
-  Future<bool> hasSubmittedDailyPhoto({
+  /// Check if user has submitted Sea Ya photo today
+  Future<bool> hasSubmittedSeaYaPhoto({
     required String sailingId,
     required String userId,
   }) async {
@@ -915,7 +915,7 @@ class TribeService {
         millisecond: 0,
       );
 
-      final querySnapshot = await dailyPhotosCollection(sailingId)
+      final querySnapshot = await seaYaPhotosCollection(sailingId)
           .where('userId', isEqualTo: userId)
           .where('createdAt', isGreaterThan: Timestamp.fromDate(todayStart))
           .limit(1)
@@ -923,7 +923,7 @@ class TribeService {
 
       return querySnapshot.docs.isNotEmpty;
     } catch (e) {
-      throw Exception('Failed to check daily photo: $e');
+      throw Exception('Failed to check Sea Ya photo: $e');
     }
   }
 }

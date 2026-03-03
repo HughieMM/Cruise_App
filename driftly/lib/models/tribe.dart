@@ -227,10 +227,11 @@ class SiblingRequest {
   bool get isMatched => status == 'matched';
 }
 
-/// BeReal-style daily photo
+/// Sea Ya - Daily photo feature (like BeReal but cruise-themed)
+/// One prompt per day, tribe-only
 ///
-/// Firestore path: /sailings/{sailingId}/dailyPhotos/{photoId}
-class DailyPhoto {
+/// Firestore path: /sailings/{sailingId}/seaYaPhotos/{photoId}
+class SeaYaPhoto {
   final String id;
   final String userId;
   final String userName;
@@ -244,7 +245,7 @@ class DailyPhoto {
   final int responseTimeSeconds; // How fast they responded
   final DateTime createdAt;
 
-  DailyPhoto({
+  SeaYaPhoto({
     required this.id,
     required this.userId,
     required this.userName,
@@ -259,8 +260,8 @@ class DailyPhoto {
     required this.createdAt,
   });
 
-  factory DailyPhoto.fromMap(Map<String, dynamic> map, String documentId) {
-    return DailyPhoto(
+  factory SeaYaPhoto.fromMap(Map<String, dynamic> map, String documentId) {
+    return SeaYaPhoto(
       id: documentId,
       userId: map['userId'] as String? ?? '',
       userName: map['userName'] as String? ?? '',
