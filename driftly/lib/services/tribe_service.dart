@@ -14,9 +14,9 @@ import '../utils/constants.dart';
 /// - Sibling/friend requests honored
 ///
 /// Safety Rules:
-/// - 16-17: NEVER mix with other age groups (minor protection)
-/// - 39+: NEVER mix with other age groups (community preference)
-/// - 18-39: CAN mix if user opts in and numbers are insufficient
+/// - 16-17: ONLY with other 16-17, NEVER with other ages (minor protection)
+/// - 39+: ONLY with other 39+, NEVER with other ages (community preference)
+/// - 18-39: CAN mix across these brackets if user opts in and numbers are low
 class TribeService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 

@@ -79,9 +79,10 @@ class AppConstants {
 
   // ==================== Age Mixing Safety Rules ====================
 
-  /// Age bands that can NEVER mix with other age groups (safety protection)
-  /// - 16-17: Minors must stay with minors (predator protection)
-  /// - 39+: Older users stay with their age group (community preference)
+  /// Age bands that can NEVER mix with OTHER age groups (safety protection)
+  /// These users CAN still form tribes within their own age band!
+  /// - 16-17: Minors can ONLY be with other 16-17 (predator protection)
+  /// - 39+: Can ONLY be with other 39+ (community preference)
   static const List<String> noMixingAgeBands = ['16-17', '39+'];
 
   /// Age bands that CAN mix when user opts-in (for small cruise numbers)
