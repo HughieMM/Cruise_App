@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/tribe_provider.dart';
 import '../../../models/tribe.dart';
-import '../../tribe/daily_photo_screen.dart';
+import '../../tribe/daily_photo_screen.dart' show SeaYaScreen;
 
 /// Tribe Tab
 ///
@@ -558,12 +558,12 @@ class _TribeTabState extends State<TribeTab> {
                       ),
                     ),
                     // Daily photo button
-                    if (!tribeProvider.hasSubmittedDailyPhoto)
+                    if (!tribeProvider.hasSubmittedSeaYa)
                       ElevatedButton.icon(
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => DailyPhotoScreen(
+                              builder: (context) => SeaYaScreen(
                                 promptedAt: DateTime.now(),
                               ),
                             ),
@@ -669,7 +669,7 @@ class _TribeTabState extends State<TribeTab> {
           const Divider(height: 1),
 
           // Daily photos section
-          if (tribeProvider.dailyPhotos.isNotEmpty) ...[
+          if (tribeProvider.seaYaPhotos.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -687,9 +687,9 @@ class _TribeTabState extends State<TribeTab> {
                     height: 120,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: tribeProvider.dailyPhotos.length,
+                      itemCount: tribeProvider.seaYaPhotos.length,
                       itemBuilder: (context, index) {
-                        final photo = tribeProvider.dailyPhotos[index];
+                        final photo = tribeProvider.seaYaPhotos[index];
                         return Padding(
                           padding: const EdgeInsets.only(right: 12),
                           child: Column(

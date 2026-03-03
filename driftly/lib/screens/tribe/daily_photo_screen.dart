@@ -16,7 +16,7 @@ import '../../services/storage_service.dart';
 class SeaYaScreen extends StatefulWidget {
   final DateTime promptedAt;
 
-  const DailyPhotoScreen({
+  const SeaYaScreen({
     super.key,
     required this.promptedAt,
   });

@@ -124,8 +124,8 @@ class InputValidator {
     if (age >= 16 && age <= 17) return AppConstants.ageBand1617;
     if (age >= 18 && age <= 20) return AppConstants.ageBand1820;
     if (age >= 21 && age <= 30) return AppConstants.ageBand2130;
-    if (age >= 31 && age <= 40) return AppConstants.ageBand3140;
-    if (age > 40) return AppConstants.ageBand40Plus;
+    if (age >= 31 && age <= 39) return AppConstants.ageBand3139;
+    if (age > 39) return AppConstants.ageBand39Plus;
     return null;
   }
 
