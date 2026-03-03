@@ -6,9 +6,13 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/badge_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
+import '../../../models/achievement_badge.dart';
 import '../../../utils/constants.dart';
+import '../../../widgets/badges_display.dart';
+import '../../settings/notification_preferences_screen.dart';
 
 /// Glass card widget with 60% transparency and blur effect
 class _GlassCard extends StatelessWidget {
@@ -186,6 +190,10 @@ class _ProfileTabState extends State<ProfileTab> {
                       children: [
                         // Profile Header
                         _buildProfileHeader(context, user, authProvider),
+                        const SizedBox(height: 16),
+
+                        // Achievement Badges
+                        _buildBadgesCard(user.uid),
                         const SizedBox(height: 16),
 
                         // Interests
@@ -393,6 +401,89 @@ class _ProfileTabState extends State<ProfileTab> {
                       .toList(),
                 ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBadgesCard(String userId) {
+    return _GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Achievement Badges',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              TextButton(
+                onPressed: () => _showAllBadgesDialog(userId),
+                child: const Text('View All'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          BadgesRow(
+            userId: userId,
+            onViewAll: () => _showAllBadgesDialog(userId),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAllBadgesDialog(String userId) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'All Badges',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.grey),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Keep participating to unlock more badges!',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 400,
+                child: SingleChildScrollView(
+                  child: BadgesDisplay(
+                    userId: userId,
+                    showAll: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1063,95 +1154,10 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   void _showNotificationsSheet(BuildContext context) {
-    // These would normally be stored in user preferences/Firestore
-    bool pushEnabled = true;
-    bool chatNotifications = true;
-    bool hangoutNotifications = true;
-    bool podActivityNotifications = true;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Notifications',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                SwitchListTile(
-                  title: const Text('Push Notifications'),
-                  subtitle: const Text('Enable all push notifications'),
-                  value: pushEnabled,
-                  onChanged: (value) {
-                    setModalState(() => pushEnabled = value);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(value ? 'Notifications enabled' : 'Notifications disabled'),
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    'Notification Types',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-                SwitchListTile(
-                  title: const Text('Chat Messages'),
-                  subtitle: const Text('New messages in pod chats'),
-                  value: chatNotifications && pushEnabled,
-                  onChanged: pushEnabled
-                      ? (value) => setModalState(() => chatNotifications = value)
-                      : null,
-                ),
-                SwitchListTile(
-                  title: const Text('Hangouts'),
-                  subtitle: const Text('New hangouts in your age group'),
-                  value: hangoutNotifications && pushEnabled,
-                  onChanged: pushEnabled
-                      ? (value) => setModalState(() => hangoutNotifications = value)
-                      : null,
-                ),
-                SwitchListTile(
-                  title: const Text('Pod Activity'),
-                  subtitle: const Text('New members joining your pods'),
-                  value: podActivityNotifications && pushEnabled,
-                  onChanged: pushEnabled
-                      ? (value) => setModalState(() => podActivityNotifications = value)
-                      : null,
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ),
+    // Navigate to full notification preferences screen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const NotificationPreferencesScreen(),
       ),
     );
   }

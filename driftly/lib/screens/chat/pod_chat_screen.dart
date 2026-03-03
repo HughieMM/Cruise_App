@@ -4,10 +4,14 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
+import '../../services/badge_service.dart';
 import '../../models/message.dart';
 import '../../models/pod.dart';
 import '../../models/app_user.dart';
+import '../../models/daily_prompt.dart';
 import '../../utils/constants.dart';
+import '../../widgets/daily_prompt_card.dart';
+import '../../widgets/report_dialog.dart';
 
 /// Pod Chat Screen
 ///
@@ -35,9 +39,11 @@ class PodChatScreen extends StatefulWidget {
 
 class _PodChatScreenState extends State<PodChatScreen> {
   final _firestoreService = FirestoreService();
+  final _badgeService = BadgeService();
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
+  bool _showDailyPrompt = true;
 
   @override
   void dispose() {
@@ -112,8 +118,8 @@ class _PodChatScreenState extends State<PodChatScreen> {
   }
 
   // Send a message
-  Future<void> _sendMessage() async {
-    final text = _messageController.text.trim();
+  Future<void> _sendMessage({String? prefillText}) async {
+    final text = prefillText ?? _messageController.text.trim();
     if (text.isEmpty || _isSending) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -135,6 +141,38 @@ class _PodChatScreenState extends State<PodChatScreen> {
 
       _messageController.clear();
       _scrollToBottom();
+
+      // Track badge progress for messages sent
+      final newBadge = await _badgeService.incrementStat(
+        userId: user.uid,
+        statName: 'messages_sent',
+      );
+
+      // Show badge notification if earned
+      if (newBadge != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Text(newBadge.icon, style: const TextStyle(fontSize: 24)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Badge Earned!', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(newBadge.name),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
 
@@ -147,6 +185,25 @@ class _PodChatScreenState extends State<PodChatScreen> {
     } finally {
       if (mounted) {
         setState(() => _isSending = false);
+      }
+    }
+  }
+
+  // Use daily prompt as message
+  void _useDailyPrompt() {
+    final prompt = DailyPrompts.getTodaysPrompt(widget.pod.name);
+    if (prompt != null) {
+      _messageController.text = prompt.prompt;
+      setState(() => _showDailyPrompt = false);
+
+      // Track badge progress for daily prompts answered
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.appUser;
+      if (user != null) {
+        _badgeService.incrementStat(
+          userId: user.uid,
+          statName: 'daily_prompts_answered',
+        );
       }
     }
   }
@@ -349,6 +406,15 @@ class _PodChatScreenState extends State<PodChatScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Daily Prompt Chip (if available)
+                    if (_showDailyPrompt && DailyPrompts.getTodaysPrompt(widget.pod.name) != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: DailyPromptChip(
+                          podName: widget.pod.name,
+                          onTap: _useDailyPrompt,
+                        ),
+                      ),
                     // Expiry reminder
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -766,6 +832,61 @@ class _MiniProfileDialog extends StatelessWidget {
                 ],
 
                 const SizedBox(height: 16),
+
+                // Report & Block Actions
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, _) {
+                    final currentUserId = authProvider.appUser?.uid;
+                    // Don't show for own profile
+                    if (currentUserId == null || currentUserId == userId) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Column(
+                      children: [
+                        const Divider(color: Colors.grey),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                showReportDialog(
+                                  context: context,
+                                  reporterId: currentUserId,
+                                  reportedUserId: userId,
+                                  contentType: 'user',
+                                );
+                              },
+                              icon: const Icon(Icons.flag_outlined, size: 18),
+                              label: const Text('Report'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.orange,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                showBlockDialog(
+                                  context: context,
+                                  userId: currentUserId,
+                                  blockedUserId: userId,
+                                  blockedUserName: userName,
+                                );
+                              },
+                              icon: const Icon(Icons.block, size: 18),
+                              label: const Text('Block'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           );

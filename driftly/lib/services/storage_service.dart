@@ -196,4 +196,50 @@ class StorageService {
       throw Exception('Failed to delete memory photo: $e');
     }
   }
+
+  /// Upload hangout photo (camera only - no gallery)
+  /// Stored in sailings/{sailingId}/hangouts/{hangoutId}/photos/{userId}_{timestamp}.jpg
+  Future<String> uploadHangoutPhoto({
+    required String sailingId,
+    required String hangoutId,
+    required String userId,
+    required File imageFile,
+  }) async {
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final String fileName = '${userId}_$timestamp.jpg';
+      final Reference ref = _storage.ref().child(
+        'sailings/$sailingId/hangouts/$hangoutId/photos/$fileName',
+      );
+
+      // Upload file
+      final UploadTask uploadTask = ref.putFile(
+        imageFile,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+
+      // Wait for upload to complete
+      final TaskSnapshot snapshot = await uploadTask;
+
+      // Get download URL
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      throw Exception('Failed to upload hangout photo: $e');
+    }
+  }
+
+  /// Delete a hangout photo from storage
+  Future<void> deleteHangoutPhoto(String photoUrl) async {
+    try {
+      final Reference ref = _storage.refFromURL(photoUrl);
+      await ref.delete();
+    } catch (e) {
+      // Ignore if file doesn't exist
+      if (e is FirebaseException && e.code == 'object-not-found') {
+        return;
+      }
+      throw Exception('Failed to delete hangout photo: $e');
+    }
+  }
 }

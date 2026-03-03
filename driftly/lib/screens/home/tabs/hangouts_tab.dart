@@ -3,11 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/badge_service.dart';
 import '../../../models/micro_hangout.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/error_state.dart';
 import '../../../widgets/app_background.dart';
+import '../../../widgets/hangout_photos_grid.dart';
 import '../../hangouts/create_hangout_dialog.dart';
+import '../../hangouts/hangout_camera_screen.dart';
 import 'hot_zones_tab.dart';
 
 /// Hangouts Tab
@@ -30,6 +33,7 @@ class HangoutsTab extends StatefulWidget {
 
 class _HangoutsTabState extends State<HangoutsTab> {
   final _firestoreService = FirestoreService();
+  final _badgeService = BadgeService();
   String? _errorMessage;
   int _selectedView = 0; // 0 = Hangouts, 1 = Hot Zones
 
@@ -288,6 +292,8 @@ class _HangoutsTabState extends State<HangoutsTab> {
   ) {
     final vibeColor = _getVibeColor(hangout.vibe);
     final hasJoined = hangout.hasUserJoined(currentUserId);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final sailingId = authProvider.appUser?.currentSailingId ?? '';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -411,19 +417,85 @@ class _HangoutsTabState extends State<HangoutsTab> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: hasJoined ? null : () => _joinHangout(hangout.id),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 40),
-              backgroundColor: hasJoined ? Colors.grey : Colors.blue[700],
-              foregroundColor: Colors.white,
+
+          // Hangout Photos Section
+          if (hasJoined) ...[
+            const SizedBox(height: 16),
+            HangoutPhotosGrid(
+              sailingId: sailingId,
+              hangoutId: hangout.id,
+              onAddPhoto: () => _openCamera(hangout),
             ),
-            child: Text(hasJoined ? 'You\'re Here!' : 'Join Hangout'),
+          ],
+
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: hasJoined ? null : () => _joinHangout(hangout.id),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 40),
+                    backgroundColor: hasJoined ? Colors.grey : Colors.blue[700],
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(hasJoined ? 'You\'re Here!' : 'Join Hangout'),
+                ),
+              ),
+              if (hasJoined) ...[
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _openCamera(hangout),
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: const Text('Snap'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _openCamera(MicroHangout hangout) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.appUser;
+    final sailingId = user?.currentSailingId;
+
+    if (user == null || sailingId == null) return;
+
+    final photoUrl = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (context) => HangoutCameraScreen(
+          hangoutId: hangout.id,
+          sailingId: sailingId,
+          location: hangout.location,
+        ),
+      ),
+    );
+
+    if (photoUrl != null && mounted) {
+      // Save photo to Firestore
+      await _firestoreService.addHangoutPhoto(
+        sailingId: sailingId,
+        hangoutId: hangout.id,
+        userId: user.uid,
+        userName: user.name,
+        photoUrl: photoUrl,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Photo shared!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   void _showCreateHangoutDialog(BuildContext context) {

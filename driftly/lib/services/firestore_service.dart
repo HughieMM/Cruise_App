@@ -7,6 +7,7 @@ import '../models/message.dart';
 import '../models/micro_hangout.dart';
 import '../models/hot_zone_vote.dart';
 import '../models/cruise_memory.dart';
+import '../models/hangout_photo.dart';
 import '../utils/input_validator.dart';
 import '../utils/constants.dart';
 
@@ -898,6 +899,101 @@ class FirestoreService {
           .toList();
     } catch (e) {
       throw Exception('Failed to get sailing memories: $e');
+    }
+  }
+
+  // ==================== Hangout Photo Methods ====================
+
+  /// Get hangout photos collection
+  CollectionReference hangoutPhotosCollection(String sailingId, String hangoutId) {
+    return hangoutsCollection(sailingId).doc(hangoutId).collection('photos');
+  }
+
+  /// Add a photo to a hangout
+  Future<String> addHangoutPhoto({
+    required String sailingId,
+    required String hangoutId,
+    required String userId,
+    required String userName,
+    required String photoUrl,
+  }) async {
+    try {
+      final photo = HangoutPhoto(
+        id: '',
+        hangoutId: hangoutId,
+        userId: userId,
+        userName: userName,
+        photoUrl: photoUrl,
+        takenAt: DateTime.now(),
+      );
+
+      final docRef = await hangoutPhotosCollection(sailingId, hangoutId).add(photo.toMap());
+
+      // Update hangout photo count
+      await hangoutsCollection(sailingId).doc(hangoutId).update({
+        'photoCount': FieldValue.increment(1),
+      });
+
+      return docRef.id;
+    } catch (e) {
+      throw Exception('Failed to add hangout photo: $e');
+    }
+  }
+
+  /// Get photos for a hangout
+  Future<List<HangoutPhoto>> getHangoutPhotos({
+    required String sailingId,
+    required String hangoutId,
+  }) async {
+    try {
+      final querySnapshot = await hangoutPhotosCollection(sailingId, hangoutId)
+          .orderBy('takenAt', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => HangoutPhoto.fromMap(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get hangout photos: $e');
+    }
+  }
+
+  /// Stream photos for a hangout
+  Stream<List<HangoutPhoto>> streamHangoutPhotos({
+    required String sailingId,
+    required String hangoutId,
+  }) {
+    return hangoutPhotosCollection(sailingId, hangoutId)
+        .orderBy('takenAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => HangoutPhoto.fromMap(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
+          .toList();
+    });
+  }
+
+  /// Delete a hangout photo
+  Future<void> deleteHangoutPhoto({
+    required String sailingId,
+    required String hangoutId,
+    required String photoId,
+  }) async {
+    try {
+      await hangoutPhotosCollection(sailingId, hangoutId).doc(photoId).delete();
+
+      // Update hangout photo count
+      await hangoutsCollection(sailingId).doc(hangoutId).update({
+        'photoCount': FieldValue.increment(-1),
+      });
+    } catch (e) {
+      throw Exception('Failed to delete hangout photo: $e');
     }
   }
 }
