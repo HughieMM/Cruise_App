@@ -115,14 +115,14 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen>
     // Get colors from selected pods
     final selectedColors = _pods
         .where((pod) => _selectedPodIds.contains(pod.id))
-        .map((pod) => _parseColor(pod.color).withOpacity(0.7))
+        .map((pod) => _parseColor(pod.color).withValues(alpha: 0.7))
         .toList();
 
     // Always have at least 2 colors for gradient
     if (selectedColors.length == 1) {
       return [
         selectedColors[0],
-        selectedColors[0].withOpacity(0.3),
+        selectedColors[0].withValues(alpha: 0.3),
         const Color(0xFF0f0f23),
       ];
     }
@@ -242,7 +242,7 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: LinearProgressIndicator(
                         value: 3 / 3, // Step 3 of 3
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           Theme.of(context).colorScheme.primary,
                         ),
@@ -302,19 +302,19 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen>
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               color: isSelected
-                                  ? color.withOpacity(0.2)
-                                  : Colors.white.withOpacity(0.1),
+                                  ? color.withValues(alpha: 0.2)
+                                  : Colors.white.withValues(alpha: 0.1),
                               border: Border.all(
                                 color: isSelected
                                     ? color
-                                    : Colors.white.withOpacity(0.2),
+                                    : Colors.white.withValues(alpha: 0.2),
                                 width: isSelected ? 2 : 1,
                               ),
                             ),
                             child: ListTile(
                               contentPadding: const EdgeInsets.all(16),
                               leading: CircleAvatar(
-                                backgroundColor: color.withOpacity(0.3),
+                                backgroundColor: color.withValues(alpha: 0.3),
                                 child: Icon(_getIconData(pod.icon), color: color),
                               ),
                               title: Text(

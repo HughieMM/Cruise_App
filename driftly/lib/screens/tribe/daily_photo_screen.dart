@@ -174,7 +174,7 @@ class _SeaYaScreenState extends State<SeaYaScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              color: Colors.blue.withOpacity(0.2),
+              color: Colors.blue.withValues(alpha: 0.2),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -272,7 +272,7 @@ class _SeaYaScreenState extends State<SeaYaScreen> {
               hintText: 'Add a caption (optional)',
               hintStyle: TextStyle(color: Colors.grey[500]),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.1),
+              fillColor: Colors.white.withValues(alpha: 0.1),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,

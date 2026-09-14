@@ -246,7 +246,7 @@ class _PodChatScreenState extends State<PodChatScreen> {
             ),
           ],
         ),
-        backgroundColor: podColor.withOpacity(0.1),
+        backgroundColor: podColor.withValues(alpha: 0.1),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -262,9 +262,9 @@ class _PodChatScreenState extends State<PodChatScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              podColor.withOpacity(0.15),
-              podColor.withOpacity(0.05),
-              Colors.black.withOpacity(0.95),
+              podColor.withValues(alpha: 0.15),
+              podColor.withValues(alpha: 0.05),
+              Colors.black.withValues(alpha: 0.95),
             ],
             stops: const [0.0, 0.3, 1.0],
           ),
@@ -341,7 +341,7 @@ class _PodChatScreenState extends State<PodChatScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: podColor.withOpacity(0.2),
+                                  color: podColor.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
@@ -398,7 +398,7 @@ class _PodChatScreenState extends State<PodChatScreen> {
               decoration: BoxDecoration(
                 color: Colors.grey[900],
                 border: Border(
-                  top: BorderSide(color: podColor.withOpacity(0.3), width: 1),
+                  top: BorderSide(color: podColor.withValues(alpha: 0.3), width: 1),
                 ),
               ),
               padding: const EdgeInsets.all(8.0),
@@ -528,11 +528,11 @@ class _PodChatScreenState extends State<PodChatScreen> {
                             ? CircleAvatar(
                                 radius: 16,
                                 backgroundImage: NetworkImage(message.userPhotoUrl!),
-                                backgroundColor: podColor.withOpacity(0.2),
+                                backgroundColor: podColor.withValues(alpha: 0.2),
                               )
                             : CircleAvatar(
                                 radius: 16,
-                                backgroundColor: podColor.withOpacity(0.2),
+                                backgroundColor: podColor.withValues(alpha: 0.2),
                                 child: Text(
                                   message.userName.isNotEmpty
                                       ? message.userName[0].toUpperCase()
@@ -606,7 +606,7 @@ class _PodChatScreenState extends State<PodChatScreen> {
                               style: TextStyle(
                                 fontSize: 11,
                                 color: isOwnMessage
-                                    ? Colors.white.withOpacity(0.7)
+                                    ? Colors.white.withValues(alpha: 0.7)
                                     : Colors.grey[500],
                               ),
                             ),
@@ -617,7 +617,7 @@ class _PodChatScreenState extends State<PodChatScreen> {
                                 Icons.timer_outlined,
                                 size: 12,
                                 color: isOwnMessage
-                                    ? Colors.white.withOpacity(0.7)
+                                    ? Colors.white.withValues(alpha: 0.7)
                                     : Colors.orange[300],
                               ),
                               const SizedBox(width: 2),
@@ -626,7 +626,7 @@ class _PodChatScreenState extends State<PodChatScreen> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: isOwnMessage
-                                      ? Colors.white.withOpacity(0.7)
+                                      ? Colors.white.withValues(alpha: 0.7)
                                       : Colors.orange[300],
                                 ),
                               ),
@@ -733,7 +733,7 @@ class _MiniProfileDialog extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.2),
+                              color: Colors.blue.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -968,9 +968,9 @@ class _SocialLinkChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

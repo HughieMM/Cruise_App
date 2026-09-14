@@ -264,9 +264,9 @@ class _HotZonesContentState extends State<HotZonesContent> {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1),
             ),
             child: InkWell(
               onTap: () => _showVoteDialog(locationName),
@@ -281,7 +281,7 @@ class _HotZonesContentState extends State<HotZonesContent> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -310,7 +310,7 @@ class _HotZonesContentState extends State<HotZonesContent> {
                                     : 'No recent votes',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
@@ -328,9 +328,9 @@ class _HotZonesContentState extends State<HotZonesContent> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: vibeColor.withOpacity(0.25),
+                        color: vibeColor.withValues(alpha: 0.25),
                         border: Border.all(
-                          color: vibeColor.withOpacity(0.5),
+                          color: vibeColor.withValues(alpha: 0.5),
                           width: 1.5,
                         ),
                         borderRadius: BorderRadius.circular(8),
@@ -342,7 +342,7 @@ class _HotZonesContentState extends State<HotZonesContent> {
                             'Current Vibe: ',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -363,7 +363,7 @@ class _HotZonesContentState extends State<HotZonesContent> {
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 40),
                         foregroundColor: Colors.white,
-                        side: BorderSide(color: Colors.white.withOpacity(0.5)),
+                        side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
                       ),
                       icon: const Icon(Icons.how_to_vote, size: 18),
                       label: const Text('Vote on Vibe'),

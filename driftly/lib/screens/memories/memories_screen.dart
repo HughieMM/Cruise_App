@@ -233,7 +233,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.blue.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -338,7 +338,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
               padding: const EdgeInsets.only(bottom: 16),
               child: Card(
                 color: isCurrent
-                    ? Colors.blue.withOpacity(0.1)
+                    ? Colors.blue.withValues(alpha: 0.1)
                     : null,
                 child: InkWell(
                   onTap: isCurrent && !isCompleted
@@ -369,7 +369,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.withOpacity(0.2),
+                                  color: Colors.orange.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -412,10 +412,10 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: Colors.blue.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: Colors.blue.withOpacity(0.3),
+                                color: Colors.blue.withValues(alpha: 0.3),
                                 style: BorderStyle.solid,
                               ),
                             ),

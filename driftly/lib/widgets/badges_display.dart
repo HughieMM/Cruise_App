@@ -89,8 +89,8 @@ class _BadgeItem extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isEarned
-                  ? Colors.amber.withOpacity(0.2)
-                  : Colors.grey.withOpacity(0.2),
+                  ? Colors.amber.withValues(alpha: 0.2)
+                  : Colors.grey.withValues(alpha: 0.2),
               border: Border.all(
                 color: isEarned ? Colors.amber : Colors.grey.shade400,
                 width: 2,
@@ -148,8 +148,8 @@ class _BadgeItem extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isEarned
-                    ? Colors.amber.withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.2),
+                    ? Colors.amber.withValues(alpha: 0.2)
+                    : Colors.grey.withValues(alpha: 0.2),
               ),
               child: Center(
                 child: Text(
@@ -191,7 +191,7 @@ class _BadgeItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.green.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Row(
@@ -258,7 +258,7 @@ class BadgesRow extends StatelessWidget {
                   height: 32,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                   ),
                   child: Center(
                     child: Text(
@@ -297,7 +297,7 @@ class _SmallBadge extends StatelessWidget {
         height: 32,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.amber.withOpacity(0.2),
+          color: Colors.amber.withValues(alpha: 0.2),
           border: Border.all(color: Colors.amber, width: 1.5),
         ),
         child: Center(

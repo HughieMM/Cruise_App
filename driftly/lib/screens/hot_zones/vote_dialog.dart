@@ -121,9 +121,9 @@ class _VoteDialogState extends State<VoteDialog> {
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
             ),
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -136,7 +136,7 @@ class _VoteDialogState extends State<VoteDialog> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
@@ -161,7 +161,7 @@ class _VoteDialogState extends State<VoteDialog> {
                           Text(
                             widget.location,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -202,12 +202,12 @@ class _VoteDialogState extends State<VoteDialog> {
                       child: Container(
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? (vibe['color'] as Color).withOpacity(0.3)
-                              : Colors.white.withOpacity(0.1),
+                              ? (vibe['color'] as Color).withValues(alpha: 0.3)
+                              : Colors.white.withValues(alpha: 0.1),
                           border: Border.all(
                             color: isSelected
                                 ? (vibe['color'] as Color)
-                                : Colors.white.withOpacity(0.3),
+                                : Colors.white.withValues(alpha: 0.3),
                             width: isSelected ? 2.5 : 1.5,
                           ),
                           borderRadius: BorderRadius.circular(12),
@@ -242,9 +242,9 @@ class _VoteDialogState extends State<VoteDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.2),
+                    color: Colors.blue.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
@@ -283,7 +283,7 @@ class _VoteDialogState extends State<VoteDialog> {
                         onPressed: _isSubmitting ? null : _submitVote,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Colors.white.withOpacity(0.2),
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
                           foregroundColor: Colors.white,
                         ),
                         child: _isSubmitting

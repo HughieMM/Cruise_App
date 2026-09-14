@@ -198,8 +198,8 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
                             });
                           },
                           selectedColor: locationColor,
-                          backgroundColor: locationColor.withOpacity(0.1),
-                          side: BorderSide(color: locationColor.withOpacity(0.3)),
+                          backgroundColor: locationColor.withValues(alpha: 0.1),
+                          side: BorderSide(color: locationColor.withValues(alpha: 0.3)),
                           labelStyle: TextStyle(
                             color: isSelected ? Colors.white : Colors.grey[300],
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
@@ -248,8 +248,8 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
                             });
                           },
                           selectedColor: vibeColor,
-                          backgroundColor: vibeColor.withOpacity(0.1),
-                          side: BorderSide(color: vibeColor.withOpacity(0.3)),
+                          backgroundColor: vibeColor.withValues(alpha: 0.1),
+                          side: BorderSide(color: vibeColor.withValues(alpha: 0.3)),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         );
                       }).toList(),
@@ -260,9 +260,9 @@ class _CreateHangoutDialogState extends State<CreateHangoutDialog> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.15),
+                        color: Colors.blue.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [

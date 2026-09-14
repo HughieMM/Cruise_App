@@ -274,7 +274,7 @@ class _TribeTabState extends State<TribeTab> {
                     backgroundColor: Theme.of(context)
                         .colorScheme
                         .primaryContainer
-                        .withOpacity(0.5),
+                        .withValues(alpha: 0.5),
                   );
                 }).toList(),
               ),
@@ -657,7 +657,7 @@ class _TribeTabState extends State<TribeTab> {
                         backgroundColor: Theme.of(context)
                             .colorScheme
                             .primaryContainer
-                            .withOpacity(0.5),
+                            .withValues(alpha: 0.5),
                       );
                     }).toList(),
                   ),

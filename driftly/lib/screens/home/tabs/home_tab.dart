@@ -134,7 +134,7 @@ class _HomeTabState extends State<HomeTab> {
     if (_sailing!.shouldPromptProfileCompletion && !user.hasAllPhotos) {
       widgets.add(
         Card(
-          color: const Color(0xFF007f97).withOpacity(0.3),
+          color: const Color(0xFF007f97).withValues(alpha: 0.3),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -142,7 +142,7 @@ class _HomeTabState extends State<HomeTab> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF007f97).withOpacity(0.2),
+                    color: const Color(0xFF007f97).withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.person_add, color: Color(0xFFa4bcbc)),
@@ -185,7 +185,7 @@ class _HomeTabState extends State<HomeTab> {
     if (_sailing!.shouldTriggerTribeMatching && !tribeProvider.hasTribe) {
       widgets.add(
         Card(
-          color: Colors.purple[900]?.withOpacity(0.3),
+          color: Colors.purple[900]?.withValues(alpha: 0.3),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -193,7 +193,7 @@ class _HomeTabState extends State<HomeTab> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(0.2),
+                    color: Colors.purple.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(Icons.diversity_3, color: Colors.purple[300]),
@@ -230,7 +230,7 @@ class _HomeTabState extends State<HomeTab> {
     if (tribeProvider.hasTribe) {
       widgets.add(
         Card(
-          color: Colors.green[900]?.withOpacity(0.3),
+          color: Colors.green[900]?.withValues(alpha: 0.3),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -238,7 +238,7 @@ class _HomeTabState extends State<HomeTab> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.2),
+                    color: Colors.green.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(Icons.check_circle, color: Colors.green[400]),
@@ -320,7 +320,7 @@ class _HomeTabState extends State<HomeTab> {
                 final name = user?.name ?? 'Cruiser';
 
                 return Card(
-                  color: Colors.blue[900]?.withOpacity(0.3),
+                  color: Colors.blue[900]?.withValues(alpha: 0.3),
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Row(
@@ -328,7 +328,7 @@ class _HomeTabState extends State<HomeTab> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.2),
+                            color: Colors.blue.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(Icons.sailing, color: Colors.blue[300]),
@@ -375,7 +375,7 @@ class _HomeTabState extends State<HomeTab> {
             // Days countdown (separate card)
             if (_sailing != null && !_isLoadingSailing)
               Card(
-                color: const Color(0xFF1a4a5e).withOpacity(0.8),
+                color: const Color(0xFF1a4a5e).withValues(alpha: 0.8),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
@@ -560,17 +560,17 @@ class _HomeTabState extends State<HomeTab> {
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  color: podColor.withOpacity(0.15),
+                  color: podColor.withValues(alpha: 0.15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: podColor.withOpacity(0.3), width: 1),
+                    side: BorderSide(color: podColor.withValues(alpha: 0.3), width: 1),
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(12),
                     leading: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: podColor.withOpacity(0.3),
+                        color: podColor.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(icon, color: podColor),

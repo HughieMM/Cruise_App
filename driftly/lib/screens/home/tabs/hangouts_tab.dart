@@ -393,7 +393,7 @@ class _HangoutsTabState extends State<HangoutsTab> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: vibeColor.withOpacity(0.2),
+                  color: vibeColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -408,7 +408,7 @@ class _HangoutsTabState extends State<HangoutsTab> {
                       hangout.vibe.toUpperCase(),
                       style: TextStyle(
                         fontSize: 11,
-                        color: vibeColor.withOpacity(0.9),
+                        color: vibeColor.withValues(alpha: 0.9),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
