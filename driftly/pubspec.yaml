@@ -20,7 +20,7 @@ dependencies:
 
   # Local Notifications
   flutter_local_notifications: ^19.0.0
-  timezone: ^0.9.4
+  timezone: ^0.10.1
 
   # State Management
   provider: ^6.1.2
