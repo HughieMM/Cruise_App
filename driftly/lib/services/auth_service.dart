@@ -77,6 +77,8 @@ class AuthService {
         return 'An account already exists with this email.';
       case 'invalid-email':
         return 'The email address is invalid.';
+      case 'invalid-credential':
+        return 'Invalid email or password.';
       case 'user-not-found':
         return 'No account found with this email.';
       case 'wrong-password':

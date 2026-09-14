@@ -277,8 +277,6 @@ class NotificationService {
       _convertToTZDateTime(reminderTime),
       details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'daily_photo_$dayNumber',
     );
   }
@@ -338,8 +336,6 @@ class NotificationService {
         _convertToTZDateTime(reminderTime),
         details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
         payload: 'disembark_photo',
       );
     }
@@ -376,8 +372,6 @@ class NotificationService {
         _convertToTZDateTime(reminderTime),
         details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
         payload: 'back_home_photo',
       );
     }
