@@ -12,37 +12,8 @@ import '../../../models/sailing.dart';
 import '../../../models/achievement_badge.dart';
 import '../../../utils/constants.dart';
 import '../../../widgets/badges_display.dart';
+import '../../../widgets/glass_card.dart';
 import '../../settings/notification_preferences_screen.dart';
-
-/// Glass card widget with 60% transparency and blur effect
-class _GlassCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-
-  const _GlassCard({required this.child, this.padding});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 1,
-            ),
-          ),
-          padding: padding ?? const EdgeInsets.all(16),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
 
 /// Helper to get cruise line background image path
 String _getCruiseLineBackground(String? cruiseLineId) {
@@ -369,7 +340,7 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   Widget _buildInterestsCard(List<String> interests) {
-    return _GlassCard(
+    return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -406,7 +377,7 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   Widget _buildBadgesCard(String userId) {
-    return _GlassCard(
+    return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -490,7 +461,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Widget _buildSailingCard() {
     if (_isLoadingExtras) {
-      return _GlassCard(
+      return GlassCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -515,7 +486,7 @@ class _ProfileTabState extends State<ProfileTab> {
     }
 
     if (_sailing == null) {
-      return _GlassCard(
+      return GlassCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -539,7 +510,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
     final dateStr = DateFormat('dd MMM yyyy').format(_sailing!.departureDate);
 
-    return _GlassCard(
+    return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -568,7 +539,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Widget _buildPodsCard() {
     if (_isLoadingExtras) {
-      return _GlassCard(
+      return GlassCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -592,7 +563,7 @@ class _ProfileTabState extends State<ProfileTab> {
       );
     }
 
-    return _GlassCard(
+    return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -797,13 +768,13 @@ class _ProfileTabState extends State<ProfileTab> {
               const SizedBox(height: 4),
               Text(
                 'Version 1.0.0',
-                style: TextStyle(color: Colors.grey[600]),
+                style: TextStyle(color: Colors.grey[400]),
               ),
               const SizedBox(height: 16),
               Text(
                 'Connect with fellow cruisers, join interest-based pods, create spontaneous hangouts, and make your cruise experience unforgettable!',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[700]),
+                style: TextStyle(color: Colors.grey[300]),
               ),
               const SizedBox(height: 24),
               const Divider(),
@@ -968,19 +939,20 @@ class _ProfileTabState extends State<ProfileTab> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: Colors.grey[700]!),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.cake, color: Colors.grey[600]),
+                        Icon(Icons.cake, color: Colors.grey[400]),
                         const SizedBox(width: 12),
                         Text(
                           selectedAgeBand ?? 'Not set',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
+                            color: Colors.white,
                           ),
                         ),
                         const Spacer(),
@@ -1440,7 +1412,7 @@ class _ProfileTabState extends State<ProfileTab> {
                           padding: const EdgeInsets.all(16),
                           child: Text(
                             faq['answer']!,
-                            style: TextStyle(color: Colors.grey[700]),
+                            style: TextStyle(color: Colors.grey[300]),
                           ),
                         ),
                       ],
@@ -1468,7 +1440,7 @@ class _ProfileTabState extends State<ProfileTab> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.email, color: Colors.grey[600], size: 20),
+                Icon(Icons.email, color: Colors.grey[400], size: 20),
                 const SizedBox(width: 8),
                 const Text('support@driftlyapp.com'),
               ],
@@ -1476,7 +1448,7 @@ class _ProfileTabState extends State<ProfileTab> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.access_time, color: Colors.grey[600], size: 20),
+                Icon(Icons.access_time, color: Colors.grey[400], size: 20),
                 const SizedBox(width: 8),
                 const Text('Response within 24 hours'),
               ],

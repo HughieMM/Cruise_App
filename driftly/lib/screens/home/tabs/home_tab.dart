@@ -8,6 +8,7 @@ import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
 import '../../../utils/constants.dart';
 import '../../../widgets/app_background.dart';
+import '../../../widgets/glass_card.dart';
 import '../../chat/pod_chat_screen.dart';
 
 /// Home Tab
@@ -408,14 +409,11 @@ class _HomeTabState extends State<HomeTab> {
 
             // Cruise Memories Card
             if (_sailing != null && _sailing!.hasDeparted)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              GlassCard(
+                padding: EdgeInsets.zero,
                 child: InkWell(
                   onTap: () => context.push('/memories'),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
@@ -423,34 +421,34 @@ class _HomeTabState extends State<HomeTab> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.blue[100],
+                            color: Colors.blue.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.photo_camera, color: Colors.blue[700]),
+                          child: Icon(Icons.photo_camera, color: Colors.blue[300]),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Cruise Memories',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue[900],
+                                  color: Colors.white,
                                 ),
                               ),
                               Text(
                                 'Capture your journey moments!',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: Colors.blue[800],
+                                  color: Colors.grey[400],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Icon(Icons.chevron_right, color: Colors.blue[700]),
+                        Icon(Icons.chevron_right, color: Colors.blue[300]),
                       ],
                     ),
                   ),
@@ -522,31 +520,27 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               )
             else if (_userPods.isEmpty)
-              Container(
+              GlassCard(
                 padding: const EdgeInsets.all(24.0),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 child: Column(
                   children: [
                     Icon(
                       Icons.groups_outlined,
                       size: 64,
-                      color: Colors.blue[700],
+                      color: Colors.blue[300],
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'No pods joined yet',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.blue[900],
+                            color: Colors.white,
                           ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Join pods to connect with other cruisers',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.blue[800],
+                            color: Colors.grey[400],
                           ),
                       textAlign: TextAlign.center,
                     ),
@@ -624,24 +618,20 @@ class _HomeTabState extends State<HomeTab> {
             const SizedBox(height: 12),
 
             // Placeholder for future activity feed
-            Container(
+            GlassCard(
               padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: Column(
                 children: [
                   Icon(
                     Icons.notifications_none,
                     size: 48,
-                    color: Colors.blue[700],
+                    color: Colors.blue[300],
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'No recent activity',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.blue[800],
+                          color: Colors.grey[400],
                         ),
                   ),
                 ],
@@ -661,26 +651,22 @@ class _HomeTabState extends State<HomeTab> {
     required String label,
     required String value,
   }) {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Column(
         children: [
-          Icon(icon, size: 32, color: Colors.blue[700]),
+          Icon(icon, size: 32, color: Colors.blue[300]),
           const SizedBox(height: 8),
           Text(
             value,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.blue[900],
+                  color: Colors.white,
                 ),
           ),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.blue[800],
+                  color: Colors.grey[400],
                 ),
           ),
         ],

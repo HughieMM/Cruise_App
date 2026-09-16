@@ -63,6 +63,40 @@ class DriftlyApp extends StatelessWidget {
             selectedItemColor: Colors.blue,
             unselectedItemColor: Colors.grey,
           ),
+          dialogTheme: const DialogThemeData(
+            backgroundColor: Color(0xFF2A2A2A),
+            surfaceTintColor: Colors.transparent,
+            titleTextStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            contentTextStyle: TextStyle(color: Colors.white70),
+          ),
+          bottomSheetTheme: const BottomSheetThemeData(
+            backgroundColor: Color(0xFF1E1E1E),
+            surfaceTintColor: Colors.transparent,
+            modalBackgroundColor: Color(0xFF1E1E1E),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: const Color(0xFF2A2A2A),
+            labelStyle: const TextStyle(color: Colors.grey),
+            hintStyle: TextStyle(color: Colors.grey[500]),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[700]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[700]!),
+            ),
+          ),
+          listTileTheme: const ListTileThemeData(
+            textColor: Colors.white,
+            iconColor: Colors.grey,
+          ),
+          dividerTheme: DividerThemeData(color: Colors.grey[800]),
           useMaterial3: true,
         ),
         routerConfig: AppRouter.router,
