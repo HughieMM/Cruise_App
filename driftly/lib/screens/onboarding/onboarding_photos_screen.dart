@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -89,10 +90,19 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
     if (source == null) return;
 
     File? photo;
-    if (source == ImageSourceChoice.camera) {
-      photo = await _storageService.takePhoto();
-    } else {
-      photo = await _storageService.pickImageFromGallery();
+    try {
+      if (source == ImageSourceChoice.camera) {
+        photo = await _storageService.takePhoto();
+      } else {
+        photo = await _storageService.pickImageFromGallery();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not get photo: $e')),
+        );
+      }
+      return;
     }
 
     if (photo == null) return;
@@ -113,13 +123,30 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
   }
 
   Future<void> _takeVerificationPhoto() async {
-    final photo = await _storageService.takePhoto();
-    if (photo != null) {
-      setState(() {
-        _verificationPhoto = photo;
-        _verificationStep = 2; // Completed
-      });
+    try {
+      final photo = await _storageService.takePhoto();
+      if (photo != null) {
+        setState(() {
+          _verificationPhoto = photo;
+          _verificationStep = 2; // Completed
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not take photo: $e')),
+        );
+      }
     }
+  }
+
+  /// Debug-only bypass for verification, since the Simulator has no real
+  /// camera. Never available in release builds.
+  void _skipVerificationForDebug() {
+    setState(() {
+      _verificationPhoto = _facePhoto;
+      _verificationStep = 2;
+    });
   }
 
   bool get _allPhotosSelected =>
@@ -487,6 +514,13 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
+            if (kDebugMode) ...[
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _skipVerificationForDebug,
+                child: const Text('Skip Verification (Debug Only)'),
+              ),
+            ],
           ],
           const SizedBox(height: 32),
 
