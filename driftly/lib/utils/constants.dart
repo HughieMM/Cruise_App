@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
 /// App-wide constants and configuration values
 /// Centralizes magic numbers, strings, and timing values for maintainability
 class AppConstants {
@@ -243,6 +246,23 @@ class AppConstants {
     'On Island Hangout': '#00897B', // Teal
   };
 
+  /// Deterministic teal/coral/amber accent for a pod, matching the new
+  /// design's minimal 3-accent palette. Stable per pod (hashed by id/name),
+  /// not random per rebuild.
+  static Color podAccentColor(String podIdOrName) {
+    final index = podIdOrName.hashCode.abs() % AppColors.accentRotation.length;
+    return AppColors.accentRotation[index];
+  }
+
+  // ==================== Hangout Status Colors ====================
+
+  /// Status pill colors for hangout cards: NOW / SOON / TOMORROW
+  static const Map<String, Color> hangoutStatusColors = {
+    'NOW': AppColors.coral,
+    'SOON': AppColors.amber,
+    'TOMORROW': AppColors.teal,
+  };
+
   // ==================== Firestore Collection Names ====================
 
   static const String usersCollection = 'users';
@@ -257,6 +277,11 @@ class AppConstants {
 
   /// Default border radius for cards
   static const double cardBorderRadius = 12.0;
+
+  /// Fully-rounded radius for pill-shaped controls (buttons, gender toggles,
+  /// interest chips) — use a value larger than half the control's height so
+  /// Flutter clamps to a true pill/stadium shape.
+  static const double pillRadius = 999.0;
 
   /// Default padding for screens
   static const double screenPadding = 16.0;

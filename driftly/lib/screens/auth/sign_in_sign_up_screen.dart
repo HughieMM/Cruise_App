@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../widgets/app_background.dart';
+import '../../widgets/pill_button.dart';
+import '../../widgets/small_caps_label.dart';
 
 /// Sign In / Sign Up Screen
 ///
@@ -27,6 +32,7 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
 
   bool _isSignUp = false;
   bool _obscurePassword = true;
+  bool _showForm = false;
 
   @override
   void dispose() {
@@ -76,163 +82,220 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Logo
-                  Icon(
-                    Icons.sailing,
-                    size: 80,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _isSignUp ? 'Create Account' : 'Welcome Back',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _isSignUp
-                        ? 'Join Driftly and connect with fellow cruisers'
-                        : 'Sign in to continue your journey',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 48),
+      backgroundColor: AppColors.background,
+      body: AppBackground(
+        variant: BackgroundVariant.starfield,
+        child: SafeArea(
+          child: _showForm ? _buildForm(context) : _buildWelcome(context),
+        ),
+      ),
+    );
+  }
 
-                  // Email Field
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Password Field
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _handleAuth(),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      border: const OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Auth Button
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : _handleAuth,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text(
-                                _isSignUp ? 'Sign Up' : 'Sign In',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Toggle Sign In / Sign Up
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _isSignUp = !_isSignUp;
-                      });
-                      // Clear error when switching modes
-                      Provider.of<AuthProvider>(context, listen: false)
-                          .clearError();
-                    },
-                    child: Text(
-                      _isSignUp
-                          ? 'Already have an account? Sign In'
-                          : "Don't have an account? Sign Up",
-                    ),
-                  ),
-
-                  // Error Message Display
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      if (authProvider.errorMessage != null) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Text(
-                            authProvider.errorMessage!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
-                            ),
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                ],
+  Widget _buildWelcome(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: AppColors.tealTint,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.teal, width: 1.5),
+                ),
+                child: const Icon(Icons.waves, color: AppColors.teal, size: 40),
               ),
             ),
+            const SizedBox(height: 24),
+            Text(
+              'Driftly',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.displayLarge.copyWith(fontSize: 44),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: SmallCapsLabel('Life at Sea · Connected', color: AppColors.teal),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Find your crew. Discover the ship.\nStay in the drift.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySecondary.copyWith(fontSize: 15),
+            ),
+            const SizedBox(height: 48),
+            PillButton(
+              label: 'Board the Ship',
+              color: AppColors.teal,
+              onPressed: () => setState(() {
+                _isSignUp = true;
+                _showForm = true;
+              }),
+            ),
+            const SizedBox(height: 12),
+            PillButton(
+              label: 'Sign in with Cruise ID',
+              variant: PillVariant.outlined,
+              color: Colors.white,
+              onPressed: () => setState(() {
+                _isSignUp = false;
+                _showForm = true;
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForm(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: AppColors.teal),
+                  onPressed: () => setState(() => _showForm = false),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _isSignUp ? 'Create Account' : 'Welcome Back',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.displayMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _isSignUp
+                    ? 'Join Driftly and connect with fellow cruisers'
+                    : 'Sign in to continue your journey',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodySecondary,
+              ),
+              const SizedBox(height: 48),
+
+              // Email Field
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email, color: AppColors.teal),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Password Field
+              TextFormField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _handleAuth(),
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock, color: AppColors.teal),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Auth Button
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  return PillButton(
+                    label: authProvider.isLoading
+                        ? '...'
+                        : (_isSignUp ? 'Sign Up' : 'Sign In'),
+                    color: AppColors.teal,
+                    onPressed: authProvider.isLoading ? null : _handleAuth,
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Toggle Sign In / Sign Up
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _isSignUp = !_isSignUp;
+                  });
+                  // Clear error when switching modes
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .clearError();
+                },
+                child: Text(
+                  _isSignUp
+                      ? 'Already have an account? Sign In'
+                      : "Don't have an account? Sign Up",
+                  style: const TextStyle(color: AppColors.teal),
+                ),
+              ),
+
+              // Error Message Display
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  if (authProvider.errorMessage != null) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Text(
+                        authProvider.errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.coral,
+                          fontSize: 14,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
           ),
         ),
       ),

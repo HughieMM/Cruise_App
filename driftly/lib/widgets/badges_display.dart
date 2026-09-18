@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/achievement_badge.dart';
 import '../services/badge_service.dart';
+import '../theme/app_colors.dart';
 
 /// Displays user's achievement badges
 /// Can be used in profile or as a popup
@@ -89,10 +90,10 @@ class _BadgeItem extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isEarned
-                  ? Colors.amber.withValues(alpha: 0.2)
+                  ? AppColors.amber.withValues(alpha: 0.2)
                   : Colors.grey.withValues(alpha: 0.2),
               border: Border.all(
-                color: isEarned ? Colors.amber : Colors.grey.shade400,
+                color: isEarned ? AppColors.amber : Colors.grey.shade400,
                 width: 2,
               ),
             ),
@@ -148,7 +149,7 @@ class _BadgeItem extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isEarned
-                    ? Colors.amber.withValues(alpha: 0.2)
+                    ? AppColors.amber.withValues(alpha: 0.2)
                     : Colors.grey.withValues(alpha: 0.2),
               ),
               child: Center(
@@ -177,7 +178,7 @@ class _BadgeItem extends StatelessWidget {
               LinearProgressIndicator(
                 value: progress / info.target,
                 backgroundColor: Colors.grey.shade300,
-                valueColor: const AlwaysStoppedAnimation(Colors.amber),
+                valueColor: const AlwaysStoppedAnimation(AppColors.amber),
               ),
               const SizedBox(height: 8),
               Text(
@@ -272,9 +273,24 @@ class BadgesRow extends StatelessWidget {
                 ),
               ),
             if (badges.isEmpty)
-              Text(
-                'No badges yet',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[700]!, style: BorderStyle.solid),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text('🎖', style: TextStyle(fontSize: 32)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No badges yet — get exploring!',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
               ),
           ],
         );
@@ -297,8 +313,8 @@ class _SmallBadge extends StatelessWidget {
         height: 32,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.amber.withValues(alpha: 0.2),
-          border: Border.all(color: Colors.amber, width: 1.5),
+          color: AppColors.amber.withValues(alpha: 0.2),
+          border: Border.all(color: AppColors.amber, width: 1.5),
         ),
         child: Center(
           child: Text(badge.icon, style: const TextStyle(fontSize: 16)),

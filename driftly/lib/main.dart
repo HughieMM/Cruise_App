@@ -5,6 +5,8 @@ import 'core/router/app_router.dart';
 import 'providers/auth_provider.dart';
 import 'providers/tribe_provider.dart';
 import 'services/notification_service.dart';
+import 'theme/app_colors.dart';
+import 'theme/app_text_styles.dart';
 
 /// Driftly - A social app for cruise passengers aged 21-30
 ///
@@ -38,65 +40,104 @@ class DriftlyApp extends StatelessWidget {
         theme: ThemeData(
           brightness: Brightness.dark,
           colorScheme: ColorScheme.dark(
-            primary: Colors.blue[400]!,
-            secondary: Colors.blue[300]!,
-            surface: const Color(0xFF1E1E1E),
-            onPrimary: Colors.white,
+            primary: AppColors.teal,
+            secondary: AppColors.coral,
+            tertiary: AppColors.amber,
+            surface: AppColors.surfaceSolid,
+            onPrimary: Colors.black,
             onSecondary: Colors.white,
             onSurface: Colors.white,
           ),
-          scaffoldBackgroundColor: Colors.black,
+          scaffoldBackgroundColor: AppColors.background,
           appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.black,
+            backgroundColor: Colors.transparent,
             foregroundColor: Colors.white,
             elevation: 0,
+            iconTheme: IconThemeData(color: AppColors.teal),
           ),
           cardTheme: CardThemeData(
-            color: const Color(0xFF2A2A2A),
+            color: AppColors.surfaceSolid,
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            backgroundColor: Color(0xFF1A1A1A),
-            selectedItemColor: Colors.blue,
+            backgroundColor: AppColors.surfaceSolid,
+            selectedItemColor: AppColors.teal,
             unselectedItemColor: Colors.grey,
           ),
           dialogTheme: const DialogThemeData(
-            backgroundColor: Color(0xFF2A2A2A),
+            backgroundColor: AppColors.surfaceSolid,
             surfaceTintColor: Colors.transparent,
             titleTextStyle: TextStyle(
+              fontFamily: AppTextStyles.displayFontFamily,
               color: Colors.white,
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
             contentTextStyle: TextStyle(color: Colors.white70),
           ),
           bottomSheetTheme: const BottomSheetThemeData(
-            backgroundColor: Color(0xFF1E1E1E),
+            backgroundColor: AppColors.background,
             surfaceTintColor: Colors.transparent,
-            modalBackgroundColor: Color(0xFF1E1E1E),
+            modalBackgroundColor: AppColors.background,
           ),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFF2A2A2A),
+            fillColor: AppColors.surfaceSolid,
             labelStyle: const TextStyle(color: Colors.grey),
             hintStyle: TextStyle(color: Colors.grey[500]),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(999),
               borderSide: BorderSide(color: Colors.grey[700]!),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(999),
               borderSide: BorderSide(color: Colors.grey[700]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(999),
+              borderSide: const BorderSide(color: AppColors.teal),
             ),
           ),
           listTileTheme: const ListTileThemeData(
             textColor: Colors.white,
             iconColor: Colors.grey,
           ),
-          dividerTheme: DividerThemeData(color: Colors.grey[800]),
+          dividerTheme: const DividerThemeData(color: AppColors.divider),
+          chipTheme: ChipThemeData(
+            backgroundColor: AppColors.surfaceSolid,
+            selectedColor: AppColors.tealTint,
+            disabledColor: AppColors.surfaceSolid,
+            labelStyle: const TextStyle(color: Colors.white),
+            secondaryLabelStyle: const TextStyle(color: AppColors.teal),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(999),
+              side: BorderSide(color: Colors.grey[700]!),
+            ),
+            checkmarkColor: AppColors.teal,
+          ),
+          switchTheme: SwitchThemeData(
+            thumbColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? Colors.white
+                  : Colors.grey[400],
+            ),
+            trackColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? AppColors.teal
+                  : Colors.grey[800],
+            ),
+          ),
+          textTheme: const TextTheme(
+            displayLarge: AppTextStyles.displayLarge,
+            displayMedium: AppTextStyles.displayMedium,
+            displaySmall: AppTextStyles.displaySmall,
+            bodyLarge: AppTextStyles.body,
+            bodyMedium: AppTextStyles.bodySecondary,
+            bodySmall: AppTextStyles.bodySmall,
+          ),
           useMaterial3: true,
         ),
         routerConfig: AppRouter.router,

@@ -187,6 +187,22 @@ class AppUser {
   bool get isReadyForTribeMatching =>
       isProfileComplete && !hasCurrentTribe;
 
+  /// Profile completion as a 0.0-1.0 fraction, for the progress-ring avatar.
+  /// Weighs 5 equally-important setup steps: name, 3+ interests, all photos
+  /// uploaded, face verified, and a sailing selected.
+  double get profileCompletionPercent {
+    var completed = 0;
+    const totalSteps = 5;
+
+    if (name.isNotEmpty) completed++;
+    if (interests.length >= 3) completed++;
+    if (hasAllPhotos) completed++;
+    if (isFaceVerified) completed++;
+    if (currentSailingId != null) completed++;
+
+    return completed / totalSteps;
+  }
+
   @override
   String toString() {
     return 'AppUser(uid: $uid, name: $name, email: $email, ageBand: $ageBand, gender: $gender)';

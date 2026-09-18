@@ -11,8 +11,12 @@ import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
 import '../../../models/achievement_badge.dart';
 import '../../../utils/constants.dart';
+import '../../../theme/app_colors.dart';
 import '../../../widgets/badges_display.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../widgets/avatar_progress_ring.dart';
+import '../../../widgets/pill_button.dart';
+import '../../../widgets/small_caps_label.dart';
 import '../../settings/notification_preferences_screen.dart';
 
 /// Helper to get cruise line background image path
@@ -168,7 +172,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         const SizedBox(height: 16),
 
                         // Interests
-                        _buildInterestsCard(user.interests),
+                        _buildInterestsCard(user.interests, () => _showEditProfileDialog(context, user, authProvider)),
                         const SizedBox(height: 16),
 
                         // Sailing Info
@@ -226,7 +230,7 @@ class _ProfileTabState extends State<ProfileTab> {
             children: [
               // Banner with cruise line background
               Container(
-                height: 120,
+                height: 180,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   image: DecorationImage(
@@ -252,27 +256,12 @@ class _ProfileTabState extends State<ProfileTab> {
                 offset: const Offset(0, -40),
                 child: Column(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 4),
-                      ),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                        backgroundImage: user.selfieUrl != null
-                            ? NetworkImage(user.selfieUrl!)
-                            : null,
-                        child: user.selfieUrl == null
-                            ? Text(
-                                user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                                style: TextStyle(
-                                  fontSize: 48,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            : null,
-                      ),
+                    AvatarWithProgressRing(
+                      imageUrl: user.selfieUrl,
+                      fallbackInitial:
+                          user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                      percent: user.profileCompletionPercent as double,
+                      size: 108,
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -290,15 +279,15 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                     if (user.selfieVerified) ...[
                       const SizedBox(height: 4),
-                      Row(
+                      const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.verified, size: 16, color: Colors.green[400]),
-                          const SizedBox(width: 4),
+                          Icon(Icons.verified, size: 16, color: AppColors.teal),
+                          SizedBox(width: 4),
                           Text(
                             'Verified',
                             style: TextStyle(
-                              color: Colors.green[400],
+                              color: AppColors.teal,
                               fontSize: 12,
                             ),
                           ),
@@ -323,10 +312,12 @@ class _ProfileTabState extends State<ProfileTab> {
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: OutlinedButton.icon(
+                      child: PillButton(
+                        label: 'Edit Profile',
+                        icon: Icons.edit,
+                        variant: PillVariant.outlined,
+                        color: Colors.white,
                         onPressed: () => _showEditProfileDialog(context, user, authProvider),
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Edit Profile'),
                       ),
                     ),
                   ],
@@ -339,7 +330,7 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildInterestsCard(List<String> interests) {
+  Widget _buildInterestsCard(List<String> interests, VoidCallback onEditInterests) {
     return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,24 +344,25 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
           ),
           const SizedBox(height: 12),
-          interests.isEmpty
-              ? Text(
-                  'No interests selected',
-                  style: TextStyle(color: Colors.grey[400]),
-                )
-              : Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: interests
-                      .map((interest) => Chip(
-                            label: Text(interest),
-                            backgroundColor: Theme.of(context)
-                                .colorScheme
-                                .primaryContainer
-                                .withValues(alpha: 0.8),
-                          ))
-                      .toList(),
-                ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...interests.map((interest) => Chip(
+                    label: Text(interest),
+                    labelStyle: const TextStyle(color: AppColors.teal),
+                    backgroundColor: AppColors.tealTint,
+                    side: const BorderSide(color: AppColors.teal),
+                  )),
+              ActionChip(
+                label: const Text('+ Add more'),
+                labelStyle: TextStyle(color: Colors.grey[400]),
+                backgroundColor: Colors.transparent,
+                side: BorderSide(color: Colors.grey[600]!, style: BorderStyle.solid),
+                onPressed: onEditInterests,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -914,18 +906,18 @@ class _ProfileTabState extends State<ProfileTab> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
+                          color: AppColors.tealTint,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.verified, color: Colors.green, size: 16),
+                            Icon(Icons.verified, color: AppColors.teal, size: 16),
                             SizedBox(width: 4),
                             Text(
                               'Verified',
                               style: TextStyle(
-                                color: Colors.green,
+                                color: AppColors.teal,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -985,7 +977,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         '${selectedInterests.length}/5 selected',
                         style: TextStyle(
                           fontSize: 14,
-                          color: selectedInterests.length >= 3 ? Colors.green : Colors.grey[600],
+                          color: selectedInterests.length >= 3 ? AppColors.teal : Colors.grey[400],
                         ),
                       ),
                     ],

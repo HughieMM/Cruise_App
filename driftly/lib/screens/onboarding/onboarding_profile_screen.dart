@@ -3,6 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../widgets/app_background.dart';
+import '../../widgets/pill_button.dart';
+import 'widgets/onboarding_step_header.dart';
 
 /// Onboarding Profile Screen
 ///
@@ -238,43 +243,23 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Complete Your Profile'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Progress Indicator
-                LinearProgressIndicator(
-                  value: 1 / 3, // Step 1 of 3
-                  backgroundColor: Colors.grey[200],
-                ),
-                const SizedBox(height: 32),
-
-                // Header
-                const Text(
-                  'Tell us about yourself',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+      backgroundColor: AppColors.background,
+      body: AppBackground(
+        variant: BackgroundVariant.starfield,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OnboardingStepHeader(
+                    step: 1,
+                    title: 'About You',
+                    onBack: () => context.pop(),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Help us connect you with the right people',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
                 // Name Field
                 TextFormField(
@@ -354,18 +339,18 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
+                          color: AppColors.tealTint,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.verified, color: Colors.green, size: 16),
+                            const Icon(Icons.verified, color: AppColors.teal, size: 16),
                             const SizedBox(width: 4),
                             Text(
                               'Age $_verifiedAge verified',
                               style: const TextStyle(
-                                color: Colors.green,
+                                color: AppColors.teal,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -417,8 +402,8 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         color: _selectedInterests.length >= 3 && _selectedInterests.length <= 5
-                            ? Colors.green
-                            : Colors.grey[600],
+                            ? AppColors.teal
+                            : Colors.grey[400],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -476,21 +461,11 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                 // Continue Button
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
-                    return ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : _handleContinue,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: authProvider.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text(
-                              'Continue',
-                              style: TextStyle(fontSize: 16),
-                            ),
+                    return PillButton(
+                      label: authProvider.isLoading ? '...' : 'Continue',
+                      color: AppColors.teal,
+                      onPressed:
+                          authProvider.isLoading ? null : _handleContinue,
                     );
                   },
                 ),
@@ -498,6 +473,7 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

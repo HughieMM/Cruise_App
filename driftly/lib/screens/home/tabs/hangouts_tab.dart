@@ -7,8 +7,13 @@ import '../../../services/badge_service.dart';
 import '../../../models/micro_hangout.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/error_state.dart';
-import '../../../widgets/app_background.dart';
 import '../../../widgets/hangout_photos_grid.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
+import '../../../widgets/app_segmented_control.dart';
+import '../../../widgets/glass_card.dart';
+import '../../../widgets/icon_badge.dart';
+import '../../../widgets/pill_button.dart';
 import '../../hangouts/create_hangout_dialog.dart';
 import '../../hangouts/hangout_camera_screen.dart';
 import 'hot_zones_tab.dart';
@@ -99,11 +104,11 @@ class _HangoutsTabState extends State<HangoutsTab> {
   Color _getVibeColor(String vibe) {
     switch (vibe) {
       case 'chill':
-        return Colors.blue;
+        return AppColors.teal;
       case 'lively':
-        return Colors.orange;
+        return AppColors.amber;
       case 'party':
-        return Colors.red;
+        return AppColors.coral;
       default:
         return Colors.grey;
     }
@@ -111,36 +116,23 @@ class _HangoutsTabState extends State<HangoutsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      extendBodyBehindAppBar: true,
-      overlayOpacity: 0.5,
+    return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Hangouts & Vibes'),
+        title: Text('Hangouts & Vibes', style: AppTextStyles.displaySmall),
         backgroundColor: Colors.transparent,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(56),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SegmentedButton<int>(
+            child: AppSegmentedControl<int>(
               segments: const [
-                ButtonSegment<int>(
-                  value: 0,
-                  icon: Icon(Icons.location_on, size: 18),
-                  label: Text('Hangouts'),
-                ),
-                ButtonSegment<int>(
-                  value: 1,
-                  icon: Icon(Icons.whatshot, size: 18),
-                  label: Text('Hot Zones'),
-                ),
+                SegmentItem(value: 0, label: 'Hangouts'),
+                SegmentItem(value: 1, label: 'Hot Zones', emoji: '🔥'),
               ],
-              selected: {_selectedView},
-              onSelectionChanged: (Set<int> selection) {
-                setState(() {
-                  _selectedView = selection.first;
-                });
-              },
+              selected: _selectedView,
+              onChanged: (value) => setState(() => _selectedView = value),
             ),
           ),
         ),
@@ -150,6 +142,8 @@ class _HangoutsTabState extends State<HangoutsTab> {
       ),
       floatingActionButton: _selectedView == 0
           ? FloatingActionButton.extended(
+              backgroundColor: AppColors.teal,
+              foregroundColor: Colors.black,
               onPressed: () => _showCreateHangoutDialog(context),
               icon: const Icon(Icons.add_location),
               label: const Text('I\'m Here'),
@@ -198,24 +192,23 @@ class _HangoutsTabState extends State<HangoutsTab> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Info Card
-                      Container(
-                        margin: const EdgeInsets.all(16),
+                      Padding(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.blue[700]),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Hangouts last 45 minutes. Check in when you\'re at a location!',
-                                style: TextStyle(color: Colors.blue[900]),
+                        child: GlassCard(
+                          borderColor: AppColors.tealBorder,
+                          tintColor: AppColors.tealTint,
+                          child: Row(
+                            children: [
+                              const Icon(Icons.info_outline, color: AppColors.teal),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Hangouts last 45 minutes. Check in when you\'re at a location!',
+                                  style: TextStyle(color: Colors.grey[300]),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
 
@@ -225,9 +218,13 @@ class _HangoutsTabState extends State<HangoutsTab> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            const Text(
                               'Active in Your Age Group',
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                             if (hangouts.isNotEmpty)
                               Container(
@@ -236,14 +233,14 @@ class _HangoutsTabState extends State<HangoutsTab> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue[100],
+                                  color: AppColors.tealTint,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   '${hangouts.length}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue[800],
+                                    color: AppColors.teal,
                                   ),
                                 ),
                               ),
@@ -295,27 +292,23 @@ class _HangoutsTabState extends State<HangoutsTab> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final sailingId = authProvider.appUser?.currentSailingId ?? '';
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: GlassCard(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.location_on, color: Colors.blue[700]),
+              const Icon(Icons.location_on, color: AppColors.teal),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   hangout.location,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.blue[900],
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -323,20 +316,20 @@ class _HangoutsTabState extends State<HangoutsTab> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.orange[100],
+                  color: AppColors.amberTint,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.timer, size: 16, color: Colors.orange[800]),
+                    const Icon(Icons.timer, size: 16, color: AppColors.amber),
                     const SizedBox(width: 4),
                     Text(
                       hangout.timeRemaining,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange[800],
+                        color: AppColors.amber,
                       ),
                     ),
                   ],
@@ -347,18 +340,13 @@ class _HangoutsTabState extends State<HangoutsTab> {
           const SizedBox(height: 12),
           Row(
             children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: Colors.blue[100],
-                child: Text(
-                  hangout.createdByName.isNotEmpty
-                      ? hangout.createdByName[0].toUpperCase()
-                      : '?',
-                  style: TextStyle(
-                    color: Colors.blue[700],
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              IconBadge(
+                emoji: hangout.createdByName.isNotEmpty
+                    ? hangout.createdByName[0].toUpperCase()
+                    : '?',
+                backgroundColor: AppColors.teal,
+                size: 32,
+                borderRadius: 999,
               ),
               const SizedBox(width: 8),
               Column(
@@ -366,14 +354,14 @@ class _HangoutsTabState extends State<HangoutsTab> {
                 children: [
                   Text(
                     hangout.createdByName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: Colors.blue[900],
+                      color: Colors.white,
                     ),
                   ),
                   Text(
                     _formatCreatedTime(hangout.startTime),
-                    style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
                   ),
                 ],
               ),
@@ -382,11 +370,11 @@ class _HangoutsTabState extends State<HangoutsTab> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.people, size: 20, color: Colors.blue[700]),
+              Icon(Icons.people, size: 20, color: Colors.grey[400]),
               const SizedBox(width: 4),
               Text(
                 '${hangout.attendeeCount} ${hangout.attendeeCount == 1 ? "person" : "people"} here',
-                style: TextStyle(color: Colors.blue[800]),
+                style: TextStyle(color: Colors.grey[300]),
               ),
               const SizedBox(width: 16),
               Container(
@@ -408,7 +396,7 @@ class _HangoutsTabState extends State<HangoutsTab> {
                       hangout.vibe.toUpperCase(),
                       style: TextStyle(
                         fontSize: 11,
-                        color: vibeColor.withValues(alpha: 0.9),
+                        color: vibeColor,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -432,32 +420,25 @@ class _HangoutsTabState extends State<HangoutsTab> {
           Row(
             children: [
               Expanded(
-                child: ElevatedButton(
+                child: PillButton(
+                  label: hasJoined ? 'You\'re Here!' : 'Join Hangout',
+                  color: hasJoined ? Colors.grey : AppColors.teal,
                   onPressed: hasJoined ? null : () => _joinHangout(hangout.id),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 40),
-                    backgroundColor: hasJoined ? Colors.grey : Colors.blue[700],
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(hasJoined ? 'You\'re Here!' : 'Join Hangout'),
                 ),
               ),
               if (hasJoined) ...[
                 const SizedBox(width: 8),
-                ElevatedButton.icon(
+                PillButton(
+                  label: 'Snap',
+                  icon: Icons.camera_alt,
+                  color: AppColors.coral,
                   onPressed: () => _openCamera(hangout),
-                  icon: const Icon(Icons.camera_alt, size: 18),
-                  label: const Text('Snap'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
                 ),
               ],
             ],
           ),
         ],
+        ),
       ),
     );
   }

@@ -6,6 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/storage_service.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/app_background.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/icon_badge.dart';
+import '../../widgets/pill_button.dart';
+import 'widgets/onboarding_step_header.dart';
 
 /// Onboarding Photos Screen
 ///
@@ -241,15 +247,14 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_showVerification ? 'Verify Your Face' : 'Add Your Photos'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: _showVerification
-            ? _buildVerificationView()
-            : _buildPhotoUploadView(),
+      backgroundColor: AppColors.background,
+      body: AppBackground(
+        variant: BackgroundVariant.starfield,
+        child: SafeArea(
+          child: _showVerification
+              ? _buildVerificationView()
+              : _buildPhotoUploadView(),
+        ),
       ),
     );
   }
@@ -260,27 +265,17 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Progress Indicator
-          LinearProgressIndicator(
-            value: 2 / 4, // Step 2 of 4
-            backgroundColor: Colors.grey[200],
-          ),
-          const SizedBox(height: 32),
-
-          // Header
-          const Text(
-            'Show us who you are!',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          OnboardingStepHeader(
+            step: 2,
+            title: 'Show us who you are',
+            onBack: () => context.pop(),
           ),
           const SizedBox(height: 8),
           Text(
             'Upload 3 photos to help others get to know you',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: Colors.grey[400],
             ),
           ),
           const SizedBox(height: 32),
@@ -322,7 +317,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
             children: [
               Icon(
                 _allPhotosSelected ? Icons.check_circle : Icons.circle_outlined,
-                color: _allPhotosSelected ? Colors.green : Colors.grey,
+                color: _allPhotosSelected ? AppColors.teal : Colors.grey,
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -331,7 +326,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
                     ? 'All photos added!'
                     : '${[_facePhoto, _funPhoto, _wildcardPhoto].where((p) => p != null).length}/3 photos added',
                 style: TextStyle(
-                  color: _allPhotosSelected ? Colors.green : Colors.grey[600],
+                  color: _allPhotosSelected ? AppColors.teal : Colors.grey[400],
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -340,17 +335,12 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           const SizedBox(height: 24),
 
           // Continue Button
-          ElevatedButton(
+          PillButton(
+            label: 'Continue to Verification',
+            color: AppColors.teal,
             onPressed: _allPhotosSelected && !_isUploading
                 ? _handleContinue
                 : null,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: const Text(
-              'Continue to Verification',
-              style: TextStyle(fontSize: 16),
-            ),
           ),
         ],
       ),
@@ -363,27 +353,29 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Progress Indicator
-          LinearProgressIndicator(
-            value: 2.5 / 4,
-            backgroundColor: Colors.grey[200],
-          ),
-          const SizedBox(height: 32),
-
-          // Header
-          const Text(
-            'Quick Face Verification',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          OnboardingStepHeader(
+            step: 2,
+            title: 'Verify Your Face',
+            onBack: () => setState(() {
+              _showVerification = false;
+              _verificationPhoto = null;
+              _verificationStep = 0;
+            }),
           ),
           const SizedBox(height: 8),
+          Text(
+            'Quick Face Verification',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[400],
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(
             'This helps us make sure you\'re a real person',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: Colors.grey[400],
             ),
           ),
           const SizedBox(height: 32),
@@ -392,7 +384,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           if (_facePhoto != null) ...[
             const Text(
               'Your profile photo:',
-              style: TextStyle(fontWeight: FontWeight.w500),
+              style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
             ),
             const SizedBox(height: 8),
             Center(
@@ -410,47 +402,40 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           ],
 
           // Verification prompt
-          Card(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Icon(
-                    _isVerified
-                        ? Icons.check_circle
-                        : _posePrompts.firstWhere(
-                            (p) => p['text'] == _currentPose,
-                            orElse: () => {'icon': Icons.camera_alt},
-                          )['icon'] as IconData,
-                    size: 48,
-                    color: _isVerified
-                        ? Colors.green
-                        : Theme.of(context).colorScheme.primary,
+          GlassCard(
+            borderColor: _isVerified ? AppColors.teal : AppColors.tealBorder,
+            tintColor: AppColors.tealTint,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Icon(
+                  _isVerified
+                      ? Icons.check_circle
+                      : _posePrompts.firstWhere(
+                          (p) => p['text'] == _currentPose,
+                          orElse: () => {'icon': Icons.camera_alt},
+                        )['icon'] as IconData,
+                  size: 48,
+                  color: AppColors.teal,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _isVerified ? 'Verified!' : _currentPose,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 16),
+                  textAlign: TextAlign.center,
+                ),
+                if (!_isVerified) ...[
+                  const SizedBox(height: 8),
                   Text(
-                    _isVerified ? 'Verified!' : _currentPose,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: _isVerified
-                          ? Colors.green
-                          : Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                    textAlign: TextAlign.center,
+                    'Take a selfie doing this pose',
+                    style: TextStyle(color: Colors.grey[300]),
                   ),
-                  if (!_isVerified) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Take a selfie doing this pose',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ],
                 ],
-              ),
+              ],
             ),
           ),
           const SizedBox(height: 24),
@@ -459,7 +444,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           if (_verificationPhoto != null) ...[
             const Text(
               'Your verification selfie:',
-              style: TextStyle(fontWeight: FontWeight.w500),
+              style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
             ),
             const SizedBox(height: 8),
             Center(
@@ -480,12 +465,12 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: const BoxDecoration(
-                        color: Colors.green,
+                        color: AppColors.teal,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.check,
-                        color: Colors.white,
+                        color: Colors.black,
                         size: 20,
                       ),
                     ),
@@ -502,17 +487,15 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
                   _verificationStep = 1;
                 });
               },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retake Photo'),
+              icon: const Icon(Icons.refresh, color: AppColors.teal),
+              label: const Text('Retake Photo', style: TextStyle(color: AppColors.teal)),
             ),
           ] else ...[
-            ElevatedButton.icon(
+            PillButton(
+              label: 'Take Verification Selfie',
+              icon: Icons.camera_alt,
+              color: AppColors.teal,
               onPressed: _takeVerificationPhoto,
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Take Verification Selfie'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
             ),
             if (kDebugMode) ...[
               const SizedBox(height: 12),
@@ -525,25 +508,10 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           const SizedBox(height: 32),
 
           // Continue Button
-          ElevatedButton(
+          PillButton(
+            label: _isUploading ? '...' : 'Complete Setup',
+            color: AppColors.teal,
             onPressed: _isVerified && !_isUploading ? _handleContinue : null,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.green,
-            ),
-            child: _isUploading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text(
-                    'Complete Setup',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
           ),
 
           // Back button
@@ -556,7 +524,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
                 _verificationStep = 0;
               });
             },
-            child: const Text('Back to Photos'),
+            child: const Text('Back to Photos', style: TextStyle(color: AppColors.teal)),
           ),
         ],
       ),
@@ -571,38 +539,30 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
     required VoidCallback onTap,
     bool isRequired = false,
   }) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return GlassCard(
+      padding: EdgeInsets.zero,
+      showBlur: false,
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               // Photo preview or placeholder
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: photo != null
-                      ? null
-                      : Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                  image: photo != null
-                      ? DecorationImage(
+              photo != null
+                  ? Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        image: DecorationImage(
                           image: FileImage(photo),
                           fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: photo == null
-                    ? Icon(
-                        icon,
-                        size: 32,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
-              ),
+                        ),
+                      ),
+                    )
+                  : IconBadge(icon: icon, size: 80, borderRadius: 12),
               const SizedBox(width: 16),
 
               // Text content
@@ -617,13 +577,14 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
                         if (isRequired) ...[
                           const SizedBox(width: 4),
                           const Text(
                             '*',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(color: AppColors.coral),
                           ),
                         ],
                       ],
@@ -633,7 +594,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
                       subtitle,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: Colors.grey[400],
                       ),
                     ),
                   ],
@@ -643,7 +604,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
               // Status icon
               Icon(
                 photo != null ? Icons.check_circle : Icons.add_a_photo,
-                color: photo != null ? Colors.green : Colors.grey,
+                color: photo != null ? AppColors.teal : Colors.grey,
               ),
             ],
           ),

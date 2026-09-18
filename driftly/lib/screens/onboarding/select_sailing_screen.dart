@@ -3,7 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
+import '../../theme/app_colors.dart';
 import '../../widgets/app_background.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/pill_button.dart';
+import 'widgets/onboarding_step_header.dart';
 
 /// Select Sailing Screen
 ///
@@ -382,42 +386,20 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AppBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Choose Your Cruise'),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-        body: SafeArea(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: AppBackground(
+        variant: BackgroundVariant.starfield,
+        child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Progress Indicator
-              LinearProgressIndicator(
-                value: 2 / 3, // Step 2 of 3
-                backgroundColor: Colors.grey[200],
-              ),
-              const SizedBox(height: 32),
-
-              // Header
-              const Text(
-                'Select your sailing',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Find cruisers on your specific voyage',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
+              OnboardingStepHeader(
+                step: 2,
+                title: 'Choose your cruise',
+                onBack: () => context.pop(),
               ),
               const SizedBox(height: 32),
 
@@ -517,62 +499,62 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
 
               // Return Date Display (calculated)
               if (_returnDate != null)
-                Card(
-                  color: Colors.green[50],
-                  child: ListTile(
-                    leading: Icon(Icons.flight_land, color: Colors.green[700]),
-                    title: const Text('Return Date'),
-                    subtitle: Text(
-                      _formatDate(_returnDate!),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.green[700],
+                GlassCard(
+                  borderColor: AppColors.tealBorder,
+                  tintColor: AppColors.tealTint,
+                  showBlur: false,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.autorenew, color: AppColors.teal),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Return Date',
+                            style: TextStyle(color: AppColors.teal, fontSize: 12),
+                          ),
+                          Text(
+                            _formatDate(_returnDate!),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.teal,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
               if (_returnDate != null) const SizedBox(height: 16),
 
               // 30-Day Info Card
-              Card(
-                color: Colors.blue[50],
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.blue[700]),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'You can access the app 30 days before your sailing date',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.blue[900],
-                          ),
+              GlassCard(
+                showBlur: false,
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.grey[400]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'You can access the app 30 days before your sailing date',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[300],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 32),
 
               // Continue Button
-              ElevatedButton(
+              PillButton(
+                label: _isLoading ? '...' : 'Continue',
+                color: AppColors.teal,
                 onPressed: _isLoading ? null : _handleContinue,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text(
-                        'Continue',
-                        style: TextStyle(fontSize: 16),
-                      ),
               ),
             ],
           ),

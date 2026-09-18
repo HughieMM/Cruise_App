@@ -3,11 +3,15 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
+import '../../../utils/constants.dart';
 import '../../chat/pod_chat_screen.dart';
 import '../../../widgets/shimmer_loading.dart';
 import '../../../widgets/error_state.dart' as error_widget;
 import '../../../widgets/empty_state.dart' as empty_widget;
-import '../../../widgets/app_background.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
+import '../../../widgets/glass_card.dart';
+import '../../../widgets/icon_badge.dart';
 
 /// Pods Tab
 ///
@@ -71,15 +75,6 @@ class _PodsTabState extends State<PodsTab> {
     }
   }
 
-  Color _parseColor(String hexColor) {
-    try {
-      final hex = hexColor.replaceAll('#', '');
-      return Color(int.parse('FF$hex', radix: 16));
-    } catch (e) {
-      return Colors.blue;
-    }
-  }
-
   IconData _getIconForPod(String podName) {
     final name = podName.toLowerCase();
     if (name.contains('nightlife') || name.contains('party')) {
@@ -130,16 +125,15 @@ class _PodsTabState extends State<PodsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      extendBodyBehindAppBar: true,
-      overlayOpacity: 0.5,
+    return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('My Pods'),
+        title: Text('My Pods', style: AppTextStyles.displaySmall),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.search, color: AppColors.teal),
             onPressed: () {
               // TODO: Search pods
             },
@@ -153,6 +147,8 @@ class _PodsTabState extends State<PodsTab> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.teal,
+        foregroundColor: Colors.black,
         onPressed: () {
           // TODO: Navigate to browse/join pods screen
           ScaffoldMessenger.of(context).showSnackBar(
@@ -201,65 +197,47 @@ class _PodsTabState extends State<PodsTab> {
   }
 
   Widget _buildPodCard(BuildContext context, Pod pod) {
-    final color = _parseColor(pod.color);
+    final color = AppConstants.podAccentColor(pod.id);
     final icon = _getIconForPod(pod.name);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.blue[100],
-            borderRadius: BorderRadius.circular(10),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: GlassCard(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(12),
+          leading: IconBadge(icon: icon, backgroundColor: color),
+          title: Text(
+            pod.name,
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+            overflow: TextOverflow.ellipsis,
           ),
-          child: Icon(icon, color: Colors.blue[700]),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                pod.name,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blue[900],
-                ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              Text(
+                pod.description,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.grey[400]),
               ),
-            ),
-            // Unread badge placeholder - TODO: implement with real unread count
-          ],
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(Icons.people, size: 14, color: Colors.grey[400]),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${pod.memberCount} members',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          trailing: Icon(Icons.arrow_forward_ios, size: 16, color: color),
+          onTap: () => _openPodChat(pod),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              pod.description,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.blue[800]),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.people, size: 14, color: Colors.blue[700]),
-                const SizedBox(width: 4),
-                Text(
-                  '${pod.memberCount} members',
-                  style: TextStyle(fontSize: 12, color: Colors.blue[700]),
-                ),
-              ],
-            ),
-          ],
-        ),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.blue[700]),
-        onTap: () => _openPodChat(pod),
       ),
     );
   }

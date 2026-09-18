@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../widgets/app_background.dart';
 
 /// Splash Screen - Auth Gate
 ///
@@ -74,40 +77,86 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Driftly Logo/Icon (placeholder)
-            Icon(
-              Icons.sailing,
-              size: 100,
-              color: Colors.white,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Driftly',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      backgroundColor: AppColors.background,
+      body: AppBackground(
+        variant: BackgroundVariant.starfield,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _DriftlyGlyph(),
+              const SizedBox(height: 24),
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [AppColors.teal, Colors.white],
+                ).createShader(bounds),
+                child: Text(
+                  'Driftly',
+                  style: AppTextStyles.displayLarge.copyWith(fontSize: 52),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Connect Before You Sail',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.white70,
+              const SizedBox(height: 8),
+              Text(
+                'CONNECT BEFORE YOU SAIL',
+                style: AppTextStyles.smallCaps(color: AppColors.teal),
               ),
-            ),
-            const SizedBox(height: 48),
-            const CircularProgressIndicator(
-              color: Colors.white,
-            ),
-          ],
+              const SizedBox(height: 48),
+              const CircularProgressIndicator(
+                color: AppColors.teal,
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+/// Teal wave glyph in a rounded square, with soft glowing concentric rings
+/// behind it — matches the splash/welcome icon treatment in the Figma design.
+class _DriftlyGlyph extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 160,
+      height: 160,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.tealBorder, width: 1),
+            ),
+          ),
+          Container(
+            width: 110,
+            height: 110,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.tealBorder, width: 1),
+            ),
+          ),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.tealTint,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.teal, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.teal.withValues(alpha: 0.4),
+                  blurRadius: 24,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: const Icon(Icons.waves, color: AppColors.teal, size: 32),
+          ),
+        ],
       ),
     );
   }

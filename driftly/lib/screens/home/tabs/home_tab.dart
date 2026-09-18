@@ -7,8 +7,11 @@ import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
 import '../../../utils/constants.dart';
-import '../../../widgets/app_background.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../widgets/icon_badge.dart';
+import '../../../widgets/small_caps_label.dart';
 import '../../chat/pod_chat_screen.dart';
 
 /// Home Tab
@@ -105,6 +108,20 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
+  /// "Day X · Cruise Line" label shown top-left, matching the sailing's
+  /// actual elapsed time and cruise line rather than fabricated data.
+  String _dayAndLineLabel() {
+    if (_sailing == null) return 'Driftly';
+    final dayNumber = _sailing!.hasDeparted
+        ? DateTime.now().difference(_sailing!.departureDate).inDays + 1
+        : 1;
+    final lineName = _sailing!.cruiseLineId
+        .split('_')
+        .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
+        .join(' ');
+    return 'Day $dayNumber · $lineName';
+  }
+
   // Helper to get icon from string
   IconData _getIconData(String iconName) {
     switch (iconName) {
@@ -134,48 +151,37 @@ class _HomeTabState extends State<HomeTab> {
     // Profile completion prompt (Day 30 or less, profile incomplete)
     if (_sailing!.shouldPromptProfileCompletion && !user.hasAllPhotos) {
       widgets.add(
-        Card(
-          color: const Color(0xFF007f97).withValues(alpha: 0.3),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF007f97).withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.person_add, color: Color(0xFFa4bcbc)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Complete Your Profile',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+        GlassCard(
+          borderColor: AppColors.amberBorder,
+          tintColor: AppColors.amberTint,
+          child: Row(
+            children: [
+              const IconBadge(icon: Icons.person_add, backgroundColor: AppColors.amber),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Complete Your Profile',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    Text(
+                      'Add your photos to be matched with a tribe!',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[400],
                       ),
-                      Text(
-                        'Add your photos to be matched with a tribe!',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () => context.go('/onboarding/photos'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFFa4bcbc),
-                  ),
-                  child: const Text('Add Photos'),
-                ),
-              ],
-            ),
+              ),
+              PillButton(
+                label: 'Add Photos',
+                color: AppColors.amber,
+                onPressed: () => context.go('/onboarding/photos'),
+              ),
+            ],
           ),
         ),
       );
@@ -185,42 +191,31 @@ class _HomeTabState extends State<HomeTab> {
     // Tribe matching info (Day 25 or less, no tribe yet)
     if (_sailing!.shouldTriggerTribeMatching && !tribeProvider.hasTribe) {
       widgets.add(
-        Card(
-          color: Colors.purple[900]?.withValues(alpha: 0.3),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.diversity_3, color: Colors.purple[300]),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Tribe Matching Active',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+        GlassCard(
+          child: Row(
+            children: [
+              const IconBadge(icon: Icons.diversity_3, backgroundColor: AppColors.amber),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tribe Matching Active',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    Text(
+                      'You\'ll be matched with your tribe soon!',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[400],
                       ),
-                      Text(
-                        'You\'ll be matched with your tribe soon!',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Icon(Icons.hourglass_empty, color: Colors.purple[300]),
-              ],
-            ),
+              ),
+              const Icon(Icons.hourglass_empty, color: AppColors.amber),
+            ],
           ),
         ),
       );
@@ -230,47 +225,38 @@ class _HomeTabState extends State<HomeTab> {
     // Tribe assigned notification
     if (tribeProvider.hasTribe) {
       widgets.add(
-        Card(
-          color: Colors.green[900]?.withValues(alpha: 0.3),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.check_circle, color: Colors.green[400]),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'You\'re in ${tribeProvider.currentTribe?.name ?? "a Tribe"}!',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+        GlassCard(
+          borderColor: AppColors.tealBorder,
+          tintColor: AppColors.tealTint,
+          child: Row(
+            children: [
+              const IconBadge(icon: Icons.check_circle, backgroundColor: AppColors.teal),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'You\'re in ${tribeProvider.currentTribe?.name ?? "a Tribe"}!',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    Text(
+                      '${tribeProvider.memberCount} members ready to cruise together',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[400],
                       ),
-                      Text(
-                        '${tribeProvider.memberCount} members ready to cruise together',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to tribe tab (index 2)
-                  },
-                  child: const Text('View'),
-                ),
-              ],
-            ),
+              ),
+              TextButton(
+                onPressed: () {
+                  // Navigate to tribe tab (index 2)
+                },
+                child: const Text('View', style: TextStyle(color: AppColors.teal)),
+              ),
+            ],
           ),
         ),
       );
@@ -280,126 +266,90 @@ class _HomeTabState extends State<HomeTab> {
     return widgets;
   }
 
-  /// Get pod color from name
-  Color _getPodColor(String podName) {
-    final colorHex = AppConstants.podColors[podName];
-    if (colorHex != null) {
-      return _parseColor(colorHex);
-    }
-    return Colors.blue;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Driftly'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // TODO: Navigate to notifications
-            },
-          ),
-        ],
-      ),
-      body: AppBackground(
-        overlayOpacity: 0.7,
-        child: SafeArea(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+            // Top bar: "DAY X · LOCATION" + notification bell
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SmallCapsLabel(_dayAndLineLabel(), color: AppColors.teal),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.notifications_outlined, color: Colors.grey),
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.coral,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             // Welcome Card with Countdown
             Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
                 final user = authProvider.appUser;
                 final name = user?.name ?? 'Cruiser';
 
-                return Card(
-                  color: Colors.blue[900]?.withValues(alpha: 0.3),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.sailing, color: Colors.blue[300]),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Welcome aboard, $name!',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              if (_sailing != null && !_isLoadingSailing) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Ready to connect with your cruise crew',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[400],
-                                  ),
-                                ),
-                              ] else ...[
-                                Text(
-                                  'Ready to connect with your cruise crew',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[400],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        Icon(Icons.chevron_right, color: Colors.blue[300]),
-                      ],
-                    ),
+                return Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(text: 'Welcome aboard, '),
+                      TextSpan(text: name, style: AppTextStyles.displayItalicSpan),
+                    ],
                   ),
+                  style: AppTextStyles.displayMedium,
                 );
               },
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
 
             // Days countdown (separate card)
             if (_sailing != null && !_isLoadingSailing)
-              Card(
-                color: const Color(0xFF1a4a5e).withValues(alpha: 0.8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _sailing!.isInFinalCountdown
-                            ? Icons.celebration
-                            : Icons.calendar_today,
-                        size: 20,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
+              GlassCard(
+                borderColor: AppColors.tealBorder,
+                tintColor: AppColors.tealTint,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _sailing!.isInFinalCountdown
+                          ? Icons.celebration
+                          : Icons.calendar_today,
+                      size: 20,
+                      color: AppColors.teal,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
                         _sailing!.countdownMessage,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: AppColors.teal,
                           fontSize: 15,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const Icon(Icons.chevron_right, color: AppColors.teal),
+                  ],
                 ),
               ),
             const SizedBox(height: 16),
@@ -421,10 +371,10 @@ class _HomeTabState extends State<HomeTab> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.2),
+                            color: AppColors.tealTint,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.photo_camera, color: Colors.blue[300]),
+                          child: Icon(Icons.photo_camera, color: AppColors.teal),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -448,7 +398,7 @@ class _HomeTabState extends State<HomeTab> {
                             ],
                           ),
                         ),
-                        Icon(Icons.chevron_right, color: Colors.blue[300]),
+                        Icon(Icons.chevron_right, color: AppColors.teal),
                       ],
                     ),
                   ),
@@ -527,7 +477,7 @@ class _HomeTabState extends State<HomeTab> {
                     Icon(
                       Icons.groups_outlined,
                       size: 64,
-                      color: Colors.blue[300],
+                      color: AppColors.teal,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -549,7 +499,7 @@ class _HomeTabState extends State<HomeTab> {
               )
             else
               ..._userPods.map((pod) {
-                final podColor = _getPodColor(pod.name);
+                final podColor = AppConstants.podAccentColor(pod.id);
                 final icon = _getIconData(pod.icon);
 
                 return Card(
@@ -625,7 +575,7 @@ class _HomeTabState extends State<HomeTab> {
                   Icon(
                     Icons.notifications_none,
                     size: 48,
-                    color: Colors.blue[300],
+                    color: AppColors.teal,
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -641,7 +591,6 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -655,7 +604,7 @@ class _HomeTabState extends State<HomeTab> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Icon(icon, size: 32, color: Colors.blue[300]),
+          Icon(icon, size: 32, color: AppColors.teal),
           const SizedBox(height: 8),
           Text(
             value,

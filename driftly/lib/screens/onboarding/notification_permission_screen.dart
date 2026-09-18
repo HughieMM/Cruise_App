@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/notification_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../widgets/app_background.dart';
+import '../../widgets/icon_badge.dart';
+import '../../widgets/pill_button.dart';
 
 /// NotificationPermissionScreen
 ///
@@ -43,36 +48,97 @@ class _NotificationPermissionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(),
-
-              // Notification icon
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+      backgroundColor: AppColors.background,
+      body: AppBackground(
+        variant: BackgroundVariant.starfield,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: List.generate(3, (index) {
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(right: index == 2 ? 0 : 6),
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.teal,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    );
+                  }),
                 ),
-                child: const Icon(
-                  Icons.notifications_active,
-                  size: 60,
-                  color: Colors.blue,
+                const Spacer(),
+
+              // Notification icon with glowing ring + coral count badge
+              Center(
+                child: SizedBox(
+                  width: 140,
+                  height: 140,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.tealBorder),
+                        ),
+                      ),
+                      Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          color: AppColors.tealTint,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.teal, width: 1.5),
+                        ),
+                        child: const Icon(
+                          Icons.notifications,
+                          size: 44,
+                          color: AppColors.teal,
+                        ),
+                      ),
+                      Positioned(
+                        top: 14,
+                        right: 14,
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            color: AppColors.coral,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Text(
+                            '3',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
 
               // Title
-              Text(
-                'Stay Connected',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(text: 'Stay '),
+                    TextSpan(text: 'Connected', style: AppTextStyles.displayItalicSpan),
+                  ],
+                ),
+                style: AppTextStyles.displayMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -80,9 +146,7 @@ class _NotificationPermissionScreenState
               // Description
               Text(
                 'Enable notifications to never miss a moment with your cruise crew!',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[400],
-                    ),
+                style: TextStyle(fontSize: 15, color: Colors.grey[400]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
@@ -90,24 +154,28 @@ class _NotificationPermissionScreenState
               // Benefits list
               _buildBenefitItem(
                 icon: Icons.photo_camera,
+                color: AppColors.coral,
                 title: 'Daily Photo Reminders',
                 description: 'Capture memories at the perfect time',
               ),
               const SizedBox(height: 16),
               _buildBenefitItem(
                 icon: Icons.diversity_3,
+                color: AppColors.teal,
                 title: 'Tribe Updates',
                 description: 'Know when you\'re matched with your group',
               ),
               const SizedBox(height: 16),
               _buildBenefitItem(
                 icon: Icons.location_on,
+                color: AppColors.coral,
                 title: 'Hangout Alerts',
                 description: 'Get notified about meetups nearby',
               ),
               const SizedBox(height: 16),
               _buildBenefitItem(
                 icon: Icons.chat_bubble,
+                color: AppColors.teal,
                 title: 'Messages',
                 description: 'Stay in the loop with your pods',
               ),
@@ -115,24 +183,10 @@ class _NotificationPermissionScreenState
               const Spacer(),
 
               // Enable button
-              FilledButton(
+              PillButton(
+                label: _isRequesting ? '...' : 'Enable Notifications',
+                color: AppColors.teal,
                 onPressed: _isRequesting ? null : _requestPermission,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isRequesting
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Enable Notifications',
-                        style: TextStyle(fontSize: 16),
-                      ),
               ),
               const SizedBox(height: 12),
 
@@ -147,7 +201,8 @@ class _NotificationPermissionScreenState
                 ),
               ),
               const SizedBox(height: 24),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -156,24 +211,13 @@ class _NotificationPermissionScreenState
 
   Widget _buildBenefitItem({
     required IconData icon,
+    required Color color,
     required String title,
     required String description,
   }) {
     return Row(
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            color: Colors.blue,
-            size: 24,
-          ),
-        ),
+        IconBadge(icon: icon, backgroundColor: color, size: 48),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -184,12 +228,13 @@ class _NotificationPermissionScreenState
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
+                  color: Colors.white,
                 ),
               ),
               Text(
                 description,
                 style: TextStyle(
-                  color: Colors.grey[500],
+                  color: Colors.grey[400],
                   fontSize: 13,
                 ),
               ),

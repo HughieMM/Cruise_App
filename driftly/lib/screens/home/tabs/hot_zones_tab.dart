@@ -5,6 +5,9 @@ import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/hot_zone_vote.dart';
 import '../../../widgets/error_state.dart';
+import '../../../theme/app_colors.dart';
+import '../../../widgets/glass_card.dart';
+import '../../../widgets/pill_button.dart';
 import '../../hot_zones/vote_dialog.dart';
 
 /// Hot Zones Tab
@@ -130,18 +133,18 @@ class _HotZonesContentState extends State<HotZonesContent> {
     }
   }
 
-  /// Get vibe color
+  /// Get vibe color — mapped onto the app's teal/coral/amber accent trio
   Color _getVibeColor(String? vibe) {
     if (vibe == null) return Colors.grey;
     switch (vibe) {
       case 'active':
-        return const Color(0xFFFF9800); // Orange
+        return AppColors.amber;
       case 'quiet':
-        return const Color(0xFF2196F3); // Blue
+        return AppColors.teal;
       case 'overcrowded':
-        return const Color(0xFFF44336); // Red
+        return AppColors.coral;
       case 'good_vibes':
-        return const Color(0xFF4CAF50); // Green
+        return AppColors.teal;
       default:
         return Colors.grey;
     }
@@ -194,24 +197,23 @@ class _HotZonesContentState extends State<HotZonesContent> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Info Card
-                    Container(
-                      margin: const EdgeInsets.all(16),
+                    Padding(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.whatshot, color: Colors.orange[700]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'See what\'s happening around the ship in real-time! Tap a location to vote.',
-                              style: TextStyle(color: Colors.orange[900]),
+                      child: GlassCard(
+                        borderColor: AppColors.amberBorder,
+                        tintColor: AppColors.amberTint,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.whatshot, color: AppColors.amber),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'See what\'s happening around the ship in real-time! Tap a location to vote.',
+                                style: TextStyle(color: Colors.grey[300]),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
 
@@ -358,15 +360,12 @@ class _HotZonesContentState extends State<HotZonesContent> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    OutlinedButton.icon(
+                    PillButton(
+                      label: 'Vote on Vibe',
+                      icon: Icons.how_to_vote,
+                      variant: PillVariant.outlined,
+                      color: AppColors.teal,
                       onPressed: () => _showVoteDialog(locationName),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 40),
-                        foregroundColor: Colors.white,
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
-                      ),
-                      icon: const Icon(Icons.how_to_vote, size: 18),
-                      label: const Text('Vote on Vibe'),
                     ),
                   ],
                 ),

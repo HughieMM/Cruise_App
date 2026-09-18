@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/tribe_provider.dart';
 import '../../../models/tribe.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
+import '../../../widgets/glass_card.dart';
+import '../../../widgets/icon_badge.dart';
+import '../../../widgets/pill_button.dart';
 import '../../tribe/daily_photo_screen.dart' show SeaYaScreen;
 
 /// Tribe Tab
@@ -339,63 +344,46 @@ class _TribeTabState extends State<TribeTab> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Header
-            const Text(
-              'Your Tribe',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text('Your Tribe', style: AppTextStyles.displayMedium),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'You haven\'t been matched to a tribe yet',
               style: TextStyle(
-                color: Colors.black87,
+                color: Colors.grey[400],
                 fontSize: 16,
               ),
             ),
             const SizedBox(height: 32),
 
             // Info card
-            Container(
+            GlassCard(
+              borderColor: AppColors.tealBorder,
+              tintColor: AppColors.tealTint,
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[100],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.groups,
-                      size: 48,
-                      color: Colors.blue[700],
-                    ),
+                  const IconBadge(
+                    icon: Icons.groups,
+                    backgroundColor: AppColors.teal,
+                    size: 72,
                   ),
                   const SizedBox(height: 16),
-                  Text(
+                  const Text(
                     'Tribes are Small Groups',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue[900],
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'You\'ll be randomly matched with 3-5 other cruisers in your age group who share some of your interests.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.blue[800],
-                    ),
+                    style: TextStyle(color: Colors.grey[300]),
                   ),
                   const SizedBox(height: 16),
-                  Divider(color: Colors.blue[200]),
+                  Divider(color: Colors.grey[700]),
                   const SizedBox(height: 16),
                   _buildFeatureRow(
                     Icons.cake,
@@ -423,67 +411,66 @@ class _TribeTabState extends State<TribeTab> {
 
             // Pending requests
             if (tribeProvider.pendingRequests.isNotEmpty) ...[
-              Text(
+              const Text(
                 'Friend Requests',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.blue[900],
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 12),
               ...tribeProvider.pendingRequests.map((request) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue[100],
-                      child: Icon(Icons.person_add, color: Colors.blue[700]),
-                    ),
-                    title: Text(
-                      request.requesterName,
-                      style: TextStyle(color: Colors.blue[900]),
-                    ),
-                    subtitle: Text(
-                      'Wants to be in your tribe',
-                      style: TextStyle(color: Colors.blue[800]),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.red),
-                          onPressed: () async {
-                            await tribeProvider.declineSiblingRequest(
-                              sailingId: user?.currentSailingId ?? '',
-                              requestId: request.id,
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.check, color: Colors.green),
-                          onPressed: () async {
-                            await tribeProvider.acceptSiblingRequest(
-                              sailingId: user?.currentSailingId ?? '',
-                              requestId: request.id,
-                              targetId: user?.uid ?? '',
-                              targetName: user?.name ?? '',
-                            );
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Request accepted! You\'ll be matched together.'),
-                                  backgroundColor: Colors.green,
-                                ),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: GlassCard(
+                    padding: EdgeInsets.zero,
+                    child: ListTile(
+                      leading: const IconBadge(
+                        icon: Icons.person_add,
+                        backgroundColor: AppColors.teal,
+                      ),
+                      title: Text(
+                        request.requesterName,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        'Wants to be in your tribe',
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.close, color: AppColors.coral),
+                            onPressed: () async {
+                              await tribeProvider.declineSiblingRequest(
+                                sailingId: user?.currentSailingId ?? '',
+                                requestId: request.id,
                               );
-                            }
-                          },
-                        ),
-                      ],
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.check, color: AppColors.teal),
+                            onPressed: () async {
+                              await tribeProvider.acceptSiblingRequest(
+                                sailingId: user?.currentSailingId ?? '',
+                                requestId: request.id,
+                                targetId: user?.uid ?? '',
+                                targetName: user?.name ?? '',
+                              );
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Request accepted! You\'ll be matched together.'),
+                                    backgroundColor: AppColors.teal,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -492,13 +479,12 @@ class _TribeTabState extends State<TribeTab> {
             ],
 
             // Join with friend button
-            OutlinedButton.icon(
+            PillButton(
+              label: 'Join with a Friend',
+              icon: Icons.person_add,
+              variant: PillVariant.outlined,
+              color: AppColors.teal,
               onPressed: _showSiblingRequestDialog,
-              icon: const Icon(Icons.person_add),
-              label: const Text('Join with a Friend'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
             ),
           ],
         ),
@@ -509,12 +495,12 @@ class _TribeTabState extends State<TribeTab> {
   Widget _buildFeatureRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.blue[700]),
+        Icon(icon, size: 20, color: AppColors.teal),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(color: Colors.blue[800]),
+            style: TextStyle(color: Colors.grey[300]),
           ),
         ),
       ],
@@ -542,16 +528,13 @@ class _TribeTabState extends State<TribeTab> {
                         children: [
                           Text(
                             tribe.name,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: AppTextStyles.displaySmall,
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${members.length} members • ${tribe.ageBand}',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: Colors.grey[400],
                             ),
                           ),
                         ],
@@ -559,7 +542,10 @@ class _TribeTabState extends State<TribeTab> {
                     ),
                     // Daily photo button
                     if (!tribeProvider.hasSubmittedSeaYa)
-                      ElevatedButton.icon(
+                      PillButton(
+                        label: 'Daily Pic',
+                        icon: Icons.camera_alt,
+                        color: AppColors.teal,
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -569,12 +555,6 @@ class _TribeTabState extends State<TribeTab> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.camera_alt, size: 18),
-                        label: const Text('Daily Pic'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
                       ),
                   ],
                 ),
@@ -616,13 +596,13 @@ class _TribeTabState extends State<TribeTab> {
                                       child: Container(
                                         padding: const EdgeInsets.all(2),
                                         decoration: const BoxDecoration(
-                                          color: Colors.amber,
+                                          color: AppColors.amber,
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
                                           Icons.star,
                                           size: 12,
-                                          color: Colors.white,
+                                          color: Colors.black,
                                         ),
                                       ),
                                     ),
@@ -631,7 +611,7 @@ class _TribeTabState extends State<TribeTab> {
                               const SizedBox(height: 4),
                               Text(
                                 member.userName.split(' ').first,
-                                style: const TextStyle(fontSize: 12),
+                                style: const TextStyle(fontSize: 12, color: Colors.white),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -680,6 +660,7 @@ class _TribeTabState extends State<TribeTab> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -712,13 +693,13 @@ class _TribeTabState extends State<TribeTab> {
                               const SizedBox(height: 4),
                               Text(
                                 photo.userName.split(' ').first,
-                                style: const TextStyle(fontSize: 11),
+                                style: const TextStyle(fontSize: 11, color: Colors.white),
                               ),
                               Text(
                                 photo.responseTimeFormatted,
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.grey[500],
+                                  color: Colors.grey[400],
                                 ),
                               ),
                             ],
@@ -739,17 +720,17 @@ class _TribeTabState extends State<TribeTab> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.chat_bubble_outline,
                     size: 64,
-                    color: Colors.grey[400],
+                    color: AppColors.teal,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Tribe Chat Coming Soon!',
                     style: TextStyle(
                       fontSize: 18,
-                      color: Colors.grey[600],
+                      color: Colors.grey[300],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -757,7 +738,7 @@ class _TribeTabState extends State<TribeTab> {
                   Text(
                     'Chat with your tribe members',
                     style: TextStyle(
-                      color: Colors.grey[500],
+                      color: Colors.grey[400],
                     ),
                   ),
                 ],
