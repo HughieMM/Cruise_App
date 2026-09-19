@@ -11,6 +11,7 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../widgets/glass_card.dart';
 import '../../../widgets/icon_badge.dart';
+import '../../../widgets/pill_button.dart';
 import '../../../widgets/small_caps_label.dart';
 import '../../chat/pod_chat_screen.dart';
 
