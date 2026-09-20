@@ -51,6 +51,23 @@ service cloud.firestore {
 
       // Users can delete their own document
       allow delete: if isAuthenticated() && isOwner(userId);
+
+      // ==================== Badges Subcollection ====================
+      // Always read/written for the CALLING user's own uid only (badge
+      // progress is never viewed for other users), so this can stay
+      // fully owner-locked.
+      match /badges/{badgeId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if false;
+      }
+
+      // ==================== Stats Subcollection (badge progress) ====================
+      match /stats/{statDoc} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId);
+        allow delete: if false;
+      }
     }
 
     // ==================== Feedback Collection ====================

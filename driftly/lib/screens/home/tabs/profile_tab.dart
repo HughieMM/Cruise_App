@@ -34,6 +34,18 @@ String _getCruiseLineBackground(String? cruiseLineId) {
   return 'assets/images/background.png';
 }
 
+/// Helper to get a short cruise line badge (shown as a watermark behind
+/// the profile avatar). Returns null for an unrecognized/no cruise line.
+String? _getCruiseLineAbbreviation(String? cruiseLineId) {
+  if (cruiseLineId == null) return null;
+
+  final id = cruiseLineId.toLowerCase();
+  if (id.contains('royal') || id.contains('caribbean')) return 'RCL';
+  if (id.contains('carnival')) return 'CCL';
+  if (id.contains('ncl') || id.contains('norwegian')) return 'NCL';
+  return null;
+}
+
 /// Profile Tab
 ///
 /// Features:
@@ -256,12 +268,42 @@ class _ProfileTabState extends State<ProfileTab> {
                 offset: const Offset(0, -40),
                 child: Column(
                   children: [
-                    AvatarWithProgressRing(
-                      imageUrl: user.selfieUrl,
-                      fallbackInitial:
-                          user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                      percent: user.profileCompletionPercent as double,
-                      size: 108,
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (_getCruiseLineAbbreviation(_sailing?.cruiseLineId) != null)
+                          Container(
+                            width: 152,
+                            height: 152,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [
+                                  AppColors.teal.withValues(alpha: 0.22),
+                                  AppColors.teal.withValues(alpha: 0.0),
+                                ],
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                _getCruiseLineAbbreviation(_sailing?.cruiseLineId)!,
+                                style: TextStyle(
+                                  fontSize: 44,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 3,
+                                  color: Colors.white.withValues(alpha: 0.14),
+                                ),
+                              ),
+                            ),
+                          ),
+                        AvatarWithProgressRing(
+                          imageUrl: user.selfieUrl,
+                          fallbackInitial:
+                              user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                          percent: user.profileCompletionPercent as double,
+                          size: 108,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -332,6 +374,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Widget _buildInterestsCard(List<String> interests, VoidCallback onEditInterests) {
     return GlassCard(
+      borderColor: AppColors.tealBorder,
+      tintColor: AppColors.tealTint,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -466,6 +510,8 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget _buildSailingCard() {
     if (_isLoadingExtras) {
       return GlassCard(
+        borderColor: AppColors.amberBorder,
+        tintColor: AppColors.amberTint,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -491,6 +537,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
     if (_sailing == null) {
       return GlassCard(
+        borderColor: AppColors.amberBorder,
+        tintColor: AppColors.amberTint,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -515,6 +563,8 @@ class _ProfileTabState extends State<ProfileTab> {
     final dateStr = DateFormat('dd MMM yyyy').format(_sailing!.departureDate);
 
     return GlassCard(
+      borderColor: AppColors.amberBorder,
+      tintColor: AppColors.amberTint,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

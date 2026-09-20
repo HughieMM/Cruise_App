@@ -177,7 +177,7 @@ class AppUser {
   bool get isProfileComplete {
     return name.isNotEmpty &&
         ageBand.isNotEmpty &&
-        gender != 'other' &&
+        gender.isNotEmpty &&
         interests.isNotEmpty &&
         hasAllPhotos &&
         currentSailingId != null;
