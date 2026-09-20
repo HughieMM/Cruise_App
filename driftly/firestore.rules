@@ -39,6 +39,18 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isOwner(userId);
     }
 
+    // ==================== Feedback Collection ====================
+    // Bug reports and feature suggestions — write-only for users, only
+    // readable/manageable from the Firebase console (no admin app yet).
+    match /feedback/{feedbackId} {
+      allow read: if false;
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.type in ['bug', 'feature']
+        && isValidString(request.resource.data.message, 1000);
+      allow update, delete: if false;
+    }
+
     // ==================== Sailings Collection ====================
     match /sailings/{sailingId} {
       // Anyone authenticated can read sailings

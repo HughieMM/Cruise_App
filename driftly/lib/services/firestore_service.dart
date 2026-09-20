@@ -23,6 +23,9 @@ class FirestoreService {
   /// Sailings collection reference
   CollectionReference get sailingsCollection => _firestore.collection('sailings');
 
+  /// Feedback collection reference (bug reports + feature suggestions)
+  CollectionReference get feedbackCollection => _firestore.collection('feedback');
+
   /// Create a new user document
   Future<void> createUser(AppUser user) async {
     try {
@@ -71,6 +74,27 @@ class FirestoreService {
       await usersCollection.doc(uid).delete();
     } catch (e) {
       throw Exception('Failed to delete user: $e');
+    }
+  }
+
+  /// Submit a bug report or feature suggestion
+  Future<void> submitFeedback({
+    required String userId,
+    required String userName,
+    required String type, // 'bug' or 'feature'
+    required String message,
+  }) async {
+    try {
+      await feedbackCollection.add({
+        'userId': userId,
+        'userName': userName,
+        'type': type,
+        'message': message,
+        'status': 'new',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to submit feedback: $e');
     }
   }
 

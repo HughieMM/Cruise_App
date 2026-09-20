@@ -1517,91 +1517,123 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   void _showReportBugDialog(BuildContext context) {
-    final bugController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Report a Bug'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Describe the issue you encountered:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: bugController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: 'What went wrong?',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (bugController.text.trim().isNotEmpty) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Thank you! Bug report submitted.'),
-                  ),
-                );
-              }
-            },
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
+    _showFeedbackDialog(
+      context,
+      type: 'bug',
+      title: 'Report a Bug',
+      prompt: 'Describe the issue you encountered:',
+      hintText: 'What went wrong?',
+      thanksMessage: 'Thank you! Bug report submitted.',
     );
   }
 
   void _showSuggestFeatureDialog(BuildContext context) {
-    final featureController = TextEditingController();
+    _showFeedbackDialog(
+      context,
+      type: 'feature',
+      title: 'Suggest a Feature',
+      prompt: 'What feature would you like to see?',
+      hintText: 'Describe your idea...',
+      thanksMessage: 'Thank you! Feature suggestion submitted.',
+    );
+  }
+
+  void _showFeedbackDialog(
+    BuildContext context, {
+    required String type,
+    required String title,
+    required String prompt,
+    required String hintText,
+    required String thanksMessage,
+  }) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messageController = TextEditingController();
+    bool isSubmitting = false;
+    String? errorText;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Suggest a Feature'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('What feature would you like to see?'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: featureController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: 'Describe your idea...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (featureController.text.trim().isNotEmpty) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Thank you! Feature suggestion submitted.'),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          return AlertDialog(
+            title: Text(title),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(prompt),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: messageController,
+                  maxLines: 4,
+                  enabled: !isSubmitting,
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    border: const OutlineInputBorder(),
                   ),
-                );
-              }
-            },
-            child: const Text('Submit'),
-          ),
-        ],
+                ),
+                if (errorText != null) ...[
+                  const SizedBox(height: 8),
+                  Text(errorText!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final message = messageController.text.trim();
+                        if (message.isEmpty) {
+                          setDialogState(() => errorText = 'Please enter a description');
+                          return;
+                        }
+
+                        final user = authProvider.appUser;
+                        if (user == null) return;
+
+                        setDialogState(() {
+                          isSubmitting = true;
+                          errorText = null;
+                        });
+
+                        try {
+                          await _firestoreService.submitFeedback(
+                            userId: user.uid,
+                            userName: user.name,
+                            type: type,
+                            message: message,
+                          );
+
+                          if (!dialogContext.mounted) return;
+                          Navigator.pop(dialogContext);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(thanksMessage)),
+                          );
+                        } catch (e) {
+                          if (!dialogContext.mounted) return;
+                          setDialogState(() {
+                            isSubmitting = false;
+                            errorText = 'Failed to submit: $e';
+                          });
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Submit'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
