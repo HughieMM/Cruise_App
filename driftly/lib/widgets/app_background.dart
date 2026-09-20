@@ -62,37 +62,95 @@ class AppBackground extends StatelessWidget {
 }
 
 /// Scattered small white dots over the flat navy background, matching the
-/// splash/onboarding star-field texture in the Figma design.
-class _Starfield extends StatelessWidget {
+/// splash/onboarding star-field texture in the Figma design. Each dot drifts
+/// slowly and continuously in place, so the field never jumps or resets —
+/// it just keeps floating regardless of what else is happening on screen.
+class _Starfield extends StatefulWidget {
   const _Starfield();
+
+  @override
+  State<_Starfield> createState() => _StarfieldState();
+}
+
+class _StarfieldState extends State<_Starfield> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 60),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _StarfieldPainter(),
+      painter: _StarfieldPainter(_controller),
     );
   }
 }
 
+class _StarDot {
+  factory _StarDot(int seed) {
+    final random = Random(seed);
+    return _StarDot._(
+      baseX: random.nextDouble(),
+      baseY: random.nextDouble(),
+      radius: 0.6 + random.nextDouble() * 1.2,
+      driftAngle: random.nextDouble() * 2 * pi,
+      driftSpeed: 0.3 + random.nextDouble() * 0.5,
+    );
+  }
+
+  _StarDot._({
+    required this.baseX,
+    required this.baseY,
+    required this.radius,
+    required this.driftAngle,
+    required this.driftSpeed,
+  });
+
+  final double baseX;
+  final double baseY;
+  final double radius;
+  final double driftAngle;
+  final double driftSpeed;
+}
+
 class _StarfieldPainter extends CustomPainter {
-  // Fixed seed so the dot placement is stable across rebuilds/frames.
-  static final Random _random = Random(42);
+  _StarfieldPainter(this.animation) : super(repaint: animation);
+
+  final Animation<double> animation;
+
+  static const _dotCount = 60;
+  static final List<_StarDot> _dots =
+      List.generate(_dotCount, (i) => _StarDot(i));
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = Colors.white.withValues(alpha: 0.5);
-    const dotCount = 60;
+    // Small, slow drift so movement always reads as smooth and ambient.
+    const driftRadius = 6.0;
+    final t = animation.value;
 
-    for (var i = 0; i < dotCount; i++) {
-      final dx = _random.nextDouble() * size.width;
-      final dy = _random.nextDouble() * size.height;
-      final radius = 0.6 + _random.nextDouble() * 1.2;
-      canvas.drawCircle(Offset(dx, dy), radius, paint);
+    for (final dot in _dots) {
+      final phase = t * 2 * pi * dot.driftSpeed + dot.driftAngle;
+      final dx = dot.baseX * size.width + sin(phase) * driftRadius;
+      final dy = dot.baseY * size.height + cos(phase) * driftRadius;
+      canvas.drawCircle(Offset(dx, dy), dot.radius, paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _StarfieldPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _StarfieldPainter oldDelegate) => true;
 }
 
 /// Scaffold with the app background built-in

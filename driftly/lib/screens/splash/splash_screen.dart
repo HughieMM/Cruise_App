@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/app_background.dart';
+import '../../widgets/driftly_glyph.dart';
 
 /// Splash Screen - Auth Gate
 ///
@@ -84,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _DriftlyGlyph(),
+              const DriftlyGlyph(),
               const SizedBox(height: 24),
               ShaderMask(
                 shaderCallback: (bounds) => const LinearGradient(
@@ -107,56 +108,6 @@ class _SplashScreenState extends State<SplashScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Teal wave glyph in a rounded square, with soft glowing concentric rings
-/// behind it — matches the splash/welcome icon treatment in the Figma design.
-class _DriftlyGlyph extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 160,
-      height: 160,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 160,
-            height: 160,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.tealBorder, width: 1),
-            ),
-          ),
-          Container(
-            width: 110,
-            height: 110,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.tealBorder, width: 1),
-            ),
-          ),
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.tealTint,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.teal, width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.teal.withValues(alpha: 0.4),
-                  blurRadius: 24,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: const Icon(Icons.waves, color: AppColors.teal, size: 32),
-          ),
-        ],
       ),
     );
   }

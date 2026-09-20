@@ -7,6 +7,7 @@ import '../../../models/hot_zone_vote.dart';
 import '../../../widgets/error_state.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../widgets/icon_badge.dart';
 import '../../../widgets/pill_button.dart';
 import '../../hot_zones/vote_dialog.dart';
 
@@ -149,6 +150,27 @@ class _HotZonesContentState extends State<HotZonesContent> {
     }
   }
 
+  /// Blend of the vibe colors weighted by vote share, cold-to-warm — same
+  /// idea as the onboarding pod picker's color blend, but weighted by
+  /// percentage of votes instead of an equal split per selection.
+  List<Color> _buildVoteGradientColors(Map<String, int> vibes, int totalVotes) {
+    if (totalVotes == 0) {
+      return [AppColors.surfaceSolid, AppColors.surfaceSolid];
+    }
+
+    const order = ['quiet', 'good_vibes', 'active', 'overcrowded'];
+    final colors = <Color>[];
+
+    for (final vibe in order) {
+      final count = vibes[vibe] ?? 0;
+      if (count == 0) continue;
+      final slices = ((count / totalVotes) * 10).round().clamp(1, 10);
+      colors.addAll(List.filled(slices, _getVibeColor(vibe).withValues(alpha: 0.35)));
+    }
+
+    return colors.isEmpty ? [AppColors.surfaceSolid, AppColors.surfaceSolid] : colors;
+  }
+
   void _showVoteDialog(String location) {
     showDialog(
       context: context,
@@ -231,6 +253,7 @@ class _HotZonesContentState extends State<HotZonesContent> {
                           locationName: locationName,
                           icon: location['icon'] as IconData,
                           dominantVibe: summary['dominantVibe'] as String?,
+                          vibes: summary['vibes'] as Map<String, int>,
                           totalVotes: summary['totalVotes'] as int,
                         );
                       },
@@ -252,10 +275,12 @@ class _HotZonesContentState extends State<HotZonesContent> {
     required String locationName,
     required IconData icon,
     required String? dominantVibe,
+    required Map<String, int> vibes,
     required int totalVotes,
   }) {
     final vibeColor = _getVibeColor(dominantVibe);
     final hasVotes = totalVotes > 0;
+    final gradientColors = _buildVoteGradientColors(vibes, totalVotes);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -265,7 +290,11 @@ class _HotZonesContentState extends State<HotZonesContent> {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: gradientColors,
+              ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1),
             ),
@@ -279,17 +308,9 @@ class _HotZonesContentState extends State<HotZonesContent> {
                   children: [
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: Colors.white,
-                            size: 24,
-                          ),
+                        IconBadge(
+                          icon: icon,
+                          backgroundColor: hasVotes ? vibeColor : AppColors.teal,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -325,38 +346,26 @@ class _HotZonesContentState extends State<HotZonesContent> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: vibeColor.withValues(alpha: 0.25),
-                        border: Border.all(
-                          color: vibeColor.withValues(alpha: 0.5),
-                          width: 1.5,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Current Vibe: ',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Current Vibe: ',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontWeight: FontWeight.w500,
-                            ),
+                        Text(
+                          _getVibeDisplay(dominantVibe),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: vibeColor,
                           ),
-                          Text(
-                            _getVibeDisplay(dominantVibe),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: vibeColor,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     PillButton(

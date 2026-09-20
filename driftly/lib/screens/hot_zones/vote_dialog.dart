@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/icon_badge.dart';
 
 /// Dialog for voting on location vibe
 /// Allows users to vote once per location per hour
@@ -124,9 +125,9 @@ class _VoteDialogState extends State<VoteDialog> {
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: AppColors.tealTint,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+              border: Border.all(color: AppColors.tealBorder, width: 1),
             ),
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -136,18 +137,7 @@ class _VoteDialogState extends State<VoteDialog> {
                 // Header
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.how_to_vote,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
+                    const IconBadge(icon: Icons.how_to_vote, backgroundColor: AppColors.teal),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -245,20 +235,20 @@ class _VoteDialogState extends State<VoteDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.2),
+                    color: AppColors.tealTint,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                    border: Border.all(color: AppColors.tealBorder),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.blue[200], size: 20),
+                      const Icon(Icons.info_outline, color: AppColors.teal, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'You can vote once per hour per location',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.blue[100],
+                            color: Colors.white.withValues(alpha: 0.85),
                           ),
                         ),
                       ),
@@ -286,14 +276,14 @@ class _VoteDialogState extends State<VoteDialog> {
                         onPressed: _isSubmitting ? null : _submitVote,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.teal,
+                          foregroundColor: Colors.black,
                         ),
                         child: _isSubmitting
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
                               )
                             : const Text('Submit Vote'),
                       ),

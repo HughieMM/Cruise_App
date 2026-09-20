@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/app_background.dart';
+import '../../widgets/driftly_glyph.dart';
 import '../../widgets/pill_button.dart';
 import '../../widgets/small_caps_label.dart';
 
@@ -100,18 +101,7 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: AppColors.tealTint,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.teal, width: 1.5),
-                ),
-                child: const Icon(Icons.waves, color: AppColors.teal, size: 40),
-              ),
-            ),
+            const Center(child: DriftlyGlyph(size: 120)),
             const SizedBox(height: 24),
             Text(
               'Driftly',
