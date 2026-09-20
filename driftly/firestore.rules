@@ -56,10 +56,21 @@ service cloud.firestore {
       // Anyone authenticated can read sailings
       allow read: if isAuthenticated();
 
-      // Sailings are seed/admin-managed data — no client code ever creates
-      // or updates one (only reads), so this is locked down entirely.
-      // Revisit with custom claims if an admin panel is built later.
-      allow create, update: if false;
+      // The onboarding flow self-serve creates a sailing the first time
+      // someone picks a cruise/ship/date combo that doesn't exist yet
+      // (FirestoreService.findOrCreateSailing), so creation has to stay
+      // open — but validate the shape so a client can't inject garbage.
+      // Nothing ever updates a sailing after creation, so that stays
+      // denied. Revisit with custom claims if an admin panel is built.
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(
+            ['shipId', 'cruiseLineId', 'departureDate', 'returnDate', 'memberCount', 'active', 'createdAt'])
+        && isValidString(request.resource.data.shipId, 100)
+        && isValidString(request.resource.data.cruiseLineId, 100)
+        && isValidTimestamp(request.resource.data.departureDate)
+        && request.resource.data.memberCount == 0
+        && request.resource.data.active == true;
+      allow update: if false;
       allow delete: if false;
 
       // ==================== Pods Subcollection ====================
