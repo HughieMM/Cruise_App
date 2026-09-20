@@ -6,7 +6,6 @@ import '../../../providers/tribe_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
-import '../../../utils/constants.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../widgets/glass_card.dart';
@@ -502,7 +501,7 @@ class _HomeTabState extends State<HomeTab> {
               )
             else
               ..._userPods.map((pod) {
-                final podColor = AppConstants.podAccentColor(pod.name);
+                final podColor = _parseColor(pod.color);
                 final icon = _getIconData(pod.icon);
 
                 return Card(
@@ -560,36 +559,6 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 );
               }).toList(),
-
-            const SizedBox(height: 24),
-
-            // Activity Feed Header
-            Text(
-              'Recent Activity',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-
-            // Placeholder for future activity feed
-            GlassCard(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.notifications_none,
-                    size: 48,
-                    color: AppColors.teal,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'No recent activity',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[400],
-                        ),
-                  ),
-                ],
-              ),
-            ),
           ],
             ),
           ),

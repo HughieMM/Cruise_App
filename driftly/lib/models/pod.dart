@@ -12,6 +12,7 @@ class Pod {
   final String description;
   final String icon; // Icon name for UI
   final String color; // Hex color code
+  final String ageBucket; // 'teen' (16-17), 'young_adult' (18-30), 'adult' (31+)
   final int memberCount;
   final DateTime? lastMessageAt;
   final DateTime createdAt;
@@ -23,6 +24,7 @@ class Pod {
     required this.description,
     required this.icon,
     required this.color,
+    this.ageBucket = 'young_adult',
     this.memberCount = 0,
     this.lastMessageAt,
     required this.createdAt,
@@ -37,6 +39,7 @@ class Pod {
       description: map['description'] as String? ?? '',
       icon: map['icon'] as String? ?? 'groups',
       color: map['color'] as String? ?? '#2196F3',
+      ageBucket: map['ageBucket'] as String? ?? 'young_adult',
       memberCount: map['memberCount'] as int? ?? 0,
       lastMessageAt: (map['lastMessageAt'] as Timestamp?)?.toDate(),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -52,6 +55,7 @@ class Pod {
       'description': description,
       'icon': icon,
       'color': color,
+      'ageBucket': ageBucket,
       'memberCount': memberCount,
       'lastMessageAt': lastMessageAt != null ? Timestamp.fromDate(lastMessageAt!) : null,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -84,6 +88,7 @@ class Pod {
     String? description,
     String? icon,
     String? color,
+    String? ageBucket,
     int? memberCount,
     DateTime? lastMessageAt,
     DateTime? createdAt,
@@ -95,6 +100,7 @@ class Pod {
       description: description ?? this.description,
       icon: icon ?? this.icon,
       color: color ?? this.color,
+      ageBucket: ageBucket ?? this.ageBucket,
       memberCount: memberCount ?? this.memberCount,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
       createdAt: createdAt ?? this.createdAt,

@@ -55,8 +55,4 @@ class AppColors {
 
   static Color glassTint = Colors.white.withValues(alpha: 0.1);
   static Color glassBorder = Colors.white.withValues(alpha: 0.2);
-
-  /// Rotation used for pod/discover-pod accents, where the design uses only
-  /// the three accent colors rather than per-category hues.
-  static const List<Color> accentRotation = [teal, coral, amber];
 }

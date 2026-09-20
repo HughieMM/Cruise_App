@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/pod.dart';
-import '../../../utils/constants.dart';
 import '../../chat/pod_chat_screen.dart';
 import '../../../widgets/shimmer_loading.dart';
 import '../../../widgets/error_state.dart' as error_widget;
@@ -101,6 +100,18 @@ class _PodsTabState extends State<PodsTab> {
     return Icons.groups;
   }
 
+  // Helper to parse color from hex string — matches the color used inside
+  // pod_chat_screen.dart and choose_pods_screen.dart so pods look the same
+  // color everywhere.
+  Color _parseColor(String hexColor) {
+    try {
+      final hex = hexColor.replaceAll('#', '');
+      return Color(int.parse('FF$hex', radix: 16));
+    } catch (e) {
+      return AppColors.teal;
+    }
+  }
+
   void _openPodChat(Pod pod) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.appUser;
@@ -131,14 +142,6 @@ class _PodsTabState extends State<PodsTab> {
         title: Text('My Pods', style: AppTextStyles.displaySmall),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: AppColors.teal),
-            onPressed: () {
-              // TODO: Search pods
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -197,7 +200,7 @@ class _PodsTabState extends State<PodsTab> {
   }
 
   Widget _buildPodCard(BuildContext context, Pod pod) {
-    final color = AppConstants.podAccentColor(pod.name);
+    final color = _parseColor(pod.color);
     final icon = _getIconForPod(pod.name);
 
     return Padding(

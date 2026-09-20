@@ -175,10 +175,12 @@ class FirestoreService {
     return podsCollection(sailingId).doc(podId).collection('members');
   }
 
-  /// Create default pods for a sailing
+  /// Create default pods for a sailing — seeded separately per age bucket
+  /// so members can only search and talk to others in the same bucket.
+  /// High Rollers is 18+, so it's left out of the teen bucket entirely.
   Future<void> createDefaultPodsForSailing(String sailingId) async {
     try {
-      final defaultPods = [
+      final podThemes = [
         {
           'name': 'Gym Crew',
           'description': 'For fitness enthusiasts who want to stay active',
@@ -209,30 +211,40 @@ class FirestoreService {
           'icon': 'sports_basketball',
           'color': '#2DD4BF',
         },
-        {
-          'name': 'High Rollers',
-          'description': 'High stakes and card games for our 18+ crowd',
-          'icon': 'casino',
-          'color': '#D4AF37',
-        },
       ];
+
+      final highRollers = {
+        'name': 'High Rollers',
+        'description': 'High stakes and card games for our 18+ crowd',
+        'icon': 'casino',
+        'color': '#D4AF37',
+      };
+
+      final podsByBucket = {
+        AppConstants.podBucketTeen: podThemes,
+        AppConstants.podBucketYoungAdult: [...podThemes, highRollers],
+        AppConstants.podBucketAdult: [...podThemes, highRollers],
+      };
 
       final batch = _firestore.batch();
 
-      for (var podData in defaultPods) {
-        final pod = Pod(
-          id: '', // Will be set by Firestore
-          sailingId: sailingId,
-          name: podData['name'] as String,
-          description: podData['description'] as String,
-          icon: podData['icon'] as String,
-          color: podData['color'] as String,
-          memberCount: 0,
-          createdAt: DateTime.now(),
-        );
+      for (var entry in podsByBucket.entries) {
+        for (var podData in entry.value) {
+          final pod = Pod(
+            id: '', // Will be set by Firestore
+            sailingId: sailingId,
+            name: podData['name'] as String,
+            description: podData['description'] as String,
+            icon: podData['icon'] as String,
+            color: podData['color'] as String,
+            ageBucket: entry.key,
+            memberCount: 0,
+            createdAt: DateTime.now(),
+          );
 
-        final docRef = podsCollection(sailingId).doc();
-        batch.set(docRef, pod.toMap());
+          final docRef = podsCollection(sailingId).doc();
+          batch.set(docRef, pod.toMap());
+        }
       }
 
       await batch.commit();
@@ -241,24 +253,32 @@ class FirestoreService {
     }
   }
 
-  /// Get all pods for a sailing
-  Future<List<Pod>> getPodsForSailing(String sailingId) async {
+  /// Get pods for a sailing. Pass [ageBand] to get only the pods in that
+  /// user's age bucket (teen/young_adult/adult); omit it to get every pod
+  /// regardless of bucket (used internally to check a user's memberships).
+  Future<List<Pod>> getPodsForSailing(String sailingId, {String? ageBand}) async {
     try {
       final querySnapshot = await podsCollection(sailingId).get();
 
+      List<Pod> pods;
       if (querySnapshot.docs.isEmpty) {
         // Create default pods if none exist
         await createDefaultPodsForSailing(sailingId);
         // Fetch again
         final newSnapshot = await podsCollection(sailingId).get();
-        return newSnapshot.docs
+        pods = newSnapshot.docs
+            .map((doc) => Pod.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+            .toList();
+      } else {
+        pods = querySnapshot.docs
             .map((doc) => Pod.fromMap(doc.data() as Map<String, dynamic>, doc.id))
             .toList();
       }
 
-      return querySnapshot.docs
-          .map((doc) => Pod.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-          .toList();
+      if (ageBand == null) return pods;
+
+      final bucket = AppConstants.podBucketFor(ageBand);
+      return pods.where((pod) => pod.ageBucket == bucket).toList();
     } catch (e) {
       throw Exception('Failed to get pods: $e');
     }

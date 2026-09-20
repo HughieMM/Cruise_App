@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,7 @@ import '../../models/pod.dart';
 import '../../models/app_user.dart';
 import '../../models/daily_prompt.dart';
 import '../../utils/constants.dart';
+import '../../theme/app_colors.dart';
 import '../../widgets/daily_prompt_card.dart';
 import '../../widgets/report_dialog.dart';
 
@@ -394,15 +396,18 @@ class _PodChatScreenState extends State<PodChatScreen> {
             ),
 
             // Message Input
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[900],
-                border: Border(
-                  top: BorderSide(color: podColor.withValues(alpha: 0.3), width: 1),
-                ),
-              ),
-              padding: const EdgeInsets.all(8.0),
-              child: SafeArea(
+            ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.background.withValues(alpha: 0.75),
+                    border: Border(
+                      top: BorderSide(color: podColor.withValues(alpha: 0.3), width: 1),
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(8.0),
+                  child: SafeArea(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -445,11 +450,11 @@ class _PodChatScreenState extends State<PodChatScreen> {
                               hintStyle: TextStyle(color: Colors.grey[500]),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: Colors.grey[700]!),
+                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: Colors.grey[700]!),
+                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
@@ -460,7 +465,7 @@ class _PodChatScreenState extends State<PodChatScreen> {
                                 vertical: 12,
                               ),
                               filled: true,
-                              fillColor: Colors.grey[850],
+                              fillColor: Colors.white.withValues(alpha: 0.08),
                             ),
                             textInputAction: TextInputAction.send,
                             onSubmitted: (_) => _sendMessage(),
@@ -490,6 +495,8 @@ class _PodChatScreenState extends State<PodChatScreen> {
                       ],
                     ),
                   ],
+                ),
+              ),
                 ),
               ),
             ),

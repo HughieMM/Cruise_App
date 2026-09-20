@@ -244,24 +244,28 @@ class AppConstants {
     'On Island Hangout': '#00897B', // Teal
   };
 
-  /// Deterministic teal/coral/amber accent for a pod, matching the new
-  /// design's minimal 3-accent palette. Stable per pod (hashed by name),
-  /// not random per rebuild. A few themed pods get a fixed color instead
-  /// of the rotation.
-  static Color podAccentColor(String podName) {
-    switch (podName) {
-      case 'High Rollers':
-        return AppColors.gold;
-      case 'Sports & Games':
-        return AppColors.teal;
-      default:
-        final index = podName.hashCode.abs() % AppColors.accentRotation.length;
-        return AppColors.accentRotation[index];
+  // ==================== Pod Age Buckets ====================
+  //
+  // Pods are fully separated by age bucket — each bucket only ever sees and
+  // joins its own copies of the default pods, so members can only search
+  // and talk to others in the same bucket.
+
+  static const String podBucketTeen = 'teen'; // 16-17
+  static const String podBucketYoungAdult = 'young_adult'; // 18-20, 21-30
+  static const String podBucketAdult = 'adult'; // 31-39, 39+
+
+  /// Which pod age bucket a given ageBand belongs to.
+  static String podBucketFor(String ageBand) {
+    switch (ageBand) {
+      case '16-17':
+        return podBucketTeen;
+      case '18-20':
+      case '21-30':
+        return podBucketYoungAdult;
+      default: // '31-39', '39+'
+        return podBucketAdult;
     }
   }
-
-  /// Pods restricted to adults (18+) — hidden from 16-17 users.
-  static const List<String> restrictedPodNames = ['High Rollers'];
 
   // ==================== Hangout Status Colors ====================
 
