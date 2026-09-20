@@ -149,18 +149,6 @@ class _PodsTabState extends State<PodsTab> {
           child: _buildBody(),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.teal,
-        foregroundColor: Colors.black,
-        onPressed: () {
-          // TODO: Navigate to browse/join pods screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Browse pods coming soon!')),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Join Pod'),
-      ),
     );
   }
 

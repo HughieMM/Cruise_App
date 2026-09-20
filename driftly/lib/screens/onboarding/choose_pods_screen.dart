@@ -135,9 +135,9 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen>
   }
 
   Future<void> _handleContinue() async {
-    if (_selectedPodIds.isEmpty) {
+    if (_selectedPodIds.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least 1 pod')),
+        const SnackBar(content: Text('Please select at least 2 pods')),
       );
       return;
     }
@@ -271,7 +271,7 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Select 1-3 pods to join. You can change these later.',
+                            'Select 2-3 pods to join for the whole cruise.',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[300],
