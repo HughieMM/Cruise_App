@@ -68,6 +68,31 @@ service cloud.firestore {
         allow create, update: if isOwner(userId);
         allow delete: if false;
       }
+
+      // ==================== Blocked Users Subcollection ====================
+      // Always read/written for the CALLING user's own uid only.
+      match /blockedUsers/{blockedUserId} {
+        allow read: if isOwner(userId);
+        allow create, delete: if isOwner(userId);
+        allow update: if false;
+      }
+    }
+
+    // ==================== Reports Collection ====================
+    // Content/user reports — the reporter can read their own history
+    // (hasUserReported/getReportCount queries), moderation happens from
+    // the Firebase console for now (no admin app yet).
+    match /reports/{reportId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.contentType in ['user', 'photo', 'message', 'profile']
+        && isValidString(request.resource.data.reason, 200);
+      // Only the 'status' field ever changes, when a photo auto-actions
+      // after 2+ reports.
+      allow update: if isAuthenticated()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      allow delete: if false;
     }
 
     // ==================== Feedback Collection ====================
@@ -159,6 +184,19 @@ service cloud.firestore {
           // No updates to messages
           allow update: if false;
         }
+      }
+
+      // ==================== Cruise Memories Subcollection ====================
+      match /memories/{memoryId} {
+        // Anyone on the sailing can read (shown on the shared Memories screen)
+        allow read: if isAuthenticated();
+
+        allow create: if isAuthenticated()
+          && request.resource.data.userId == request.auth.uid
+          && isValidTimestamp(request.resource.data.createdAt);
+
+        allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+        allow update: if false;
       }
 
       // ==================== Hangouts Subcollection ====================
