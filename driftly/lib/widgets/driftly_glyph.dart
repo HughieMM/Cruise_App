@@ -8,7 +8,7 @@ import '../theme/app_colors.dart';
 class DriftlyGlyph extends StatefulWidget {
   final double size;
 
-  const DriftlyGlyph({super.key, this.size = 160});
+  const DriftlyGlyph({super.key, this.size = 190});
 
   @override
   State<DriftlyGlyph> createState() => _DriftlyGlyphState();

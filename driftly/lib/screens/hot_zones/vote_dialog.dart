@@ -245,7 +245,7 @@ class _VoteDialogState extends State<VoteDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'You can vote once per hour per location',
+                          'You can vote once every 30 minutes per location',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.85),

@@ -370,6 +370,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Widget _buildBadgesCard(String userId) {
     return GlassCard(
+      borderColor: AppColors.amberBorder,
+      tintColor: AppColors.amberTint,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -404,47 +406,57 @@ class _ProfileTabState extends State<ProfileTab> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: Colors.grey[900],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        backgroundColor: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.amberTint,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.amberBorder),
+              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'All Badges',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'All Badges',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.grey),
-                    onPressed: () => Navigator.pop(context),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Keep participating to unlock more badges!',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 400,
+                    child: SingleChildScrollView(
+                      child: BadgesDisplay(
+                        userId: userId,
+                        showAll: true,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Keep participating to unlock more badges!',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 400,
-                child: SingleChildScrollView(
-                  child: BadgesDisplay(
-                    userId: userId,
-                    showAll: true,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -532,6 +544,8 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget _buildPodsCard() {
     if (_isLoadingExtras) {
       return GlassCard(
+        borderColor: AppColors.tealBorder,
+        tintColor: AppColors.tealTint,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -556,6 +570,8 @@ class _ProfileTabState extends State<ProfileTab> {
     }
 
     return GlassCard(
+      borderColor: AppColors.tealBorder,
+      tintColor: AppColors.tealTint,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

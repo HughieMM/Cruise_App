@@ -694,7 +694,7 @@ class FirestoreService {
     return sailingsCollection.doc(sailingId).collection('hotZoneVotes');
   }
 
-  /// Check if user has voted for a location in the last hour
+  /// Check if user has voted for a location within the vote validity window
   /// Returns the existing vote if found, null otherwise
   Future<HotZoneVote?> checkUserRecentVote({
     required String sailingId,
@@ -702,12 +702,12 @@ class FirestoreService {
     required String location,
   }) async {
     try {
-      final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
+      final windowStart = DateTime.now().subtract(AppConstants.voteValidityDuration);
 
       final querySnapshot = await hotZoneVotesCollection(sailingId)
           .where('userId', isEqualTo: userId)
           .where('location', isEqualTo: location)
-          .where('timestamp', isGreaterThan: Timestamp.fromDate(oneHourAgo))
+          .where('timestamp', isGreaterThan: Timestamp.fromDate(windowStart))
           .limit(1)
           .get();
 
@@ -776,17 +776,17 @@ class FirestoreService {
     }
   }
 
-  /// Get recent votes for a specific location (last 60 minutes)
+  /// Get recent votes for a specific location (within the vote validity window)
   Future<List<HotZoneVote>> getRecentVotesForLocation({
     required String sailingId,
     required String location,
   }) async {
     try {
-      final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
+      final windowStart = DateTime.now().subtract(AppConstants.voteValidityDuration);
 
       final querySnapshot = await hotZoneVotesCollection(sailingId)
           .where('location', isEqualTo: location)
-          .where('timestamp', isGreaterThan: Timestamp.fromDate(oneHourAgo))
+          .where('timestamp', isGreaterThan: Timestamp.fromDate(windowStart))
           .orderBy('timestamp', descending: true)
           .get();
 
@@ -800,15 +800,15 @@ class FirestoreService {
     }
   }
 
-  /// Stream all recent votes for a sailing (last 60 minutes)
+  /// Stream all recent votes for a sailing (within the vote validity window)
   /// Used to display real-time vibe updates across all locations
   Stream<List<HotZoneVote>> streamRecentVotesForSailing({
     required String sailingId,
   }) {
-    final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
+    final windowStart = DateTime.now().subtract(AppConstants.voteValidityDuration);
 
     return hotZoneVotesCollection(sailingId)
-        .where('timestamp', isGreaterThan: Timestamp.fromDate(oneHourAgo))
+        .where('timestamp', isGreaterThan: Timestamp.fromDate(windowStart))
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {

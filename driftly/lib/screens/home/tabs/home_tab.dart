@@ -195,30 +195,38 @@ class _HomeTabState extends State<HomeTab> {
     if (_sailing!.shouldTriggerTribeMatching && !tribeProvider.hasTribe) {
       widgets.add(
         GlassCard(
-          child: Row(
-            children: [
-              const IconBadge(icon: Icons.diversity_3, backgroundColor: AppColors.amber),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Tribe Matching Active',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          padding: EdgeInsets.zero,
+          child: InkWell(
+            onTap: () => context.go('/home?tab=tribe'),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const IconBadge(icon: Icons.diversity_3, backgroundColor: AppColors.amber),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Tribe Matching Active',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        Text(
+                          'You\'ll be matched with your tribe soon!',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'You\'ll be matched with your tribe soon!',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[400],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const Icon(Icons.hourglass_empty, color: AppColors.amber),
+                ],
               ),
-              const Icon(Icons.hourglass_empty, color: AppColors.amber),
-            ],
+            ),
           ),
         ),
       );
@@ -254,9 +262,7 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  // Navigate to tribe tab (index 2)
-                },
+                onPressed: () => context.go('/home?tab=tribe'),
                 child: const Text('View', style: TextStyle(color: AppColors.teal)),
               ),
             ],
@@ -337,29 +343,37 @@ class _HomeTabState extends State<HomeTab> {
               GlassCard(
                 borderColor: AppColors.tealBorder,
                 tintColor: AppColors.tealTint,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _sailing!.isInFinalCountdown
-                          ? Icons.celebration
-                          : Icons.calendar_today,
-                      size: 20,
-                      color: AppColors.teal,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        _sailing!.countdownMessage,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
+                padding: EdgeInsets.zero,
+                child: InkWell(
+                  onTap: () => context.go('/home?tab=profile'),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _sailing!.isInFinalCountdown
+                              ? Icons.celebration
+                              : Icons.calendar_today,
+                          size: 20,
                           color: AppColors.teal,
-                          fontSize: 15,
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _sailing!.countdownMessage,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.teal,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: AppColors.teal),
+                      ],
                     ),
-                    const Icon(Icons.chevron_right, color: AppColors.teal),
-                  ],
+                  ),
                 ),
               ),
             const SizedBox(height: 16),

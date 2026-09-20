@@ -31,7 +31,13 @@ class AppBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     if (variant == BackgroundVariant.starfield) {
       return Container(
-        color: AppColors.background,
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.3),
+            radius: 1.3,
+            colors: [Color(0xFF12293D), AppColors.background],
+          ),
+        ),
         child: Stack(
           fit: StackFit.expand,
           children: [

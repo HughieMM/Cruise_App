@@ -101,12 +101,17 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Center(child: DriftlyGlyph(size: 120)),
+            const Center(child: DriftlyGlyph(size: 150)),
             const SizedBox(height: 24),
-            Text(
-              'Driftly',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.displayLarge.copyWith(fontSize: 44),
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [AppColors.teal, Colors.white],
+              ).createShader(bounds),
+              child: Text(
+                'Driftly',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.displayLarge.copyWith(fontSize: 48),
+              ),
             ),
             const SizedBox(height: 8),
             Center(

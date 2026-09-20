@@ -12,8 +12,8 @@ class AppConstants {
   /// Duration for micro hangout visibility (45 minutes)
   static const Duration hangoutDuration = Duration(minutes: 45);
 
-  /// Duration for hot zone vote validity (1 hour)
-  static const Duration voteValidityDuration = Duration(hours: 1);
+  /// Duration for hot zone vote validity (30 minutes)
+  static const Duration voteValidityDuration = Duration(minutes: 30);
 
   /// Duration for sailing access window (30 days)
   static const Duration sailingAccessWindow = Duration(days: 30);

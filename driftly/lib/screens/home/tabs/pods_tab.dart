@@ -195,32 +195,34 @@ class _PodsTabState extends State<PodsTab> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: GlassCard(
         padding: EdgeInsets.zero,
+        borderColor: color.withValues(alpha: 0.4),
+        tintColor: color.withValues(alpha: 0.12),
         child: ListTile(
-          contentPadding: const EdgeInsets.all(12),
-          leading: IconBadge(icon: icon, backgroundColor: color),
+          contentPadding: const EdgeInsets.all(16),
+          leading: IconBadge(icon: icon, backgroundColor: color, size: 56, borderRadius: 16),
           title: Text(
             pod.name,
-            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 pod.description,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey[400]),
+                style: TextStyle(color: Colors.grey[300]),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Row(
                 children: [
-                  Icon(Icons.people, size: 14, color: Colors.grey[400]),
+                  Icon(Icons.people, size: 14, color: color),
                   const SizedBox(width: 4),
                   Text(
                     '${pod.memberCount} members',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                    style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),

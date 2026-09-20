@@ -112,10 +112,10 @@ class _BadgeItem extends StatelessWidget {
             width: 70,
             child: Text(
               info.name,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
-                color: isEarned ? Colors.white : Colors.grey,
+                color: Colors.white,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
@@ -127,7 +127,7 @@ class _BadgeItem extends StatelessWidget {
               '$progress/${info.target}',
               style: TextStyle(
                 fontSize: 9,
-                color: Colors.grey.shade500,
+                color: Colors.white.withValues(alpha: 0.6),
               ),
             ),
         ],

@@ -165,7 +165,7 @@ class _HotZonesContentState extends State<HotZonesContent> {
       final count = vibes[vibe] ?? 0;
       if (count == 0) continue;
       final slices = ((count / totalVotes) * 10).round().clamp(1, 10);
-      colors.addAll(List.filled(slices, _getVibeColor(vibe).withValues(alpha: 0.35)));
+      colors.addAll(List.filled(slices, _getVibeColor(vibe).withValues(alpha: 0.55)));
     }
 
     return colors.isEmpty ? [AppColors.surfaceSolid, AppColors.surfaceSolid] : colors;
@@ -328,7 +328,7 @@ class _HotZonesContentState extends State<HotZonesContent> {
                               const SizedBox(height: 4),
                               Text(
                                 hasVotes
-                                    ? '$totalVotes ${totalVotes == 1 ? "vote" : "votes"} in last hour'
+                                    ? '$totalVotes ${totalVotes == 1 ? "vote" : "votes"} in last 30 min'
                                     : 'No recent votes',
                                 style: TextStyle(
                                   fontSize: 13,
