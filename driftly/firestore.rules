@@ -44,18 +44,33 @@ service cloud.firestore {
       // Anyone authenticated can read sailings
       allow read: if isAuthenticated();
 
-      // Only allow creation/update/delete by admin (implement custom claims)
-      // For now, allow any authenticated user to create sailings (development only)
-      allow create, update: if isAuthenticated();
-      allow delete: if false; // Disable deletion in production
+      // Sailings are seed/admin-managed data — no client code ever creates
+      // or updates one (only reads), so this is locked down entirely.
+      // Revisit with custom claims if an admin panel is built later.
+      allow create, update: if false;
+      allow delete: if false;
 
       // ==================== Pods Subcollection ====================
       match /pods/{podId} {
         // Anyone on the sailing can read pods
         allow read: if isAuthenticated();
 
-        // Only allow creation by admin or system
-        allow create, update: if isAuthenticated();
+        // The app auto-seeds the default pods for a sailing from the
+        // client the first time anyone opens Pods, so creation has to
+        // stay open to authenticated users — but validate the shape so
+        // a client can't inject arbitrary pod data.
+        allow create: if isAuthenticated()
+          && request.resource.data.sailingId == sailingId
+          && isValidString(request.resource.data.name, 50)
+          && request.resource.data.memberCount == 0
+          && request.resource.data.ageBucket in ['teen', 'young_adult', 'adult'];
+
+        // Only memberCount/lastMessageAt ever change after creation —
+        // name/color/icon/ageBucket are fixed once a pod is seeded.
+        allow update: if isAuthenticated()
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['memberCount', 'lastMessageAt']);
+
         allow delete: if false;
 
         // ==================== Pod Members Subcollection ====================
