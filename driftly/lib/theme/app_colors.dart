@@ -22,6 +22,12 @@ class AppColors {
   static const Color coral = Color(0xFFFF6B47);
   static const Color amber = Color(0xFFFFAA3B);
 
+  /// Casino/high-roller accent — used for the High Rollers pod.
+  static const Color gold = Color(0xFFD4AF37);
+
+  /// Coldest stop on the Hot Zones vibe gradient ("Taking an L").
+  static const Color frost = Color(0xFF5AC8FA);
+
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Color(0xFFAEB6C2);
 
@@ -40,6 +46,12 @@ class AppColors {
 
   static Color amberTint = amber.withValues(alpha: 0.12);
   static Color amberBorder = amber.withValues(alpha: 0.4);
+
+  static Color goldTint = gold.withValues(alpha: 0.12);
+  static Color goldBorder = gold.withValues(alpha: 0.4);
+
+  static Color frostTint = frost.withValues(alpha: 0.12);
+  static Color frostBorder = frost.withValues(alpha: 0.4);
 
   static Color glassTint = Colors.white.withValues(alpha: 0.1);
   static Color glassBorder = Colors.white.withValues(alpha: 0.2);

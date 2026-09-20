@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../models/pod.dart';
+import '../../utils/constants.dart';
 
 /// Choose Pods Screen
 ///
@@ -62,9 +63,12 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen>
       }
 
       final pods = await _firestoreService.getPodsForSailing(sailingId);
+      final ageBand = authProvider.appUser?.ageBand;
 
       setState(() {
-        _pods = pods;
+        _pods = ageBand == AppConstants.ageBand1617
+            ? pods.where((pod) => !AppConstants.restrictedPodNames.contains(pod.name)).toList()
+            : pods;
         _isLoadingPods = false;
       });
     } catch (e) {
@@ -191,6 +195,8 @@ class _ChoosePodsScreenState extends State<ChoosePodsScreen>
         return Icons.explore;
       case 'sports_basketball':
         return Icons.sports_basketball;
+      case 'casino':
+        return Icons.casino;
       default:
         return Icons.groups;
     }

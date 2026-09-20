@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart' show Color;
+import 'package:flutter/material.dart' show Color, Colors;
+import '../theme/app_colors.dart';
 
 /// HotZoneVote Model
 ///
@@ -75,13 +76,13 @@ class HotZoneVote {
   String get vibeEmoji {
     switch (vibe) {
       case 'active':
-        return '⚡';
+        return '💥';
       case 'quiet':
-        return '🤫';
+        return '🎻';
       case 'overcrowded':
-        return '😰';
+        return '🫠';
       case 'good_vibes':
-        return '✨';
+        return '🧊';
       default:
         return '📍';
     }
@@ -93,29 +94,30 @@ class HotZoneVote {
       case 'active':
         return 'Active';
       case 'quiet':
-        return 'Quiet';
+        return 'Taking an L';
       case 'overcrowded':
-        return 'Overcrowded';
+        return 'Jammed';
       case 'good_vibes':
-        return 'Good Vibes';
+        return 'Chill';
       default:
         return 'Unknown';
     }
   }
 
-  /// Get vibe color
+  /// Get vibe color — cold-to-warm: Taking an L (coldest) -> Chill (cold) ->
+  /// Active (warmer) -> Jammed (warmest)
   Color get vibeColor {
     switch (vibe) {
-      case 'active':
-        return const Color(0xFFFF9800); // Orange
       case 'quiet':
-        return const Color(0xFF2196F3); // Blue
-      case 'overcrowded':
-        return const Color(0xFFF44336); // Red
+        return AppColors.frost;
       case 'good_vibes':
-        return const Color(0xFF4CAF50); // Green
+        return AppColors.teal;
+      case 'active':
+        return AppColors.amber;
+      case 'overcrowded':
+        return AppColors.coral;
       default:
-        return const Color(0xFF9E9E9E); // Grey
+        return Colors.grey;
     }
   }
 

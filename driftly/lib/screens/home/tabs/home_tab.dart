@@ -136,6 +136,8 @@ class _HomeTabState extends State<HomeTab> {
         return Icons.explore;
       case 'sports_basketball':
         return Icons.sports_basketball;
+      case 'casino':
+        return Icons.casino;
       default:
         return Icons.groups;
     }
@@ -435,7 +437,7 @@ class _HomeTabState extends State<HomeTab> {
                   child: _buildStatCard(
                     context,
                     icon: Icons.location_on,
-                    label: 'Hangouts',
+                    label: 'Vibes',
                     value: '-',
                   ),
                 ),
@@ -500,7 +502,7 @@ class _HomeTabState extends State<HomeTab> {
               )
             else
               ..._userPods.map((pod) {
-                final podColor = AppConstants.podAccentColor(pod.id);
+                final podColor = AppConstants.podAccentColor(pod.name);
                 final icon = _getIconData(pod.icon);
 
                 return Card(

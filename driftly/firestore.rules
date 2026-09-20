@@ -129,7 +129,7 @@ service cloud.firestore {
         // Users can create votes
         allow create: if isAuthenticated()
           && request.resource.data.userId == request.auth.uid
-          && request.resource.data.location in ['Pool', 'Casino', 'Nightclub', 'Sports Deck', 'Buffet', 'Theatre']
+          && request.resource.data.location in ['Pool', 'Casino', 'Nightclub', 'Sports Deck']
           && request.resource.data.vibe in ['active', 'quiet', 'overcrowded', 'good_vibes']
           && isValidTimestamp(request.resource.data.timestamp)
           && isValidTimestamp(request.resource.data.expiresAt);

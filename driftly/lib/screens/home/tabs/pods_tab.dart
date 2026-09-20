@@ -95,7 +95,7 @@ class _PodsTabState extends State<PodsTab> {
       return Icons.camera_alt;
     } else if (name.contains('relax') || name.contains('spa')) {
       return Icons.spa;
-    } else if (name.contains('casino')) {
+    } else if (name.contains('casino') || name.contains('high roller')) {
       return Icons.casino;
     }
     return Icons.groups;
@@ -197,7 +197,7 @@ class _PodsTabState extends State<PodsTab> {
   }
 
   Widget _buildPodCard(BuildContext context, Pod pod) {
-    final color = AppConstants.podAccentColor(pod.id);
+    final color = AppConstants.podAccentColor(pod.name);
     final icon = _getIconForPod(pod.name);
 
     return Padding(

@@ -15,8 +15,8 @@ import '../../hot_zones/vote_dialog.dart';
 /// Users vote on vibe for different ship locations
 ///
 /// Features:
-/// - Fixed ship locations: Pool, Casino, Nightclub, Sports Deck, Buffet, Theatre
-/// - Vote options: Active, Quiet, Overcrowded, Good Vibes
+/// - Fixed ship locations: Pool, Casino, Nightclub, Sports Deck
+/// - Vote options: Active, Taking an L, Jammed, Chill
 /// - One vote per location per hour per user
 /// - Real-time vote aggregation from last 60 minutes
 /// - Display dominant vibe and vote count per location
@@ -56,8 +56,6 @@ class _HotZonesContentState extends State<HotZonesContent> {
     {'name': 'Casino', 'icon': Icons.casino},
     {'name': 'Nightclub', 'icon': Icons.nightlife},
     {'name': 'Sports Deck', 'icon': Icons.sports_basketball},
-    {'name': 'Buffet', 'icon': Icons.restaurant},
-    {'name': 'Theatre', 'icon': Icons.theater_comedy},
   ];
 
   /// Aggregate votes by location and calculate dominant vibe
@@ -104,13 +102,13 @@ class _HotZonesContentState extends State<HotZonesContent> {
     if (vibe == null) return '📍';
     switch (vibe) {
       case 'active':
-        return '⚡';
+        return '💥';
       case 'quiet':
-        return '🤫';
+        return '🎻';
       case 'overcrowded':
-        return '😰';
+        return '🫠';
       case 'good_vibes':
-        return '✨';
+        return '🧊';
       default:
         return '📍';
     }
@@ -123,28 +121,29 @@ class _HotZonesContentState extends State<HotZonesContent> {
       case 'active':
         return 'Active';
       case 'quiet':
-        return 'Quiet';
+        return 'Taking an L';
       case 'overcrowded':
-        return 'Overcrowded';
+        return 'Jammed';
       case 'good_vibes':
-        return 'Good Vibes';
+        return 'Chill';
       default:
         return 'Unknown';
     }
   }
 
-  /// Get vibe color — mapped onto the app's teal/coral/amber accent trio
+  /// Get vibe color — a cold-to-warm gradient so the hottest spots pop:
+  /// Taking an L (coldest) -> Chill (cold) -> Active (warmer) -> Jammed (warmest)
   Color _getVibeColor(String? vibe) {
     if (vibe == null) return Colors.grey;
     switch (vibe) {
-      case 'active':
-        return AppColors.amber;
       case 'quiet':
-        return AppColors.teal;
-      case 'overcrowded':
-        return AppColors.coral;
+        return AppColors.frost;
       case 'good_vibes':
         return AppColors.teal;
+      case 'active':
+        return AppColors.amber;
+      case 'overcrowded':
+        return AppColors.coral;
       default:
         return Colors.grey;
     }

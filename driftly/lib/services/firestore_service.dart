@@ -207,7 +207,13 @@ class FirestoreService {
           'name': 'Sports & Games',
           'description': 'Competitive fun with sports and activities',
           'icon': 'sports_basketball',
-          'color': '#FF9800',
+          'color': '#2DD4BF',
+        },
+        {
+          'name': 'High Rollers',
+          'description': 'High stakes and card games for our 18+ crowd',
+          'icon': 'casino',
+          'color': '#D4AF37',
         },
       ];
 

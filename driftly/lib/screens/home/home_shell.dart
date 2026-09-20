@@ -14,8 +14,8 @@ import '../../theme/app_colors.dart';
 /// Tabs:
 /// - Home: Feed/Dashboard
 /// - Pods: Pod chats and activity
-/// - Hangouts: Micro hangouts (45-minute check-ins)
-/// - Hot Zones: Location crowd/vibe voting
+/// - Tribe: Randomly matched small groups
+/// - Vibes: Hot Zones location crowd/vibe voting
 /// - Profile: User settings and profile
 class HomeShell extends StatefulWidget {
   final String initialTab;
@@ -56,7 +56,8 @@ class _HomeShellState extends State<HomeShell> {
       case 'tribe':
         return 2;
       case 'hangouts':
-      case 'hot_zones': // Hot zones now accessible from hangouts tab
+      case 'vibes':
+      case 'hot_zones':
         return 3;
       case 'profile':
         return 4;
@@ -76,7 +77,7 @@ class _HomeShellState extends State<HomeShell> {
     _NavItem(
       icon: Icons.location_on_outlined,
       selectedIcon: Icons.location_on,
-      label: 'Hangouts',
+      label: 'Vibes',
     ),
     _NavItem(icon: Icons.person_outline, selectedIcon: Icons.person, label: 'Profile'),
   ];

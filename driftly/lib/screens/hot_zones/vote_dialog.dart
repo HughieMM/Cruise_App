@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
+import '../../theme/app_colors.dart';
 
 /// Dialog for voting on location vibe
 /// Allows users to vote once per location per hour
@@ -21,31 +22,33 @@ class VoteDialog extends StatefulWidget {
 class _VoteDialogState extends State<VoteDialog> {
   final _firestoreService = FirestoreService();
 
+  // Cold-to-warm: Taking an L (coldest) -> Chill (cold) -> Active (warmer)
+  // -> Jammed (warmest)
   final List<Map<String, dynamic>> _vibes = [
+    {
+      'name': 'Taking an L',
+      'value': 'quiet',
+      'emoji': '🎻',
+      'color': AppColors.frost
+    },
+    {
+      'name': 'Chill',
+      'value': 'good_vibes',
+      'emoji': '🧊',
+      'color': AppColors.teal
+    },
     {
       'name': 'Active',
       'value': 'active',
-      'emoji': '⚡',
-      'color': const Color(0xFFFF9800)
-    }, // Orange
+      'emoji': '💥',
+      'color': AppColors.amber
+    },
     {
-      'name': 'Quiet',
-      'value': 'quiet',
-      'emoji': '🤫',
-      'color': const Color(0xFF2196F3)
-    }, // Blue
-    {
-      'name': 'Overcrowded',
+      'name': 'Jammed',
       'value': 'overcrowded',
-      'emoji': '😰',
-      'color': const Color(0xFFF44336)
-    }, // Red
-    {
-      'name': 'Good Vibes',
-      'value': 'good_vibes',
-      'emoji': '✨',
-      'color': const Color(0xFF4CAF50)
-    }, // Green
+      'emoji': '🫠',
+      'color': AppColors.coral
+    },
   ];
 
   String? _selectedVibe;

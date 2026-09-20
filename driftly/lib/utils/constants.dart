@@ -134,8 +134,6 @@ class AppConstants {
     'Casino',
     'Nightclub',
     'Sports Deck',
-    'Buffet',
-    'Theatre',
   ];
 
   /// Vibe options for Hot Zones voting
@@ -247,12 +245,23 @@ class AppConstants {
   };
 
   /// Deterministic teal/coral/amber accent for a pod, matching the new
-  /// design's minimal 3-accent palette. Stable per pod (hashed by id/name),
-  /// not random per rebuild.
-  static Color podAccentColor(String podIdOrName) {
-    final index = podIdOrName.hashCode.abs() % AppColors.accentRotation.length;
-    return AppColors.accentRotation[index];
+  /// design's minimal 3-accent palette. Stable per pod (hashed by name),
+  /// not random per rebuild. A few themed pods get a fixed color instead
+  /// of the rotation.
+  static Color podAccentColor(String podName) {
+    switch (podName) {
+      case 'High Rollers':
+        return AppColors.gold;
+      case 'Sports & Games':
+        return AppColors.teal;
+      default:
+        final index = podName.hashCode.abs() % AppColors.accentRotation.length;
+        return AppColors.accentRotation[index];
+    }
   }
+
+  /// Pods restricted to adults (18+) — hidden from 16-17 users.
+  static const List<String> restrictedPodNames = ['High Rollers'];
 
   // ==================== Hangout Status Colors ====================
 
