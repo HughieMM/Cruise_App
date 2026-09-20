@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_user.dart';
 import '../models/tribe.dart';
+import '../models/message.dart';
 import '../utils/constants.dart';
 
 /// TribeService
@@ -39,6 +40,53 @@ class TribeService {
   /// Tribe members subcollection
   CollectionReference tribeMembersCollection(String sailingId, String tribeId) {
     return tribesCollection(sailingId).doc(tribeId).collection('members');
+  }
+
+  /// Messages collection for a tribe
+  CollectionReference tribeMessagesCollection(String sailingId, String tribeId) {
+    return tribesCollection(sailingId).doc(tribeId).collection('messages');
+  }
+
+  /// Send a message in a tribe chat. Reuses the same Message model as Pod
+  /// chat — its `podId` field holds the tribeId here.
+  Future<void> sendTribeMessage({
+    required String sailingId,
+    required String tribeId,
+    required String userId,
+    required String userName,
+    required String text,
+    String? userPhotoUrl,
+  }) async {
+    try {
+      final message = Message(
+        id: '',
+        podId: tribeId,
+        userId: userId,
+        userName: userName,
+        userPhotoUrl: userPhotoUrl,
+        text: text,
+        timestamp: DateTime.now(),
+      );
+
+      await tribeMessagesCollection(sailingId, tribeId).add(message.toMap());
+    } catch (e) {
+      throw Exception('Failed to send message: $e');
+    }
+  }
+
+  /// Stream tribe chat messages, most recent first
+  Stream<List<Message>> streamTribeMessages({
+    required String sailingId,
+    required String tribeId,
+    int limit = 100,
+  }) {
+    return tribeMessagesCollection(sailingId, tribeId)
+        .orderBy('timestamp', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Message.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+            .toList());
   }
 
   /// Sea Ya photos collection for a sailing

@@ -28,6 +28,9 @@ class AppColors {
   /// Coldest stop on the Hot Zones vibe gradient ("Taking an L").
   static const Color frost = Color(0xFF5AC8FA);
 
+  /// Neon glassy pink — used for Profile's Achievement Badges/My Sailing.
+  static const Color pink = Color(0xFFFF2E9A);
+
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Color(0xFFAEB6C2);
 
@@ -52,6 +55,9 @@ class AppColors {
 
   static Color frostTint = frost.withValues(alpha: 0.12);
   static Color frostBorder = frost.withValues(alpha: 0.4);
+
+  static Color pinkTint = pink.withValues(alpha: 0.16);
+  static Color pinkBorder = pink.withValues(alpha: 0.5);
 
   static Color glassTint = Colors.white.withValues(alpha: 0.1);
   static Color glassBorder = Colors.white.withValues(alpha: 0.2);

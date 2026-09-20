@@ -152,18 +152,31 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
             ],
           ),
-          body: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(backgroundImage),
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Cruise-line photo once the real asset exists; falls back to
+              // a themed gradient (rather than a blank/broken page) until
+              // then, or for an unrecognized cruise line.
+              Image.asset(
+                backgroundImage,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment(0, -0.3),
+                      radius: 1.3,
+                      colors: [Color(0xFF12293D), AppColors.background],
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.4),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.4),
+                ),
               ),
-              child: SafeArea(
+              SafeArea(
                 child: RefreshIndicator(
                   onRefresh: () async {
                     await authProvider.refreshUserData();
@@ -214,7 +227,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
               ),
             ),
-          ),
+          ],
         ),
         );
       },
@@ -240,27 +253,40 @@ class _ProfileTabState extends State<ProfileTab> {
           clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
-              // Banner with cruise line background
-              Container(
+              // Banner with cruise line background — falls back to a
+              // themed gradient until the real photo assets are added.
+              SizedBox(
                 height: 180,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(backgroundImage),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.3),
-                      ],
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      backgroundImage,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF12293D), AppColors.background],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.3),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // Profile content
@@ -414,8 +440,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Widget _buildBadgesCard(String userId) {
     return GlassCard(
-      borderColor: AppColors.amberBorder,
-      tintColor: AppColors.amberTint,
+      borderColor: AppColors.pinkBorder,
+      tintColor: AppColors.pinkTint,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -457,9 +483,9 @@ class _ProfileTabState extends State<ProfileTab> {
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.amberTint,
+                color: AppColors.pinkTint,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.amberBorder),
+                border: Border.all(color: AppColors.pinkBorder),
               ),
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -510,8 +536,8 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget _buildSailingCard() {
     if (_isLoadingExtras) {
       return GlassCard(
-        borderColor: AppColors.amberBorder,
-        tintColor: AppColors.amberTint,
+        borderColor: AppColors.pinkBorder,
+        tintColor: AppColors.pinkTint,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -537,8 +563,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
     if (_sailing == null) {
       return GlassCard(
-        borderColor: AppColors.amberBorder,
-        tintColor: AppColors.amberTint,
+        borderColor: AppColors.pinkBorder,
+        tintColor: AppColors.pinkTint,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -563,8 +589,8 @@ class _ProfileTabState extends State<ProfileTab> {
     final dateStr = DateFormat('dd MMM yyyy').format(_sailing!.departureDate);
 
     return GlassCard(
-      borderColor: AppColors.amberBorder,
-      tintColor: AppColors.amberTint,
+      borderColor: AppColors.pinkBorder,
+      tintColor: AppColors.pinkTint,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

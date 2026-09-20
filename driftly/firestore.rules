@@ -243,6 +243,20 @@ service cloud.firestore {
           allow create: if isAuthenticated();
           allow update, delete: if false;
         }
+
+        // ==================== Tribe Messages Subcollection ====================
+        match /messages/{messageId} {
+          // Anyone on the sailing can read (mirrors pod messages)
+          allow read: if isAuthenticated();
+
+          allow create: if isAuthenticated()
+            && request.resource.data.userId == request.auth.uid
+            && isValidString(request.resource.data.text, 500)
+            && isValidTimestamp(request.resource.data.timestamp);
+
+          allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+          allow update: if false;
+        }
       }
 
       // ==================== Sibling Requests Subcollection ====================

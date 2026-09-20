@@ -1,8 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/tribe_provider.dart';
 import '../../../models/tribe.dart';
+import '../../../models/message.dart';
+import '../../../services/tribe_service.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../widgets/glass_card.dart';
@@ -23,7 +26,10 @@ class TribeTab extends StatefulWidget {
 
 class _TribeTabState extends State<TribeTab> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _chatScrollController = ScrollController();
+  final TribeService _tribeService = TribeService();
   bool _isInitialized = false;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -36,7 +42,53 @@ class _TribeTabState extends State<TribeTab> {
   @override
   void dispose() {
     _messageController.dispose();
+    _chatScrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollChatToBottom() {
+    if (_chatScrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_chatScrollController.hasClients) {
+          _chatScrollController.animateTo(
+            _chatScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+  }
+
+  Future<void> _sendTribeMessage(String sailingId, String tribeId) async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty || _isSending) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.appUser;
+    if (user == null) return;
+
+    setState(() => _isSending = true);
+
+    try {
+      await _tribeService.sendTribeMessage(
+        sailingId: sailingId,
+        tribeId: tribeId,
+        userId: user.uid,
+        userName: user.name,
+        userPhotoUrl: user.selfieUrl,
+        text: text,
+      );
+      _messageController.clear();
+      _scrollChatToBottom();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send message: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
   }
 
   Future<void> _initializeTribe() async {
@@ -714,37 +766,178 @@ class _TribeTabState extends State<TribeTab> {
             const Divider(height: 1),
           ],
 
-          // Chat area placeholder
+          // Chat area
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.chat_bubble_outline,
-                    size: 64,
-                    color: AppColors.teal,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Tribe Chat Coming Soon!',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[300],
-                      fontWeight: FontWeight.w500,
+            child: StreamBuilder<List<Message>>(
+              stream: _tribeService.streamTribeMessages(
+                sailingId: user.currentSailingId!,
+                tribeId: tribe.id,
+              ),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final messages = snapshot.data!;
+
+                if (messages.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No messages yet.\nSay hello to your tribe!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey[400]),
                     ),
+                  );
+                }
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _scrollChatToBottom();
+                });
+
+                return ListView.builder(
+                  controller: _chatScrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    // Stream is newest-first; reverse for display.
+                    final message = messages[messages.length - 1 - index];
+                    final isOwnMessage = message.userId == user.uid;
+
+                    return _buildTribeMessageBubble(message, isOwnMessage);
+                  },
+                );
+              },
+            ),
+          ),
+
+          // Message input
+          ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background.withValues(alpha: 0.75),
+                  border: Border(top: BorderSide(color: AppColors.tealBorder, width: 1)),
+                ),
+                padding: const EdgeInsets.all(8.0),
+                child: SafeArea(
+                  top: false,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Message your tribe...',
+                            hintStyle: TextStyle(color: Colors.grey[500]),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: const BorderSide(color: AppColors.teal),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.08),
+                          ),
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _sendTribeMessage(
+                            user.currentSailingId!,
+                            tribe.id,
+                          ),
+                          maxLines: null,
+                          textCapitalization: TextCapitalization.sentences,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: AppColors.teal,
+                        child: IconButton(
+                          icon: _isSending
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                )
+                              : const Icon(Icons.send, color: Colors.black),
+                          onPressed: _isSending
+                              ? null
+                              : () => _sendTribeMessage(user.currentSailingId!, tribe.id),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Chat with your tribe members',
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTribeMessageBubble(Message message, bool isOwnMessage) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isOwnMessage) ...[
+            CircleAvatar(
+              radius: 14,
+              backgroundImage: message.userPhotoUrl != null
+                  ? NetworkImage(message.userPhotoUrl!)
+                  : null,
+              backgroundColor: AppColors.tealTint,
+              child: message.userPhotoUrl == null
+                  ? Text(
+                      message.userName.isNotEmpty ? message.userName[0].toUpperCase() : '?',
+                      style: const TextStyle(color: AppColors.teal, fontSize: 12, fontWeight: FontWeight.w600),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (!isOwnMessage)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12, bottom: 4),
+                    child: Text(
+                      message.userName,
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[400]),
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isOwnMessage ? AppColors.teal : Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(16),
+                      topRight: const Radius.circular(16),
+                      bottomLeft: Radius.circular(isOwnMessage ? 16 : 4),
+                      bottomRight: Radius.circular(isOwnMessage ? 4 : 16),
+                    ),
+                  ),
+                  child: Text(
+                    message.text,
+                    style: TextStyle(color: isOwnMessage ? Colors.black : Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isOwnMessage) const SizedBox(width: 8),
         ],
       ),
     );
