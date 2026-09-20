@@ -21,8 +21,11 @@ service cloud.firestore {
 
     // ==================== Users Collection ====================
     match /users/{userId} {
-      // Users can read their own document
-      allow read: if isAuthenticated() && isOwner(userId);
+      // Anyone authenticated can read any profile — the app already
+      // assumes this everywhere (pod chat mini-profiles, tribe member
+      // lists, the tribe-matching algorithm reading candidates), same
+      // trust level as every other same-sailing collection below.
+      allow read: if isAuthenticated();
 
       // Users can create their own document
       allow create: if isAuthenticated() && isOwner(userId)
@@ -31,9 +34,20 @@ service cloud.firestore {
         && isValidString(request.resource.data.ageBand, 10)
         && request.resource.data.ageBand in ['16-17', '18-20', '21-30', '31-40', '40+'];
 
-      // Users can update their own document (except uid and email)
-      allow update: if isAuthenticated() && isOwner(userId)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'email']);
+      // Users can update their own document (except uid and email). Any
+      // authenticated user can additionally set ONLY currentTribeId —
+      // the tribe-matching run assigns tribes to every matched user, not
+      // just whoever's client happened to trigger it, and there's no way
+      // for rules alone to verify "this write came from a legitimate
+      // matching run." Kept as narrow as possible: nothing else on
+      // another user's doc is writable this way.
+      allow update: if isAuthenticated()
+        && (
+          (isOwner(userId)
+           && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'email']))
+          ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentTribeId', 'updatedAt'])
+        );
 
       // Users can delete their own document
       allow delete: if isAuthenticated() && isOwner(userId);
@@ -70,7 +84,11 @@ service cloud.firestore {
         && isValidTimestamp(request.resource.data.departureDate)
         && request.resource.data.memberCount == 0
         && request.resource.data.active == true;
-      allow update: if false;
+      // The one exception to "nothing updates a sailing": the tribe-
+      // matching trigger lock (see tribes below) flips this single field.
+      allow update: if isAuthenticated()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tribeMatchingStatus'])
+        && request.resource.data.tribeMatchingStatus in ['not_started', 'in_progress', 'completed'];
       allow delete: if false;
 
       // ==================== Pods Subcollection ====================
@@ -173,6 +191,72 @@ service cloud.firestore {
           && isValidTimestamp(request.resource.data.expiresAt);
 
         // No updates or deletions (votes are immutable)
+        allow update, delete: if false;
+      }
+
+      // ==================== Tribes Subcollection ====================
+      match /tribes/{tribeId} {
+        // Anyone on the sailing can read tribes
+        allow read: if isAuthenticated();
+
+        // Created by whichever client's tribe-matching run creates it —
+        // not tied to a single uid, so no owner check makes sense here.
+        allow create: if isAuthenticated()
+          && request.resource.data.sailingId == sailingId
+          && request.resource.data.memberIds == [];
+
+        // Only these fields ever change after creation, as members are
+        // added during matching.
+        allow update: if isAuthenticated()
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['memberIds', 'isFull', 'lastActivityAt']);
+
+        allow delete: if false;
+
+        // ==================== Tribe Members Subcollection ====================
+        match /members/{userId} {
+          // Anyone on the sailing can read tribe members
+          allow read: if isAuthenticated();
+
+          // Written by whichever client runs matching for every member
+          // being placed, not just the caller's own membership — same
+          // trade-off as the tribes doc above. Tribe member data is the
+          // same info (name/age/interests/photo) already visible via
+          // pods and profiles.
+          allow create: if isAuthenticated();
+          allow update, delete: if false;
+        }
+      }
+
+      // ==================== Sibling Requests Subcollection ====================
+      match /siblingRequests/{requestId} {
+        // Anyone on the sailing can read (needed to look up pending
+        // requests by target email)
+        allow read: if isAuthenticated();
+
+        allow create: if isAuthenticated()
+          && request.resource.data.requesterId == request.auth.uid
+          && request.resource.data.status == 'pending';
+
+        // Covers accept/decline (by the target) and the matching run
+        // marking accepted requests as 'matched'.
+        allow update: if isAuthenticated()
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['targetId', 'targetName', 'status', 'respondedAt']);
+
+        allow delete: if false;
+      }
+
+      // ==================== Sea Ya Photos Subcollection ====================
+      match /seaYaPhotos/{photoId} {
+        // Anyone on the sailing can read (tribe-only visibility is
+        // enforced by only querying within a known tribeId, not by rules)
+        allow read: if isAuthenticated();
+
+        allow create: if isAuthenticated()
+          && request.resource.data.userId == request.auth.uid
+          && isValidString(request.resource.data.photoUrl, 500);
+
         allow update, delete: if false;
       }
     }

@@ -3,12 +3,14 @@ import 'package:flutter/foundation.dart';
 import '../models/app_user.dart';
 import '../models/tribe.dart';
 import '../services/tribe_service.dart';
+import '../services/firestore_service.dart';
 
 /// TribeProvider
 ///
 /// Manages tribe state, sibling requests, and Sea Ya photos
 class TribeProvider extends ChangeNotifier {
   final TribeService _tribeService = TribeService();
+  final FirestoreService _firestoreService = FirestoreService();
 
   Tribe? _currentTribe;
   List<TribeMember> _tribeMembers = [];
@@ -47,6 +49,25 @@ class TribeProvider extends ChangeNotifier {
     required String? tribeId,
     required String userId,
   }) async {
+    if (tribeId == null) {
+      // Nothing triggers tribe matching automatically — attempt it here,
+      // guarded by a Firestore lock, if the sailing has reached the
+      // matching day and this user hasn't been placed in a tribe yet.
+      try {
+        final sailing = await _firestoreService.getSailing(sailingId);
+        if (sailing != null && sailing.shouldTriggerTribeMatching) {
+          await _tribeService.tryTriggerTribeMatching(sailingId);
+
+          // Whether this call or someone else's ran matching, re-check
+          // whether this user now has a tribe.
+          final refreshedUser = await _firestoreService.getUser(userId);
+          tribeId = refreshedUser?.currentTribeId;
+        }
+      } catch (e) {
+        debugPrint('Tribe matching attempt failed: $e');
+      }
+    }
+
     if (tribeId == null) {
       _currentTribe = null;
       _tribeMembers = [];

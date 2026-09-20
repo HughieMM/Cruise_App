@@ -415,6 +415,42 @@ class TribeService {
   /// 4. Within each age band (or mixed pool), find users with shared interests
   /// 5. Attempt gender balance where possible
   /// 6. Honor sibling requests (place siblings in same tribe)
+  /// Attempts to trigger tribe matching for a sailing. Nothing in the app
+  /// runs [runTribeMatching] automatically, so this is called from the
+  /// client the first time a user without a tribe opens the Tribe tab
+  /// past the matching day. Uses a Firestore transaction as a lock (via
+  /// the sailing doc's `tribeMatchingStatus` field) so only one caller's
+  /// attempt actually runs the algorithm, even if several users' clients
+  /// try around the same time. Returns true if THIS call ran matching.
+  Future<bool> tryTriggerTribeMatching(String sailingId) async {
+    final sailingRef = _firestore.collection('sailings').doc(sailingId);
+
+    final wonLock = await _firestore.runTransaction<bool>((transaction) async {
+      final snapshot = await transaction.get(sailingRef);
+      final data = snapshot.data() as Map<String, dynamic>?;
+      final status = data?['tribeMatchingStatus'] as String?;
+
+      if (status == 'in_progress' || status == 'completed') {
+        return false;
+      }
+
+      transaction.update(sailingRef, {'tribeMatchingStatus': 'in_progress'});
+      return true;
+    });
+
+    if (!wonLock) return false;
+
+    try {
+      await runTribeMatching(sailingId);
+      await sailingRef.update({'tribeMatchingStatus': 'completed'});
+      return true;
+    } catch (e) {
+      // Allow a retry later if something went wrong mid-run.
+      await sailingRef.update({'tribeMatchingStatus': 'not_started'});
+      rethrow;
+    }
+  }
+
   /// 7. Create tribes with optimal sizes (3-5 members)
   ///
   /// Safety Rules:
