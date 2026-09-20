@@ -26,7 +26,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Last updated: February 2026',
+              'Last updated: September 2026',
               style: TextStyle(color: Colors.grey[500]),
             ),
             const SizedBox(height: 24),
@@ -41,7 +41,7 @@ Account Information: Name, email address, date of birth, and profile photos you 
 
 Cruise Information: Your selected cruise line, ship, sailing dates, and cabin preferences.
 
-Usage Data: How you interact with the app, including pods joined, messages sent, and hangouts attended.
+Usage Data: How you interact with the app, including pods joined, messages sent, and Hot Zones votes cast.
 
 Device Information: Device type, operating system, and unique device identifiers for push notifications.
 
@@ -116,7 +116,9 @@ To exercise these rights, contact us at privacy@driftly.app or use the in-app se
               context,
               title: '6. Age Requirements',
               content: '''
-Driftly is intended for users aged 21 and older. We do not knowingly collect information from users under 21. If we learn that a user is under 21, we will delete their account and data.
+Driftly is intended for users aged 16 and older. We do not knowingly collect information from users under 16. If we learn that a user is under 16, we will delete their account and data.
+
+Users aged 16-17 are matched only with other users in the same age group and cannot access gambling-related features (such as the "High Rollers" pod), which require users to be at least 18.
 ''',
             ),
 
@@ -128,7 +130,7 @@ We send push notifications for:
 
 - Daily photo reminders during your cruise
 - Tribe matching updates
-- New messages and hangout invitations
+- New messages in your Pods
 - Important app updates
 
 You can disable notifications at any time in your device settings or app preferences.

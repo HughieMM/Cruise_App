@@ -26,7 +26,7 @@ class TermsOfServiceScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Last updated: February 2026',
+              'Last updated: September 2026',
               style: TextStyle(color: Colors.grey[500]),
             ),
             const SizedBox(height: 24),
@@ -37,7 +37,7 @@ class TermsOfServiceScreen extends StatelessWidget {
               content: '''
 By downloading, installing, or using Driftly ("the App"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the App.
 
-Driftly is a social networking application designed to connect cruise passengers aged 21 and older.
+Driftly is a social networking application designed to connect cruise passengers aged 16 and older.
 ''',
             ),
 
@@ -47,12 +47,14 @@ Driftly is a social networking application designed to connect cruise passengers
               content: '''
 To use Driftly, you must:
 
-- Be at least 21 years of age
+- Be at least 16 years of age
 - Have a valid email address
 - Have booked or plan to book a cruise
 - Agree to these Terms of Service and our Privacy Policy
 
 By using the App, you represent and warrant that you meet all eligibility requirements.
+
+Age-based restrictions: Users aged 16-17 are only matched and grouped with other users in the same 16-17 age group, and cannot access gambling-related features (such as the "High Rollers" pod) or nightlife-oriented content. Access to gambling-related features requires users to be at least 18 years of age.
 ''',
             ),
 

@@ -1415,16 +1415,12 @@ class _ProfileTabState extends State<ProfileTab> {
         'answer': 'Pods are interest-based groups where you can chat with other cruisers who share your interests like fitness, nightlife, or excursions.',
       },
       {
-        'question': 'What are Hangouts?',
-        'answer': 'Hangouts are spontaneous meetups you can create or join. They last 45 minutes and help you find people at specific locations on the ship.',
-      },
-      {
-        'question': 'What are Hot Zones?',
-        'answer': 'Hot Zones show you the current vibe at different locations around the ship, voted on by fellow cruisers in real-time.',
+        'question': 'What are Vibes / Hot Zones?',
+        'answer': 'Vibes shows you the current vibe at different locations around the ship, voted on by fellow cruisers in real-time.',
       },
       {
         'question': 'Why can I only see people in my age group?',
-        'answer': 'To ensure a comfortable experience, hangouts are filtered by age group so you can connect with people in a similar life stage.',
+        'answer': 'To ensure a comfortable experience, Tribes and Pods are matched within your age group so you can connect with people in a similar life stage.',
       },
       {
         'question': 'Is my information private?',
