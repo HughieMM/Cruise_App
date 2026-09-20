@@ -68,6 +68,41 @@ class AuthService {
     }
   }
 
+  /// Re-authenticate with the given password. Firebase requires a recent
+  /// sign-in before allowing sensitive operations like account deletion.
+  Future<void> reauthenticate(String password) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw Exception('No authenticated user');
+    }
+
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
+  }
+
+  /// Permanently delete the signed-in Firebase Auth account. Call
+  /// [reauthenticate] first — Firebase rejects this with
+  /// 'requires-recent-login' otherwise.
+  Future<void> deleteCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('No authenticated user');
+    }
+
+    try {
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
+  }
+
   /// Handle Firebase Auth exceptions
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
@@ -89,6 +124,8 @@ class AuthService {
         return 'Too many attempts. Please try again later.';
       case 'operation-not-allowed':
         return 'Email/password accounts are not enabled.';
+      case 'requires-recent-login':
+        return 'Please sign in again before doing this.';
       default:
         return 'Authentication error: ${e.message ?? 'Unknown error'}';
     }

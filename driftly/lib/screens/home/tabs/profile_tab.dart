@@ -1220,35 +1220,94 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   void _showDeleteAccountDialog(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final passwordController = TextEditingController();
+    bool obscurePassword = true;
+    bool isDeleting = false;
+    String? errorText;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Account?'),
-        content: const Text(
-          'This action cannot be undone. All your data, including your profile, messages, and hangouts will be permanently deleted.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement actual account deletion
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Account deletion will be available soon'),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          return AlertDialog(
+            title: const Text('Delete Account?'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'This action cannot be undone. Your profile, photos, and pod memberships will be permanently deleted.',
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passwordController,
+                  obscureText: obscurePassword,
+                  enabled: !isDeleting,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm your password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(obscurePassword ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
+                    ),
+                  ),
+                ),
+                if (errorText != null) ...[
+                  const SizedBox(height: 8),
+                  Text(errorText!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                ],
+              ],
             ),
-            child: const Text('Delete Account'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        if (passwordController.text.isEmpty) {
+                          setDialogState(() => errorText = 'Please enter your password');
+                          return;
+                        }
+                        setDialogState(() {
+                          isDeleting = true;
+                          errorText = null;
+                        });
+
+                        final success = await authProvider.deleteAccount(passwordController.text);
+
+                        if (!dialogContext.mounted) return;
+
+                        if (success) {
+                          Navigator.pop(dialogContext);
+                          if (context.mounted) {
+                            context.go('/auth');
+                          }
+                        } else {
+                          setDialogState(() {
+                            isDeleting = false;
+                            errorText = authProvider.errorMessage ?? 'Failed to delete account';
+                          });
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: isDeleting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Delete Account'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

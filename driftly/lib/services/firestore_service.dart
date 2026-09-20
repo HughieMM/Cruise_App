@@ -333,6 +333,18 @@ class FirestoreService {
     }
   }
 
+  /// Leave every pod a user has joined for a sailing — used when deleting
+  /// an account so no stale membership is left behind.
+  Future<void> leaveAllPods({
+    required String sailingId,
+    required String userId,
+  }) async {
+    final pods = await getUserPodsForSailing(sailingId: sailingId, userId: userId);
+    for (final pod in pods) {
+      await leavePod(sailingId: sailingId, podId: pod.id, userId: userId);
+    }
+  }
+
   /// Get user's pods for a sailing
   Future<List<Pod>> getUserPodsForSailing({
     required String sailingId,

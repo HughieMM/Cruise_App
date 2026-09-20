@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/app_user.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
+import '../services/storage_service.dart';
 
 /// AuthProvider
 ///
@@ -10,6 +11,7 @@ import '../services/firestore_service.dart';
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
+  final StorageService _storageService = StorageService();
 
   User? _firebaseUser;
   AppUser? _appUser;
@@ -223,6 +225,53 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'Failed to refresh user data: $e';
       notifyListeners();
+    }
+  }
+
+  /// Permanently delete the signed-in user's account: re-authenticates
+  /// (Firebase requires a recent sign-in for this), leaves every pod they've
+  /// joined, deletes their uploaded photos, their Firestore profile, then
+  /// the Firebase Auth account itself. Returns false with [errorMessage]
+  /// set if anything fails — most commonly a wrong password.
+  Future<bool> deleteAccount(String password) async {
+    try {
+      if (_firebaseUser == null) {
+        throw Exception('No authenticated user');
+      }
+
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final uid = _firebaseUser!.uid;
+
+      // Re-authenticate first so a wrong password fails fast, before any
+      // data is touched.
+      await _authService.reauthenticate(password);
+
+      final sailingId = _appUser?.currentSailingId;
+      if (sailingId != null) {
+        await _firestoreService.leaveAllPods(sailingId: sailingId, userId: uid);
+      }
+
+      final photoUrls = await _storageService.getUserPhotoUrls(uid);
+      for (final url in photoUrls) {
+        await _storageService.deletePhoto(url);
+      }
+
+      await _firestoreService.deleteUser(uid);
+      await _authService.deleteCurrentUser();
+
+      _appUser = null;
+      _firebaseUser = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
