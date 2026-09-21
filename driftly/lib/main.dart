@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -8,20 +10,31 @@ import 'services/notification_service.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_text_styles.dart';
 
-/// Driftly - A social app for cruise passengers aged 21-30
+/// Driftly - A social app for cruise passengers
 ///
 /// Main entry point for the application
-void main() async {
-  // Ensure Flutter bindings are initialized
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  runZonedGuarded(() async {
+    // Ensure Flutter bindings are initialized
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
+    // Route framework-caught errors (widget build errors, etc.) into the
+    // same zone handler below instead of only printing to the console.
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      debugPrint('FlutterError: ${details.exceptionAsString()}\n${details.stack}');
+    };
 
-  // Initialize notification service
-  await NotificationService().initialize();
+    // Initialize Firebase
+    await Firebase.initializeApp();
 
-  runApp(const DriftlyApp());
+    // Initialize notification service
+    await NotificationService().initialize();
+
+    runApp(const DriftlyApp());
+  }, (error, stack) {
+    debugPrint('Uncaught error: $error\n$stack');
+  });
 }
 
 /// Root application widget

@@ -226,10 +226,28 @@ service cloud.firestore {
             // Creator deactivating expired hangout
             (request.resource.data.active == false
              && resource.data.createdBy == request.auth.uid)
+            ||
+            // Photo count bumped by addHangoutPhoto/deleteHangoutPhoto
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['photoCount'])
           );
 
         // No deletion of hangouts
         allow delete: if false;
+
+        // ==================== Hangout Photos Subcollection ====================
+        match /photos/{photoId} {
+          // Anyone on the sailing can read hangout photos
+          allow read: if isAuthenticated();
+
+          allow create: if isAuthenticated()
+            && request.resource.data.userId == request.auth.uid
+            && isValidString(request.resource.data.userName, 50)
+            && isValidString(request.resource.data.photoUrl, 500)
+            && isValidTimestamp(request.resource.data.takenAt);
+
+          allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+          allow update: if false;
+        }
       }
 
       // ==================== Hot Zone Votes Subcollection ====================
