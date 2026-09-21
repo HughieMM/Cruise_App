@@ -245,7 +245,13 @@ service cloud.firestore {
             && isValidString(request.resource.data.photoUrl, 500)
             && isValidTimestamp(request.resource.data.takenAt);
 
-          allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+          // Any authenticated user (not just the poster) so the
+          // auto-delete-after-2-reports moderation flow can clean up the
+          // doc — it runs from whichever client submits the triggering
+          // report, not the original poster. Same trust level already
+          // granted to reports.status updates and tribe member writes
+          // elsewhere in this file (no admin backend exists yet).
+          allow delete: if isAuthenticated();
           allow update: if false;
         }
       }
