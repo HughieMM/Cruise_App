@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/constants.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/pill_button.dart';
@@ -163,12 +164,11 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 7)),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      lastDate: DateTime.now().add(AppConstants.sailingAccessWindow),
       helpText: 'Select your sailing date',
     );
 
     if (picked != null) {
-      // TODO: Add 30-day validation
       setState(() {
         _selectedDate = picked;
       });

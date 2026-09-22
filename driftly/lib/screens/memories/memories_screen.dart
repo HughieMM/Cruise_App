@@ -147,6 +147,15 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
     return milestones;
   }
 
+  void _showCollageView() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _MemoriesCollageView(memories: _memories),
+      ),
+    );
+  }
+
   void _showAddMemoryDialog(MemoryMilestone milestone) {
     showDialog(
       context: context,
@@ -169,9 +178,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
           if (_memories.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.grid_view),
-              onPressed: () {
-                // TODO: Show collage view
-              },
+              onPressed: _showCollageView,
               tooltip: 'View Collage',
             ),
         ],
@@ -517,6 +524,88 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Collage View
+///
+/// Grid layout of all of the user's cruise memory photos, reusing the same
+/// [CruiseMemory] list already loaded by [MemoriesScreen]. Tap a photo to
+/// view it full-size with its caption.
+class _MemoriesCollageView extends StatelessWidget {
+  final List<CruiseMemory> memories;
+
+  const _MemoriesCollageView({required this.memories});
+
+  void _showFullPhoto(BuildContext context, CruiseMemory memory) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: InteractiveViewer(
+                child: Image.network(
+                  memory.photoUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 300,
+                    color: Colors.grey[900],
+                    child: const Icon(Icons.broken_image, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+            if (memory.caption != null)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  memory.caption!,
+                  style: const TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Memory Collage')),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(4),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+        ),
+        itemCount: memories.length,
+        itemBuilder: (context, index) {
+          final memory = memories[index];
+          return GestureDetector(
+            onTap: () => _showFullPhoto(context, memory),
+            child: Image.network(
+              memory.photoUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                color: Colors.grey[850],
+                child: const Icon(Icons.broken_image, color: Colors.grey),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

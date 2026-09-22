@@ -14,6 +14,7 @@ import '../../utils/constants.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/daily_prompt_card.dart';
 import '../../widgets/report_dialog.dart';
+import '../../widgets/glass_card.dart';
 
 /// Pod Chat Screen
 ///
@@ -80,6 +81,95 @@ class _PodChatScreenState extends State<PodChatScreen> {
     } else {
       return 'Expires in ${timeLeft.inHours}h';
     }
+  }
+
+  // Human-readable label for a pod's age bucket
+  String _ageBucketLabel(String ageBucket) {
+    switch (ageBucket) {
+      case 'teen':
+        return 'Teens (16-17)';
+      case 'adult':
+        return 'Adults (31+)';
+      case 'young_adult':
+      default:
+        return 'Young Adults (18-30)';
+    }
+  }
+
+  // Show pod info dialog (name, description, member count, age group)
+  void _showPodInfoDialog(Color podColor) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassCard(
+          borderColor: podColor,
+          tintColor: podColor.withValues(alpha: 0.12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: podColor.withValues(alpha: 0.2),
+                    child: Icon(Icons.groups, color: podColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.pod.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (widget.pod.description.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  widget.pod.description,
+                  style: TextStyle(color: Colors.grey[300]),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(Icons.people, size: 18, color: podColor),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${widget.pod.memberCount} members',
+                    style: TextStyle(color: Colors.grey[300]),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.cake_outlined, size: 18, color: podColor),
+                  const SizedBox(width: 8),
+                  Text(
+                    _ageBucketLabel(widget.pod.ageBucket),
+                    style: TextStyle(color: Colors.grey[300]),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Close', style: TextStyle(color: podColor)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // Show mini profile dialog for a user
@@ -252,9 +342,7 @@ class _PodChatScreenState extends State<PodChatScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              // TODO: Show pod info/members
-            },
+            onPressed: () => _showPodInfoDialog(podColor),
           ),
         ],
       ),
