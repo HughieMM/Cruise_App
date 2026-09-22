@@ -12,7 +12,15 @@ flutter doctor
 # Podfile's post-install hook checks that the iOS engine artifact
 # (Flutter.xcframework) already exists — `flutter pub get` alone doesn't
 # fetch it, so precache explicitly or `pod install` fails below.
-flutter precache --ios
+# --force bypasses any "already cached, skip" check in case that's why a
+# prior attempt exited 0 without actually placing the file.
+flutter precache --ios --force
+
+# Diagnostic only (never fails the build) — if pod install still can't
+# find Flutter.xcframework after this, this output shows exactly what
+# precache actually put on disk instead of leaving us guessing again.
+ls -la "$HOME/flutter/bin/cache/artifacts/engine/" || true
+ls -la "$HOME/flutter/bin/cache/artifacts/engine/ios/" || true
 
 # $CI_PRIMARY_REPOSITORY_PATH is the Xcode-Cloud-provided repo root;
 # the Flutter project itself lives in the driftly/ subdirectory.
