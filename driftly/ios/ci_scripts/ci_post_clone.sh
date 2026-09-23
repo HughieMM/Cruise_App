@@ -27,6 +27,13 @@ ls -la "$HOME/flutter/bin/cache/artifacts/engine/ios/" || true
 cd "$CI_PRIMARY_REPOSITORY_PATH/driftly"
 flutter pub get
 
+# Diagnostic only — flutter_install_all_ios_pods (in Podfile) reads this
+# file to know which plugin pods to add. If it's missing/empty, pod
+# install has nothing to add and silently installs only the bare Flutter
+# engine pod, which is exactly what's been happening.
+echo "--- .flutter-plugins-dependencies ---"
+cat "$CI_PRIMARY_REPOSITORY_PATH/driftly/.flutter-plugins-dependencies" || echo "(file does not exist)"
+
 # Regenerates Generated.xcconfig, then CocoaPods needs a run too since
 # the Podfile also depends on Flutter's generated podhelper.rb.
 cd ios
@@ -40,3 +47,5 @@ echo "--- FirebaseCore pod contents ---"
 find "$CI_PRIMARY_REPOSITORY_PATH/driftly/ios/Pods" -iname "*FirebaseCore*" -maxdepth 3 || true
 echo "--- Pods-Runner.release.xcconfig ---"
 cat "$CI_PRIMARY_REPOSITORY_PATH/driftly/ios/Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig" || true
+echo "--- Podfile.lock ---"
+cat "$CI_PRIMARY_REPOSITORY_PATH/driftly/ios/Podfile.lock" || true
