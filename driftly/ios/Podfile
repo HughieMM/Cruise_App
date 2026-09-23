@@ -42,6 +42,10 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+      # Ensures every pod explicitly generates/exposes a proper module map,
+      # which is what Xcode's Swift module-graph planner needs to resolve
+      # a pod (e.g. FirebaseCore) as a dependency in the first place.
+      config.build_settings['DEFINES_MODULE'] = 'YES'
     end
   end
 end

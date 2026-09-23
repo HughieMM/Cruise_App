@@ -31,3 +31,12 @@ flutter pub get
 # the Podfile also depends on Flutter's generated podhelper.rb.
 cd ios
 pod install
+
+# Diagnostic only (never fails the build) — if the Runner target still
+# can't resolve FirebaseCore as a Swift module afterward, this shows
+# exactly what pod install actually vendored/generated for it instead of
+# guessing blind again.
+echo "--- FirebaseCore pod contents ---"
+find "$CI_PRIMARY_REPOSITORY_PATH/driftly/ios/Pods" -iname "*FirebaseCore*" -maxdepth 3 || true
+echo "--- Pods-Runner.release.xcconfig ---"
+cat "$CI_PRIMARY_REPOSITORY_PATH/driftly/ios/Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig" || true
