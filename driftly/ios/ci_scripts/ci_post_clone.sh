@@ -7,6 +7,16 @@ set -e
 git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
 export PATH="$PATH:$HOME/flutter/bin"
 
+# This project is a traditional CocoaPods-based Flutter iOS project (the
+# Podfile/Pods setup fixed over the last several rounds), but Flutter
+# defaults to Swift Package Manager for plugin integration, which makes
+# its own Podfile helper skip adding CocoaPods entries for every plugin
+# that supports SPM — leaving them wired into neither system since this
+# Xcode project was never set up with actual SPM package references.
+# Force CocoaPods integration instead, every build (fresh Flutter install
+# each run, so this can't persist from a prior build).
+flutter config --no-enable-swift-package-manager
+
 flutter doctor
 
 # Podfile's post-install hook checks that the iOS engine artifact
