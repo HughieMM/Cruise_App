@@ -321,10 +321,10 @@ class _ProfileTabState extends State<ProfileTab> {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: AppColors.tealTint,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: AppColors.tealBorder,
               width: 1,
             ),
           ),
