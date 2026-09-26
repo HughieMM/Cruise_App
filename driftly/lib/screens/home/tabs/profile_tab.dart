@@ -48,19 +48,6 @@ String? _getCruiseLineAbbreviation(String? cruiseLineId) {
   return null;
 }
 
-/// Cruise-line-branded fallback for the Edit Profile cover-photo box when
-/// no custom cover photo has been set — (label, color) or null if the
-/// cruise line is unrecognized/not yet chosen.
-(String, Color)? _getCruiseLineAccent(String? cruiseLineId) {
-  if (cruiseLineId == null) return null;
-
-  final id = cruiseLineId.toLowerCase();
-  if (id.contains('carnival')) return ('CRVL', AppColors.carnivalRed);
-  if (id.contains('ncl') || id.contains('norwegian')) return ('NCL', AppColors.norwegianGreen);
-  if (id.contains('royal') || id.contains('caribbean')) return ('RCL', AppColors.royalBlue);
-  return null;
-}
-
 /// Profile Tab
 ///
 /// Features:
@@ -1157,37 +1144,12 @@ class _ProfileTabState extends State<ProfileTab> {
                             );
                           }
 
-                          final accent = _getCruiseLineAccent(_sailing?.cruiseLineId);
-                          if (accent != null) {
-                            final (label, color) = accent;
-                            return Container(
-                              color: color,
-                              alignment: Alignment.center,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Center(
-                                    child: Text(
-                                      label,
-                                      style: const TextStyle(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 2,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const _CoverPhotoEditBadge(),
-                                ],
-                              ),
-                            );
-                          }
-
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              border: Border.all(color: Colors.grey[700]!),
-                            ),
+                          // No cover photo set — a transparent glass box
+                          // matching the rest of the app's card styling,
+                          // not a colored/branded placeholder.
+                          return GlassCard(
+                            padding: EdgeInsets.zero,
+                            showBlur: false,
                             child: Stack(
                               fit: StackFit.expand,
                               children: [
