@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/tribe_provider.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/badge_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
 import '../../../theme/app_colors.dart';
@@ -35,10 +36,13 @@ class HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<HomeTab> {
   final _firestoreService = FirestoreService();
+  final _badgeService = BadgeService();
   List<Pod> _userPods = [];
   Sailing? _sailing;
+  int _hotZonesVoted = 0;
   bool _isLoadingPods = true;
   bool _isLoadingSailing = true;
+  bool _isLoadingVibes = true;
 
   @override
   void initState() {
@@ -50,7 +54,27 @@ class _HomeTabState extends State<HomeTab> {
     await Future.wait([
       _loadUserPods(),
       _loadSailing(),
+      _loadVibesCount(),
     ]);
+  }
+
+  Future<void> _loadVibesCount() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.appUser;
+      if (user == null) {
+        setState(() => _isLoadingVibes = false);
+        return;
+      }
+
+      final stats = await _badgeService.getBadgeProgress(user.uid);
+      setState(() {
+        _hotZonesVoted = stats['hot_zones_voted'] ?? 0;
+        _isLoadingVibes = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingVibes = false);
+    }
   }
 
   Future<void> _loadUserPods() async {
@@ -446,6 +470,9 @@ class _HomeTabState extends State<HomeTab> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
+                  // Connections doesn't exist as a feature yet (no 1:1
+                  // messaging/friending), so there's nothing real to count
+                  // here — stays a placeholder until that's built.
                   child: _buildStatCard(
                     context,
                     icon: Icons.people,
@@ -459,7 +486,7 @@ class _HomeTabState extends State<HomeTab> {
                     context,
                     icon: Icons.location_on,
                     label: 'Vibes',
-                    value: '-',
+                    value: _isLoadingVibes ? '-' : '$_hotZonesVoted',
                   ),
                 ),
               ],
