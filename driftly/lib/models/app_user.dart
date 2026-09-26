@@ -18,6 +18,7 @@ class AppUser {
   final String? funPhotoUrl;       // Required: Fun/personality photo
   final String? wildcardPhotoUrl;  // Required: Any photo they want
   final String? verificationPhotoUrl; // Liveness check selfie
+  final String? coverPhotoUrl; // Profile banner/cover photo
   final String? currentSailingId;
   final String? currentTribeId;    // Tribe they're assigned to
   final String? siblingRequestId;  // If they requested to join with a sibling
@@ -40,6 +41,7 @@ class AppUser {
     this.funPhotoUrl,
     this.wildcardPhotoUrl,
     this.verificationPhotoUrl,
+    this.coverPhotoUrl,
     this.currentSailingId,
     this.currentTribeId,
     this.siblingRequestId,
@@ -74,6 +76,7 @@ class AppUser {
       funPhotoUrl: map['funPhotoUrl'] as String?,
       wildcardPhotoUrl: map['wildcardPhotoUrl'] as String?,
       verificationPhotoUrl: map['verificationPhotoUrl'] as String?,
+      coverPhotoUrl: map['coverPhotoUrl'] as String?,
       currentSailingId: map['currentSailingId'] as String?,
       currentTribeId: map['currentTribeId'] as String?,
       siblingRequestId: map['siblingRequestId'] as String?,
@@ -100,6 +103,7 @@ class AppUser {
       'funPhotoUrl': funPhotoUrl,
       'wildcardPhotoUrl': wildcardPhotoUrl,
       'verificationPhotoUrl': verificationPhotoUrl,
+      'coverPhotoUrl': coverPhotoUrl,
       'currentSailingId': currentSailingId,
       'currentTribeId': currentTribeId,
       'siblingRequestId': siblingRequestId,
@@ -125,6 +129,7 @@ class AppUser {
     String? funPhotoUrl,
     String? wildcardPhotoUrl,
     String? verificationPhotoUrl,
+    String? coverPhotoUrl,
     String? currentSailingId,
     String? currentTribeId,
     String? siblingRequestId,
@@ -147,6 +152,7 @@ class AppUser {
       funPhotoUrl: funPhotoUrl ?? this.funPhotoUrl,
       wildcardPhotoUrl: wildcardPhotoUrl ?? this.wildcardPhotoUrl,
       verificationPhotoUrl: verificationPhotoUrl ?? this.verificationPhotoUrl,
+      coverPhotoUrl: coverPhotoUrl ?? this.coverPhotoUrl,
       currentSailingId: currentSailingId ?? this.currentSailingId,
       currentTribeId: currentTribeId ?? this.currentTribeId,
       siblingRequestId: siblingRequestId ?? this.siblingRequestId,

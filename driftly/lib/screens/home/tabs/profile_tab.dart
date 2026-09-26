@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/storage_service.dart';
 import '../../../services/badge_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
@@ -62,11 +64,15 @@ class ProfileTab extends StatefulWidget {
   State<ProfileTab> createState() => _ProfileTabState();
 }
 
+enum _CoverPhotoSource { camera, gallery }
+
 class _ProfileTabState extends State<ProfileTab> {
   final FirestoreService _firestoreService = FirestoreService();
+  final StorageService _storageService = StorageService();
   List<Pod>? _userPods;
   Sailing? _sailing;
   bool _isLoadingExtras = true;
+  bool _isUploadingCoverPhoto = false;
 
   @override
   void initState() {
@@ -101,6 +107,78 @@ class _ProfileTabState extends State<ProfileTab> {
       if (mounted) {
         setState(() => _isLoadingExtras = false);
       }
+    }
+  }
+
+  Future<void> _changeCoverPhoto(BuildContext context, AuthProvider authProvider) async {
+    final source = await showModalBottomSheet<_CoverPhotoSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Choose Cover Photo',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
+              onTap: () => Navigator.pop(context, _CoverPhotoSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, _CoverPhotoSource.gallery),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    File? photo;
+    try {
+      photo = source == _CoverPhotoSource.camera
+          ? await _storageService.takePhoto()
+          : await _storageService.pickImageFromGallery();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not get photo: $e')),
+        );
+      }
+      return;
+    }
+
+    if (photo == null) return;
+
+    setState(() => _isUploadingCoverPhoto = true);
+    try {
+      final url = await _storageService.uploadProfilePhoto(
+        userId: authProvider.appUser!.uid,
+        file: photo,
+        photoType: 'cover',
+      );
+      final success = await authProvider.updateProfile({'coverPhotoUrl': url});
+      if (!success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update cover photo')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update cover photo: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingCoverPhoto = false);
     }
   }
 
@@ -253,27 +331,46 @@ class _ProfileTabState extends State<ProfileTab> {
           clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
-              // Banner with cruise line background — falls back to a
-              // themed gradient until the real photo assets are added.
+              // Banner — the user's own cover photo once set, otherwise
+              // falls back to the cruise-line background/gradient.
               SizedBox(
                 height: 180,
                 width: double.infinity,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.asset(
-                      backgroundImage,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF12293D), AppColors.background],
+                    if (user.coverPhotoUrl != null)
+                      Image.network(
+                        user.coverPhotoUrl as String,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Image.asset(
+                          backgroundImage,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFF12293D), AppColors.background],
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      Image.asset(
+                        backgroundImage,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF12293D), AppColors.background],
+                            ),
                           ),
                         ),
                       ),
-                    ),
                     DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -286,6 +383,36 @@ class _ProfileTabState extends State<ProfileTab> {
                         ),
                       ),
                     ),
+                    if (_isUploadingCoverPhoto)
+                      const ColoredBox(
+                        color: Colors.black45,
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      )
+                    else
+                      Positioned(
+                        right: 12,
+                        bottom: 12,
+                        child: GestureDetector(
+                          onTap: () => _changeCoverPhoto(context, authProvider),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(alpha: 0.45),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
