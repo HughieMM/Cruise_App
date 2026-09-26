@@ -192,7 +192,7 @@ class _PodsTabState extends State<PodsTab> {
     final icon = _getIconForPod(pod.name);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: GlassCard(
         padding: EdgeInsets.zero,
         borderColor: color.withValues(alpha: 0.4),

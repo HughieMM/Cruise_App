@@ -7,11 +7,13 @@ import '../../../models/tribe.dart';
 import '../../../models/message.dart';
 import '../../../services/tribe_service.dart';
 import '../../../services/badge_service.dart';
+import '../../../services/firestore_service.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../widgets/glass_card.dart';
 import '../../../widgets/icon_badge.dart';
 import '../../../widgets/pill_button.dart';
+import '../../../widgets/mini_profile_dialog.dart';
 import '../../tribe/daily_photo_screen.dart' show SeaYaScreen;
 
 /// Tribe Tab
@@ -30,6 +32,7 @@ class _TribeTabState extends State<TribeTab> {
   final ScrollController _chatScrollController = ScrollController();
   final TribeService _tribeService = TribeService();
   final BadgeService _badgeService = BadgeService();
+  final FirestoreService _firestoreService = FirestoreService();
   bool _isInitialized = false;
   bool _isSending = false;
 
@@ -836,7 +839,7 @@ class _TribeTabState extends State<TribeTab> {
                     final message = messages[messages.length - 1 - index];
                     final isOwnMessage = message.userId == user.uid;
 
-                    return _buildTribeMessageBubble(message, isOwnMessage);
+                    return _buildTribeMessageBubble(message, isOwnMessage, user.currentSailingId!);
                   },
                 );
               },
@@ -916,7 +919,22 @@ class _TribeTabState extends State<TribeTab> {
     );
   }
 
-  Widget _buildTribeMessageBubble(Message message, bool isOwnMessage) {
+  // Tribe chat never offers the Connect (First Mates) flow — showConnectButton
+  // stays false so tapping a name here only ever opens a read-only profile.
+  void _showTribeMessageSenderProfile(String userId, String userName, String sailingId) {
+    showDialog(
+      context: context,
+      builder: (context) => MiniProfileDialog(
+        userId: userId,
+        userName: userName,
+        sailingId: sailingId,
+        firestoreService: _firestoreService,
+        showConnectButton: false,
+      ),
+    );
+  }
+
+  Widget _buildTribeMessageBubble(Message message, bool isOwnMessage, String sailingId) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -924,18 +942,21 @@ class _TribeTabState extends State<TribeTab> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isOwnMessage) ...[
-            CircleAvatar(
-              radius: 14,
-              backgroundImage: message.userPhotoUrl != null
-                  ? NetworkImage(message.userPhotoUrl!)
-                  : null,
-              backgroundColor: AppColors.tealTint,
-              child: message.userPhotoUrl == null
-                  ? Text(
-                      message.userName.isNotEmpty ? message.userName[0].toUpperCase() : '?',
-                      style: const TextStyle(color: AppColors.teal, fontSize: 12, fontWeight: FontWeight.w600),
-                    )
-                  : null,
+            GestureDetector(
+              onTap: () => _showTribeMessageSenderProfile(message.userId, message.userName, sailingId),
+              child: CircleAvatar(
+                radius: 14,
+                backgroundImage: message.userPhotoUrl != null
+                    ? NetworkImage(message.userPhotoUrl!)
+                    : null,
+                backgroundColor: AppColors.tealTint,
+                child: message.userPhotoUrl == null
+                    ? Text(
+                        message.userName.isNotEmpty ? message.userName[0].toUpperCase() : '?',
+                        style: const TextStyle(color: AppColors.teal, fontSize: 12, fontWeight: FontWeight.w600),
+                      )
+                    : null,
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -944,11 +965,14 @@ class _TribeTabState extends State<TribeTab> {
               crossAxisAlignment: isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 if (!isOwnMessage)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12, bottom: 4),
-                    child: Text(
-                      message.userName,
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[400]),
+                  GestureDetector(
+                    onTap: () => _showTribeMessageSenderProfile(message.userId, message.userName, sailingId),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 12, bottom: 4),
+                      child: Text(
+                        message.userName,
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[400]),
+                      ),
                     ),
                   ),
                 Container(

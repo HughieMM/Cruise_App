@@ -13,7 +13,6 @@ import '../../../widgets/glass_card.dart';
 import '../../../widgets/icon_badge.dart';
 import '../../../widgets/pill_button.dart';
 import '../../../widgets/small_caps_label.dart';
-import '../../chat/pod_chat_screen.dart';
 import '../../settings/notification_preferences_screen.dart';
 
 /// Home Tab
@@ -123,16 +122,6 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  // Helper to parse color from hex string
-  Color _parseColor(String hexColor) {
-    try {
-      final hex = hexColor.replaceAll('#', '');
-      return Color(int.parse('FF$hex', radix: 16));
-    } catch (e) {
-      return Colors.blue;
-    }
-  }
-
   /// "Day X · Cruise Line" label shown top-left, matching the sailing's
   /// actual elapsed time and cruise line rather than fabricated data.
   String _dayAndLineLabel() {
@@ -145,26 +134,6 @@ class _HomeTabState extends State<HomeTab> {
         .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
         .join(' ');
     return 'Day $dayNumber · $lineName';
-  }
-
-  // Helper to get icon from string
-  IconData _getIconData(String iconName) {
-    switch (iconName) {
-      case 'fitness_center':
-        return Icons.fitness_center;
-      case 'nightlife':
-        return Icons.nightlife;
-      case 'local_bar':
-        return Icons.local_bar;
-      case 'explore':
-        return Icons.explore;
-      case 'sports_basketball':
-        return Icons.sports_basketball;
-      case 'casino':
-        return Icons.casino;
-      default:
-        return Icons.groups;
-    }
   }
 
   List<Widget> _buildTimelinePrompts() {
@@ -492,123 +461,6 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // My Pods Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'My Pods',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                if (!_isLoadingPods && _userPods.isEmpty)
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to pod discovery
-                    },
-                    child: const Text('Browse Pods'),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Pods List
-            if (_isLoadingPods)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (_userPods.isEmpty)
-              GlassCard(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.groups_outlined,
-                      size: 64,
-                      color: AppColors.teal,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No pods joined yet',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Join pods to connect with other cruisers',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[400],
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
-            else
-              ..._userPods.map((pod) {
-                final podColor = _parseColor(pod.color);
-                final icon = _getIconData(pod.icon);
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  color: podColor.withValues(alpha: 0.15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: podColor.withValues(alpha: 0.3), width: 1),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: podColor.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(icon, color: podColor),
-                    ),
-                    title: Text(
-                      pod.name,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      '${pod.memberCount} members',
-                      style: TextStyle(color: Colors.grey[400]),
-                    ),
-                    trailing: Icon(Icons.chevron_right, color: podColor),
-                    onTap: () {
-                      final authProvider =
-                          Provider.of<AuthProvider>(context, listen: false);
-                      final sailingId = authProvider.appUser?.currentSailingId;
-
-                      if (sailingId == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Sailing information not found'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        return;
-                      }
-
-                      // Navigate to pod chat
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => PodChatScreen(
-                            sailingId: sailingId,
-                            podId: pod.id,
-                            pod: pod,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }).toList(),
           ],
             ),
           ),

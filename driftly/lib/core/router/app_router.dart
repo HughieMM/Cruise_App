@@ -9,6 +9,7 @@ import '../../screens/onboarding/choose_pods_screen.dart';
 import '../../screens/onboarding/notification_permission_screen.dart';
 import '../../screens/home/home_shell.dart';
 import '../../screens/memories/memories_screen.dart';
+import '../../screens/messages/direct_message_screen.dart';
 import '../../screens/legal/privacy_policy_screen.dart';
 import '../../screens/legal/terms_of_service_screen.dart';
 
@@ -84,6 +85,19 @@ class AppRouter {
         path: '/memories',
         name: 'memories',
         builder: (context, state) => const MemoriesScreen(),
+      ),
+
+      // First Mates — 1:1 direct message thread with a connected user.
+      // otherUserName is passed via `extra` rather than the URL.
+      GoRoute(
+        path: '/messages/:otherUserId',
+        name: 'direct-message',
+        builder: (context, state) {
+          final otherUserId = state.pathParameters['otherUserId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          final otherUserName = extra?['otherUserName'] as String? ?? 'First Mate';
+          return DirectMessageScreen(otherUserId: otherUserId, otherUserName: otherUserName);
+        },
       ),
 
       // Legal Pages
