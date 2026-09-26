@@ -219,6 +219,8 @@ class _HomeTabState extends State<HomeTab> {
     if (_sailing!.shouldTriggerTribeMatching && !tribeProvider.hasTribe) {
       widgets.add(
         GlassCard(
+          borderColor: AppColors.goldBorder,
+          tintColor: AppColors.goldTint,
           padding: EdgeInsets.zero,
           child: InkWell(
             onTap: () => context.go('/home?tab=tribe'),
@@ -227,7 +229,7 @@ class _HomeTabState extends State<HomeTab> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  const IconBadge(icon: Icons.diversity_3, backgroundColor: AppColors.amber),
+                  const IconBadge(icon: Icons.diversity_3, backgroundColor: AppColors.gold),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -235,7 +237,7 @@ class _HomeTabState extends State<HomeTab> {
                       children: [
                         const Text(
                           'Tribe Matching Active',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gold),
                         ),
                         Text(
                           'You\'ll be matched with your tribe soon!',
@@ -247,7 +249,6 @@ class _HomeTabState extends State<HomeTab> {
                       ],
                     ),
                   ),
-                  const Icon(Icons.hourglass_empty, color: AppColors.amber),
                 ],
               ),
             ),
