@@ -159,10 +159,10 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
         return age >= 18 && age <= 20;
       case '21-30':
         return age >= 21 && age <= 30;
-      case '31-40':
-        return age >= 31 && age <= 40;
-      case '40+':
-        return age > 40;
+      case '31-39':
+        return age >= 31 && age <= 39;
+      case '39+':
+        return age >= 39;
       default:
         return false;
     }
@@ -257,7 +257,9 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                   OnboardingStepHeader(
                     step: 1,
                     title: 'About You',
-                    onBack: () => context.pop(),
+                    // Reached via context.go() from sign-in, which replaces
+                    // the nav stack — pop() would have nothing to return to.
+                    onBack: () => context.go('/auth'),
                   ),
                   const SizedBox(height: 32),
 
