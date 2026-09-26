@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
+import '../../services/badge_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/icon_badge.dart';
 
@@ -22,6 +23,7 @@ class VoteDialog extends StatefulWidget {
 
 class _VoteDialogState extends State<VoteDialog> {
   final _firestoreService = FirestoreService();
+  final _badgeService = BadgeService();
 
   // Cold-to-warm: Taking an L (coldest) -> Chill (cold) -> Active (warmer)
   // -> Jammed (warmest)
@@ -81,17 +83,48 @@ class _VoteDialogState extends State<VoteDialog> {
         vibe: _selectedVibe!,
       );
 
+      // Track badge progress for hot zone votes
+      final newBadge = await _badgeService.incrementStat(
+        userId: user.uid,
+        statName: 'hot_zones_voted',
+      );
+
       if (!mounted) return;
 
       Navigator.of(context).pop(true); // Return true to indicate success
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Thanks for voting! Your vote for ${widget.location} has been recorded.'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      if (newBadge != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Text(newBadge.icon, style: const TextStyle(fontSize: 24)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Badge Earned!', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(newBadge.name),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Thanks for voting! Your vote for ${widget.location} has been recorded.'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
 

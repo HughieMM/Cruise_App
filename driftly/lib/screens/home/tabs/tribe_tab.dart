@@ -6,6 +6,7 @@ import '../../../providers/tribe_provider.dart';
 import '../../../models/tribe.dart';
 import '../../../models/message.dart';
 import '../../../services/tribe_service.dart';
+import '../../../services/badge_service.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../widgets/glass_card.dart';
@@ -28,6 +29,7 @@ class _TribeTabState extends State<TribeTab> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _chatScrollController = ScrollController();
   final TribeService _tribeService = TribeService();
+  final BadgeService _badgeService = BadgeService();
   bool _isInitialized = false;
   bool _isSending = false;
 
@@ -81,6 +83,37 @@ class _TribeTabState extends State<TribeTab> {
       );
       _messageController.clear();
       _scrollChatToBottom();
+
+      // Track badge progress for tribe messages sent
+      final newBadge = await _badgeService.incrementStat(
+        userId: user.uid,
+        statName: 'tribe_messages_sent',
+      );
+
+      if (newBadge != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Text(newBadge.icon, style: const TextStyle(fontSize: 24)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Badge Earned!', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(newBadge.name),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

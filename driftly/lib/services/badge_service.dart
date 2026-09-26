@@ -69,14 +69,12 @@ class BadgeService {
 
   /// Default stats for new users
   Map<String, int> get _defaultStats => {
-        'hangouts_created': 0,
-        'hangouts_joined': 0,
-        'photos_shared': 0,
+        'memories_added': 0,
+        'tribe_messages_sent': 0,
         'pods_joined': 0,
         'messages_sent': 0,
         'hot_zones_voted': 0,
         'daily_prompts_answered': 0,
-        'unique_locations': 0,
       };
 
   /// Increment a stat and check for badge eligibility
@@ -144,19 +142,17 @@ class BadgeService {
   /// Check if a specific badge should be awarded
   bool _checkBadgeEligibility(String badgeType, Map<String, int> stats) {
     switch (badgeType) {
-      // Hangout badges
-      case 'first_hangout':
-        return (stats['hangouts_created'] ?? 0) >= 1;
-      case 'hangouts_5':
-        return (stats['hangouts_created'] ?? 0) >= 5;
-      case 'hangouts_joined_10':
-        return (stats['hangouts_joined'] ?? 0) >= 10;
+      // Memory badges
+      case 'first_memory':
+        return (stats['memories_added'] ?? 0) >= 1;
+      case 'memories_5':
+        return (stats['memories_added'] ?? 0) >= 5;
 
-      // Photo badges
-      case 'first_photo':
-        return (stats['photos_shared'] ?? 0) >= 1;
-      case 'photos_10':
-        return (stats['photos_shared'] ?? 0) >= 10;
+      // Tribe chat badges
+      case 'first_tribe_message':
+        return (stats['tribe_messages_sent'] ?? 0) >= 1;
+      case 'tribe_messages_25':
+        return (stats['tribe_messages_sent'] ?? 0) >= 25;
 
       // Pod badges
       case 'first_pod':
@@ -169,12 +165,10 @@ class BadgeService {
       // Exploration badges
       case 'hot_zones_voted_5':
         return (stats['hot_zones_voted'] ?? 0) >= 5;
+      case 'hot_zones_voted_15':
+        return (stats['hot_zones_voted'] ?? 0) >= 15;
       case 'daily_prompts_7':
         return (stats['daily_prompts_answered'] ?? 0) >= 7;
-
-      // Achievement badges
-      case 'all_locations':
-        return (stats['unique_locations'] ?? 0) >= 5;
 
       default:
         return false;
@@ -251,25 +245,22 @@ class BadgeService {
   /// Get current progress for a specific badge type
   int _getProgressForBadge(String badgeType, Map<String, int> stats) {
     switch (badgeType) {
-      case 'first_hangout':
-      case 'hangouts_5':
-        return stats['hangouts_created'] ?? 0;
-      case 'hangouts_joined_10':
-        return stats['hangouts_joined'] ?? 0;
-      case 'first_photo':
-      case 'photos_10':
-        return stats['photos_shared'] ?? 0;
+      case 'first_memory':
+      case 'memories_5':
+        return stats['memories_added'] ?? 0;
+      case 'first_tribe_message':
+      case 'tribe_messages_25':
+        return stats['tribe_messages_sent'] ?? 0;
       case 'first_pod':
       case 'pods_3':
         return stats['pods_joined'] ?? 0;
       case 'messages_50':
         return stats['messages_sent'] ?? 0;
       case 'hot_zones_voted_5':
+      case 'hot_zones_voted_15':
         return stats['hot_zones_voted'] ?? 0;
       case 'daily_prompts_7':
         return stats['daily_prompts_answered'] ?? 0;
-      case 'all_locations':
-        return stats['unique_locations'] ?? 0;
       default:
         return 0;
     }

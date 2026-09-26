@@ -99,43 +99,36 @@ class BadgeDefinitions {
 
   /// All available badge types
   static const List<BadgeInfo> allBadges = [
-    // Social badges
+    // Memory badges
     BadgeInfo(
-      type: 'first_hangout',
-      name: 'Social Butterfly',
-      description: 'Create your first hangout',
-      icon: '🦋',
-      target: 1,
-    ),
-    BadgeInfo(
-      type: 'hangouts_5',
-      name: 'Party Starter',
-      description: 'Create 5 hangouts',
-      icon: '🎉',
-      target: 5,
-    ),
-    BadgeInfo(
-      type: 'hangouts_joined_10',
-      name: 'Group Hopper',
-      description: 'Join 10 different hangouts',
-      icon: '🏃',
-      target: 10,
-    ),
-
-    // Photo badges
-    BadgeInfo(
-      type: 'first_photo',
-      name: 'Shutterbug',
-      description: 'Share your first hangout photo',
+      type: 'first_memory',
+      name: 'Memory Keeper',
+      description: 'Save your first cruise memory',
       icon: '📸',
       target: 1,
     ),
     BadgeInfo(
-      type: 'photos_10',
-      name: 'Paparazzi',
-      description: 'Share 10 hangout photos',
+      type: 'memories_5',
+      name: 'Storyteller',
+      description: 'Save 5 cruise memories',
+      icon: '📖',
+      target: 5,
+    ),
+
+    // Tribe chat badges
+    BadgeInfo(
+      type: 'first_tribe_message',
+      name: 'Tribe Talker',
+      description: 'Send your first tribe message',
+      icon: '💌',
+      target: 1,
+    ),
+    BadgeInfo(
+      type: 'tribe_messages_25',
+      name: 'Tribe MVP',
+      description: 'Send 25 tribe messages',
       icon: '🌟',
-      target: 10,
+      target: 25,
     ),
 
     // Pod badges
@@ -186,11 +179,11 @@ class BadgeDefinitions {
       target: 1,
     ),
     BadgeInfo(
-      type: 'all_locations',
+      type: 'hot_zones_voted_15',
       name: 'Ship Explorer',
-      description: 'Create hangouts at 5 different locations',
+      description: 'Vote on 15 hot zones',
       icon: '🗺️',
-      target: 5,
+      target: 15,
     ),
     BadgeInfo(
       type: 'tribe_formed',

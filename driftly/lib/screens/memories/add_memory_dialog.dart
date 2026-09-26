@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/badge_service.dart';
 import '../../models/cruise_memory.dart';
 import '../../models/sailing.dart';
 
@@ -30,6 +31,7 @@ class _AddMemoryDialogState extends State<AddMemoryDialog> {
   final _imagePicker = ImagePicker();
   final _firestoreService = FirestoreService();
   final _storageService = StorageService();
+  final _badgeService = BadgeService();
 
   File? _selectedImage;
   bool _isUploading = false;
@@ -123,17 +125,48 @@ class _AddMemoryDialogState extends State<AddMemoryDialog> {
         dayNumber: dayNumber,
       );
 
+      // Track badge progress for memories saved
+      final newBadge = await _badgeService.incrementStat(
+        userId: user.uid,
+        statName: 'memories_added',
+      );
+
       if (!mounted) return;
 
       Navigator.pop(context);
       widget.onMemoryAdded();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${widget.milestone.displayName} memory saved!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (newBadge != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Text(newBadge.icon, style: const TextStyle(fontSize: 24)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Badge Earned!', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(newBadge.name),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${widget.milestone.displayName} memory saved!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
