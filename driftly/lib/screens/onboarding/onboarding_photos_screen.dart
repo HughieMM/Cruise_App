@@ -179,7 +179,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
 
     if (!_isVerified) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete face verification')),
+        const SnackBar(content: Text('Please take your verification selfie')),
       );
       return;
     }
@@ -283,7 +283,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           // Photo Cards
           _buildPhotoCard(
             title: 'Face Photo',
-            subtitle: 'Clear shot of your face (used for verification)',
+            subtitle: 'Clear shot of your face for your profile',
             icon: Icons.face,
             photo: _facePhoto,
             onTap: () => _pickPhoto('face'),
@@ -355,7 +355,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
         children: [
           OnboardingStepHeader(
             step: 2,
-            title: 'Verify Your Face',
+            title: 'Take a Selfie',
             onBack: () => setState(() {
               _showVerification = false;
               _verificationPhoto = null;
@@ -364,7 +364,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Quick Face Verification',
+            'Quick Selfie',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[400],
@@ -372,7 +372,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'This helps us make sure you\'re a real person',
+            'Just a quick pose so your tribe knows it\'s really you',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[400],
@@ -420,7 +420,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  _isVerified ? 'Verified!' : _currentPose,
+                  _isVerified ? 'Selfie added!' : _currentPose,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
