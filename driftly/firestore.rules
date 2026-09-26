@@ -32,7 +32,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['uid', 'email', 'name', 'ageBand'])
         && isValidString(request.resource.data.name, 50)
         && isValidString(request.resource.data.ageBand, 10)
-        && request.resource.data.ageBand in ['16-17', '18-20', '21-30', '31-40', '40+'];
+        && request.resource.data.ageBand in ['16-17', '18-20', '21-30', '31-39', '39+'];
 
       // Users can update their own document (except uid and email). Any
       // authenticated user can additionally set ONLY currentTribeId —
