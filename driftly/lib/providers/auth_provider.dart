@@ -4,6 +4,7 @@ import '../models/app_user.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
+import '../services/badge_service.dart';
 
 /// AuthProvider
 ///
@@ -12,6 +13,7 @@ class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
   final StorageService _storageService = StorageService();
+  final BadgeService _badgeService = BadgeService();
 
   User? _firebaseUser;
   AppUser? _appUser;
@@ -164,6 +166,9 @@ class AuthProvider extends ChangeNotifier {
 
       await _firestoreService.createUser(user);
       _appUser = user;
+
+      // Every new sign-up during beta gets this badge immediately.
+      await _badgeService.awardBadge(userId: user.uid, badgeType: 'beta_tester');
 
       _isLoading = false;
       notifyListeners();

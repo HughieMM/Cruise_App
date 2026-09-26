@@ -31,6 +31,17 @@ class AppColors {
   /// Neon glassy pink — used for Profile's Achievement Badges/My Sailing.
   static const Color pink = Color(0xFFFF2E9A);
 
+  // ==================== Vibes / Hot Zones Vote Colors ====================
+  //
+  // Dedicated neon palette for the Vibes tab's vote states, kept separate
+  // from the core teal/coral/amber brand accents so tuning these doesn't
+  // ripple into buttons/pods/etc. elsewhere. Same cold-to-warm ordering as
+  // before: Taking an L (coldest) -> Chill -> Active -> Jammed (warmest).
+  static const Color vibeQuiet = Color(0xFF00E5FF); // Taking an L — neon cyan
+  static const Color vibeChill = Color(0xFF00FFB2); // Chill — neon mint
+  static const Color vibeActive = Color(0xFFFF9100); // Active — neon orange
+  static const Color vibeJammed = Color(0xFFFF1744); // Jammed — neon red
+
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Color(0xFFAEB6C2);
 

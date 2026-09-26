@@ -32,25 +32,25 @@ class _VoteDialogState extends State<VoteDialog> {
       'name': 'Taking an L',
       'value': 'quiet',
       'emoji': '🎻',
-      'color': AppColors.frost
+      'color': AppColors.vibeQuiet
     },
     {
       'name': 'Chill',
       'value': 'good_vibes',
       'emoji': '🧊',
-      'color': AppColors.teal
+      'color': AppColors.vibeChill
     },
     {
       'name': 'Active',
       'value': 'active',
       'emoji': '💥',
-      'color': AppColors.amber
+      'color': AppColors.vibeActive
     },
     {
       'name': 'Jammed',
       'value': 'overcrowded',
       'emoji': '🫠',
-      'color': AppColors.coral
+      'color': AppColors.vibeJammed
     },
   ];
 

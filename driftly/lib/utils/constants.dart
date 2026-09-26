@@ -130,10 +130,13 @@ class AppConstants {
 
   /// Fixed location names for Hot Zones
   static const List<String> hotZoneLocations = [
-    'Pool',
+    'Main Pool',
     'Casino',
     'Nightclub',
     'Sports Deck',
+    'Slides',
+    'Game Show',
+    '18+ Pool',
   ];
 
   /// Vibe options for Hot Zones voting

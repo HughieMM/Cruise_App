@@ -99,6 +99,15 @@ class BadgeDefinitions {
 
   /// All available badge types
   static const List<BadgeInfo> allBadges = [
+    // Beta badge — awarded directly on account creation, not stat-based.
+    BadgeInfo(
+      type: 'beta_tester',
+      name: 'Beta Crew',
+      description: 'Joined Driftly during the beta',
+      icon: '🚢',
+      target: 1,
+    ),
+
     // Memory badges
     BadgeInfo(
       type: 'first_memory',

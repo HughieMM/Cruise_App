@@ -16,7 +16,8 @@ import '../../hot_zones/vote_dialog.dart';
 /// Users vote on vibe for different ship locations
 ///
 /// Features:
-/// - Fixed ship locations: Pool, Casino, Nightclub, Sports Deck
+/// - Fixed ship locations: Main Pool, Casino, Nightclub, Sports Deck,
+///   Slides, Game Show, 18+ Pool
 /// - Vote options: Active, Taking an L, Jammed, Chill
 /// - One vote per location per hour per user
 /// - Real-time vote aggregation from last 60 minutes
@@ -53,10 +54,13 @@ class _HotZonesContentState extends State<HotZonesContent> {
 
   // Fixed locations as per requirements
   final List<Map<String, dynamic>> _locations = [
-    {'name': 'Pool', 'icon': Icons.pool},
+    {'name': 'Main Pool', 'icon': Icons.pool},
     {'name': 'Casino', 'icon': Icons.casino},
     {'name': 'Nightclub', 'icon': Icons.nightlife},
     {'name': 'Sports Deck', 'icon': Icons.sports_basketball},
+    {'name': 'Slides', 'icon': Icons.waves},
+    {'name': 'Game Show', 'icon': Icons.quiz},
+    {'name': '18+ Pool', 'icon': Icons.local_bar},
   ];
 
   /// Aggregate votes by location and calculate dominant vibe
@@ -138,13 +142,13 @@ class _HotZonesContentState extends State<HotZonesContent> {
     if (vibe == null) return Colors.grey;
     switch (vibe) {
       case 'quiet':
-        return AppColors.frost;
+        return AppColors.vibeQuiet;
       case 'good_vibes':
-        return AppColors.teal;
+        return AppColors.vibeChill;
       case 'active':
-        return AppColors.amber;
+        return AppColors.vibeActive;
       case 'overcrowded':
-        return AppColors.coral;
+        return AppColors.vibeJammed;
       default:
         return Colors.grey;
     }
