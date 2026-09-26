@@ -163,6 +163,11 @@ class ConnectionService {
           .toList();
       haveRequester = true;
       emit();
+    }, onError: (Object error, StackTrace stackTrace) {
+      // Without this, a permission-denied or transient error here leaves
+      // haveRequester/haveTarget permanently false and the merged stream
+      // never emits — the UI would spin forever with no indication why.
+      controller.addError(error, stackTrace);
     });
 
     final sub2 = connectionRequestsCollection(sailingId)
@@ -175,6 +180,8 @@ class ConnectionService {
           .toList();
       haveTarget = true;
       emit();
+    }, onError: (Object error, StackTrace stackTrace) {
+      controller.addError(error, stackTrace);
     });
 
     controller.onCancel = () {

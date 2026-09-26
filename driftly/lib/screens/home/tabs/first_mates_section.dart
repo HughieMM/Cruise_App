@@ -78,6 +78,10 @@ class _FirstMatesSectionState extends State<FirstMatesSection> {
             StreamBuilder<List<ConnectionRequest>>(
               stream: _connectionService.streamIncomingRequests(sailingId, user.uid),
               builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return _FirstMatesError(error: snapshot.error);
+                }
+
                 final requests = snapshot.data ?? [];
                 if (requests.isEmpty) return const SizedBox.shrink();
 
@@ -136,6 +140,10 @@ class _FirstMatesSectionState extends State<FirstMatesSection> {
             StreamBuilder<List<ConnectionRequest>>(
               stream: _connectionService.streamAcceptedConnections(sailingId, user.uid),
               builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return _FirstMatesError(error: snapshot.error);
+                }
+
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -200,6 +208,26 @@ class _FirstMatesSectionState extends State<FirstMatesSection> {
           ],
         );
       },
+    );
+  }
+}
+
+/// Inline error row shown when a First Mates stream fails (e.g. a
+/// permission-denied from rules that haven't been redeployed yet) instead
+/// of leaving the section spinning forever with no explanation.
+class _FirstMatesError extends StatelessWidget {
+  final Object? error;
+
+  const _FirstMatesError({this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Text(
+        'Couldn\'t load First Mates: $error',
+        style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+      ),
     );
   }
 }
