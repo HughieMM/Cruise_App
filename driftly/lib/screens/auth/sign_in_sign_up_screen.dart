@@ -66,8 +66,13 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
       // For sign-up, navigate to onboarding
       if (_isSignUp) {
         context.go('/onboarding/profile');
+      } else {
+        // For sign-in, route back through the splash screen's auth-gate
+        // logic so it lands on /home or the right onboarding step —
+        // nothing here was actually calling that before, so successful
+        // sign-in used to leave the user stuck on this same form screen.
+        context.go('/');
       }
-      // For sign-in, navigation handled by splash screen
     } else {
       // Show error message
       final error = authProvider.errorMessage ?? 'Authentication failed';
