@@ -39,8 +39,16 @@ class AppColors {
   // before: Taking an L (coldest) -> Chill -> Active -> Jammed (warmest).
   static const Color vibeQuiet = Color(0xFF00E5FF); // Taking an L — neon cyan
   static const Color vibeChill = Color(0xFF00FFB2); // Chill — neon mint
-  static const Color vibeActive = Color(0xFFFF9100); // Active — neon orange
+  static const Color vibeActive = Color(0xFFFF5F00); // Active — neon orange
   static const Color vibeJammed = Color(0xFFFF1744); // Jammed — neon red
+
+  // ==================== Cruise Line Accent Colors ====================
+  //
+  // Used as a colored fallback (with the line's short abbreviation) for a
+  // user's cover photo box in Edit Profile when they haven't set one yet.
+  static const Color carnivalRed = Color(0xFFFF1744);
+  static const Color norwegianGreen = Color(0xFF00E676);
+  static const Color royalBlue = Color(0xFF2979FF);
 
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Color(0xFFAEB6C2);

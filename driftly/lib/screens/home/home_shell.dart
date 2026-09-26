@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/pods_tab.dart';
-import 'tabs/first_mates_tab.dart';
 import 'tabs/tribe_tab.dart';
 import 'tabs/hangouts_tab.dart';
 import 'tabs/hot_zones_tab.dart';
@@ -13,9 +12,9 @@ import '../../theme/app_colors.dart';
 /// Main app container with bottom navigation bar
 ///
 /// Tabs:
-/// - Home: Feed/Dashboard
+/// - Home: Feed/Dashboard (includes the First Mates section — pod-only
+///   1:1 connect requests + private messaging — at the bottom)
 /// - Pods: Pod chats and activity
-/// - First Mates: Pod-only 1:1 connect requests + private messaging
 /// - Tribe: Randomly matched small groups
 /// - Vibes: Hot Zones location crowd/vibe voting
 /// - Profile: User settings and profile
@@ -37,7 +36,6 @@ class _HomeShellState extends State<HomeShell> {
   final List<Widget> _tabs = const [
     HomeTab(),
     PodsTab(),
-    FirstMatesTab(),
     TribeTab(),
     HangoutsTab(),
     ProfileTab(),
@@ -56,16 +54,14 @@ class _HomeShellState extends State<HomeShell> {
         return 0;
       case 'pods':
         return 1;
-      case 'first_mates':
-        return 2;
       case 'tribe':
-        return 3;
+        return 2;
       case 'hangouts':
       case 'vibes':
       case 'hot_zones':
-        return 4;
+        return 3;
       case 'profile':
-        return 5;
+        return 4;
       default:
         return 0;
     }
@@ -74,7 +70,6 @@ class _HomeShellState extends State<HomeShell> {
   static const List<_NavItem> _navItems = [
     _NavItem(icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
     _NavItem(icon: Icons.groups_outlined, selectedIcon: Icons.groups, label: 'Pods'),
-    _NavItem(icon: Icons.forum_outlined, selectedIcon: Icons.forum, label: 'Mates'),
     _NavItem(
       icon: Icons.diversity_3_outlined,
       selectedIcon: Icons.diversity_3,

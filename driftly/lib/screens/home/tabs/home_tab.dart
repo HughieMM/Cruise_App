@@ -5,6 +5,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/tribe_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../services/badge_service.dart';
+import '../../../services/connection_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
 import '../../../theme/app_colors.dart';
@@ -14,6 +15,7 @@ import '../../../widgets/icon_badge.dart';
 import '../../../widgets/pill_button.dart';
 import '../../../widgets/small_caps_label.dart';
 import '../../settings/notification_preferences_screen.dart';
+import 'first_mates_section.dart';
 
 /// Home Tab
 ///
@@ -36,12 +38,15 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   final _firestoreService = FirestoreService();
   final _badgeService = BadgeService();
+  final _connectionService = ConnectionService();
   List<Pod> _userPods = [];
   Sailing? _sailing;
   int _hotZonesVoted = 0;
+  int _connectionsCount = 0;
   bool _isLoadingPods = true;
   bool _isLoadingSailing = true;
   bool _isLoadingVibes = true;
+  bool _isLoadingConnections = true;
 
   @override
   void initState() {
@@ -54,7 +59,31 @@ class _HomeTabState extends State<HomeTab> {
       _loadUserPods(),
       _loadSailing(),
       _loadVibesCount(),
+      _loadConnectionsCount(),
     ]);
+  }
+
+  Future<void> _loadConnectionsCount() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.appUser;
+      final sailingId = user?.currentSailingId;
+
+      if (user == null || sailingId == null) {
+        setState(() => _isLoadingConnections = false);
+        return;
+      }
+
+      final connections = await _connectionService
+          .streamAcceptedConnections(sailingId, user.uid)
+          .first;
+      setState(() {
+        _connectionsCount = connections.length;
+        _isLoadingConnections = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingConnections = false);
+    }
   }
 
   Future<void> _loadVibesCount() async {
@@ -440,14 +469,11 @@ class _HomeTabState extends State<HomeTab> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  // Connections doesn't exist as a feature yet (no 1:1
-                  // messaging/friending), so there's nothing real to count
-                  // here — stays a placeholder until that's built.
                   child: _buildStatCard(
                     context,
                     icon: Icons.people,
                     label: 'Connections',
-                    value: '-',
+                    value: _isLoadingConnections ? '-' : '$_connectionsCount',
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -461,6 +487,10 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+
+            // First Mates — pod-only 1:1 connect requests + messaging
+            const FirstMatesSection(),
           ],
             ),
           ),

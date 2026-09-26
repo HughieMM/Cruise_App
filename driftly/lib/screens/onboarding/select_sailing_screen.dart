@@ -397,9 +397,12 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               OnboardingStepHeader(
-                step: 2,
+                step: 3,
                 title: 'Choose your cruise',
-                onBack: () => context.pop(),
+                // Reached via context.go() from the photos step, which
+                // replaces the nav stack — pop() would have nothing to
+                // return to.
+                onBack: () => context.go('/onboarding/photos'),
               ),
               const SizedBox(height: 32),
 

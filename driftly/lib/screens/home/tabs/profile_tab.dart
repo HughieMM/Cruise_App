@@ -48,6 +48,19 @@ String? _getCruiseLineAbbreviation(String? cruiseLineId) {
   return null;
 }
 
+/// Cruise-line-branded fallback for the Edit Profile cover-photo box when
+/// no custom cover photo has been set — (label, color) or null if the
+/// cruise line is unrecognized/not yet chosen.
+(String, Color)? _getCruiseLineAccent(String? cruiseLineId) {
+  if (cruiseLineId == null) return null;
+
+  final id = cruiseLineId.toLowerCase();
+  if (id.contains('carnival')) return ('CRVL', AppColors.carnivalRed);
+  if (id.contains('ncl') || id.contains('norwegian')) return ('NCL', AppColors.norwegianGreen);
+  if (id.contains('royal') || id.contains('caribbean')) return ('RCL', AppColors.royalBlue);
+  return null;
+}
+
 /// Profile Tab
 ///
 /// Features:
@@ -1057,6 +1070,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final nameController = TextEditingController(text: user.name);
     String? selectedAgeBand = user.ageBand;
     Set<String> selectedInterests = Set.from(user.interests);
+    bool isUploadingCover = false;
 
     // Social links controllers
     final socialLinks = Map<String, String>.from(user.socialLinks ?? {});
@@ -1097,6 +1111,96 @@ class _ProfileTabState extends State<ProfileTab> {
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Cover Photo
+                  const Text(
+                    'Cover Photo',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: isUploadingCover
+                        ? null
+                        : () async {
+                            setModalState(() => isUploadingCover = true);
+                            await _changeCoverPhoto(context, authProvider);
+                            setModalState(() => isUploadingCover = false);
+                          },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        height: 100,
+                        width: double.infinity,
+                        child: Builder(builder: (context) {
+                          if (isUploadingCover) {
+                            return const ColoredBox(
+                              color: Colors.black45,
+                              child: Center(
+                                child: CircularProgressIndicator(color: Colors.white),
+                              ),
+                            );
+                          }
+
+                          final coverPhotoUrl = authProvider.appUser?.coverPhotoUrl;
+                          if (coverPhotoUrl != null) {
+                            return Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.network(coverPhotoUrl, fit: BoxFit.cover),
+                                const _CoverPhotoEditBadge(),
+                              ],
+                            );
+                          }
+
+                          final accent = _getCruiseLineAccent(_sailing?.cruiseLineId);
+                          if (accent != null) {
+                            final (label, color) = accent;
+                            return Container(
+                              color: color,
+                              alignment: Alignment.center,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Center(
+                                    child: Text(
+                                      label,
+                                      style: const TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const _CoverPhotoEditBadge(),
+                                ],
+                              ),
+                            );
+                          }
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              border: Border.all(color: Colors.grey[700]!),
+                            ),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Center(
+                                  child: Icon(Icons.add_a_photo, color: Colors.grey[500]),
+                                ),
+                                const _CoverPhotoEditBadge(),
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -1881,6 +1985,28 @@ class _ProfileTabState extends State<ProfileTab> {
       default:
         return Colors.blue;
     }
+  }
+}
+
+/// Small camera badge overlaid on the Edit Profile cover-photo preview box,
+/// hinting that it's tappable.
+class _CoverPhotoEditBadge extends StatelessWidget {
+  const _CoverPhotoEditBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      right: 8,
+      bottom: 8,
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withValues(alpha: 0.45),
+        ),
+        child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+      ),
+    );
   }
 }
 

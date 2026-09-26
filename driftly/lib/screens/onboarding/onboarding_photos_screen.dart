@@ -268,7 +268,10 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
           OnboardingStepHeader(
             step: 2,
             title: 'Show us who you are',
-            onBack: () => context.pop(),
+            // Reached via context.go() from the profile step, which
+            // replaces the nav stack — pop() would have nothing to
+            // return to.
+            onBack: () => context.go('/onboarding/profile'),
           ),
           const SizedBox(height: 8),
           Text(

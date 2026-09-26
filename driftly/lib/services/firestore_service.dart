@@ -244,8 +244,11 @@ class FirestoreService {
         'color': '#D4AF37',
       };
 
+      // Chill Drinks (alcohol-themed) isn't appropriate for the 16-17 bucket.
+      final teenPodThemes = podThemes.where((p) => p['name'] != 'Chill Drinks').toList();
+
       final podsByBucket = {
-        AppConstants.podBucketTeen: podThemes,
+        AppConstants.podBucketTeen: teenPodThemes,
         AppConstants.podBucketYoungAdult: [...podThemes, highRollers],
         AppConstants.podBucketAdult: [...podThemes, highRollers],
       };
