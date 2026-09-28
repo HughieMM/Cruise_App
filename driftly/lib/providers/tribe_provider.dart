@@ -148,6 +148,7 @@ class TribeProvider extends ChangeNotifier {
     required String sailingId,
     required String requesterId,
     required String requesterName,
+    required String requesterAgeBand,
     required String targetEmail,
   }) async {
     try {
@@ -159,6 +160,7 @@ class TribeProvider extends ChangeNotifier {
         sailingId: sailingId,
         requesterId: requesterId,
         requesterName: requesterName,
+        requesterAgeBand: requesterAgeBand,
         targetEmail: targetEmail,
       );
 
@@ -179,6 +181,7 @@ class TribeProvider extends ChangeNotifier {
     required String requestId,
     required String targetId,
     required String targetName,
+    required String targetAgeBand,
   }) async {
     try {
       _isLoading = true;
@@ -190,6 +193,7 @@ class TribeProvider extends ChangeNotifier {
         requestId: requestId,
         targetId: targetId,
         targetName: targetName,
+        targetAgeBand: targetAgeBand,
       );
 
       // Remove from pending list

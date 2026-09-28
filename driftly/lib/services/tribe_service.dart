@@ -270,11 +270,25 @@ class TribeService {
 
   // ==================== Sibling Request Methods ====================
 
+  /// Whether two age bands are allowed to be matched into the same tribe
+  /// via a sibling/friend request. Mirrors the age-mixing rule used
+  /// everywhere else in the app: 16-17 and 39+ are "protected" bands that
+  /// never mix with a different band, but adult bands in between (18-20,
+  /// 21-30, 31-39) can freely request each other — that's the point of
+  /// this feature, letting known siblings/friends across those adult
+  /// bands stay together despite normally landing in different buckets.
+  bool _ageBandsCompatibleForSibling(String bandA, String bandB) {
+    if (bandA == bandB) return true;
+    return !AppConstants.isProtectedAgeBand(bandA) &&
+        !AppConstants.isProtectedAgeBand(bandB);
+  }
+
   /// Create a sibling/friend request
   Future<String> createSiblingRequest({
     required String sailingId,
     required String requesterId,
     required String requesterName,
+    required String requesterAgeBand,
     required String targetEmail,
   }) async {
     try {
@@ -289,11 +303,29 @@ class TribeService {
         throw Exception('You already have a pending request to this person');
       }
 
+      // If the target already has an account on this sailing, check age
+      // compatibility right away instead of waiting until they try to
+      // accept — much clearer feedback for the sender.
+      final targetUserQuery = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: targetEmail.toLowerCase())
+          .limit(1)
+          .get();
+      if (targetUserQuery.docs.isNotEmpty) {
+        final targetAgeBand = targetUserQuery.docs.first.data()['ageBand'] as String?;
+        if (targetAgeBand != null &&
+            !_ageBandsCompatibleForSibling(requesterAgeBand, targetAgeBand)) {
+          throw Exception(
+              'Sibling requests aren\'t allowed across this age gap for safety reasons');
+        }
+      }
+
       final request = SiblingRequest(
         id: '',
         sailingId: sailingId,
         requesterId: requesterId,
         requesterName: requesterName,
+        requesterAgeBand: requesterAgeBand,
         targetEmail: targetEmail.toLowerCase(),
         status: 'pending',
         createdAt: DateTime.now(),
@@ -340,8 +372,22 @@ class TribeService {
     required String requestId,
     required String targetId,
     required String targetName,
+    required String targetAgeBand,
   }) async {
     try {
+      // Backstop age check — the create-time check only catches this if
+      // the target already had an account with that email at request
+      // time; re-checking here covers a target who signed up afterward.
+      final requestDoc =
+          await siblingRequestsCollection(sailingId).doc(requestId).get();
+      final requesterAgeBand =
+          (requestDoc.data() as Map<String, dynamic>?)?['requesterAgeBand'] as String?;
+      if (requesterAgeBand != null &&
+          !_ageBandsCompatibleForSibling(requesterAgeBand, targetAgeBand)) {
+        throw Exception(
+            'Sibling requests aren\'t allowed across this age gap for safety reasons');
+      }
+
       await siblingRequestsCollection(sailingId).doc(requestId).update({
         'targetId': targetId,
         'targetName': targetName,

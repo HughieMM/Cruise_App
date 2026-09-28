@@ -222,6 +222,7 @@ class _TribeTabState extends State<TribeTab> {
                           sailingId: user.currentSailingId!,
                           requesterId: user.uid,
                           requesterName: user.name,
+                          requesterAgeBand: user.ageBand,
                           targetEmail: emailController.text.trim(),
                         );
 
@@ -233,7 +234,9 @@ class _TribeTabState extends State<TribeTab> {
                           SnackBar(
                             content: Text(
                               success
-                                  ? 'Request sent! Your friend will be notified.'
+                                  // No email/push is sent — they'll only see this
+                                  // if/when they open their own Tribe tab.
+                                  ? 'Request sent! They\'ll see it next time they open Tribe.'
                                   : tribeProvider.errorMessage ?? 'Failed to send request',
                             ),
                             backgroundColor: success ? Colors.green : Colors.red,
@@ -541,17 +544,22 @@ class _TribeTabState extends State<TribeTab> {
                           IconButton(
                             icon: const Icon(Icons.check, color: AppColors.teal),
                             onPressed: () async {
-                              await tribeProvider.acceptSiblingRequest(
+                              final success = await tribeProvider.acceptSiblingRequest(
                                 sailingId: user?.currentSailingId ?? '',
                                 requestId: request.id,
                                 targetId: user?.uid ?? '',
                                 targetName: user?.name ?? '',
+                                targetAgeBand: user?.ageBand ?? '',
                               );
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Request accepted! You\'ll be matched together.'),
-                                    backgroundColor: AppColors.teal,
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? 'Request accepted! You\'ll be matched together.'
+                                          : tribeProvider.errorMessage ?? 'Failed to accept request',
+                                    ),
+                                    backgroundColor: success ? AppColors.teal : Colors.red,
                                   ),
                                 );
                               }

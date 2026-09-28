@@ -113,6 +113,12 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
 
     if (photo == null) return;
 
+    // FileImage/Image.file cache by file path only, not contents. If
+    // image_picker ever hands back a path it (or the OS) has reused from
+    // an earlier pick this session, the old cached bytes would render
+    // for the new photo — evicting first forces a fresh read.
+    await FileImage(photo).evict();
+
     setState(() {
       switch (type) {
         case 'face':
@@ -132,6 +138,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
     try {
       final photo = await _storageService.takePhoto();
       if (photo != null) {
+        await FileImage(photo).evict();
         setState(() {
           _verificationPhoto = photo;
           _verificationStep = 2; // Completed

@@ -173,6 +173,7 @@ class SiblingRequest {
   final String sailingId;
   final String requesterId; // User who sent the request
   final String requesterName;
+  final String requesterAgeBand; // Captured at creation, for the accept-time age check
   final String targetEmail; // Email of sibling/friend to match with
   final String? targetId; // Filled when target joins the sailing
   final String? targetName;
@@ -185,6 +186,7 @@ class SiblingRequest {
     required this.sailingId,
     required this.requesterId,
     required this.requesterName,
+    required this.requesterAgeBand,
     required this.targetEmail,
     this.targetId,
     this.targetName,
@@ -199,6 +201,7 @@ class SiblingRequest {
       sailingId: map['sailingId'] as String? ?? '',
       requesterId: map['requesterId'] as String? ?? '',
       requesterName: map['requesterName'] as String? ?? '',
+      requesterAgeBand: map['requesterAgeBand'] as String? ?? '',
       targetEmail: map['targetEmail'] as String? ?? '',
       targetId: map['targetId'] as String?,
       targetName: map['targetName'] as String?,
@@ -213,6 +216,7 @@ class SiblingRequest {
       'sailingId': sailingId,
       'requesterId': requesterId,
       'requesterName': requesterName,
+      'requesterAgeBand': requesterAgeBand,
       'targetEmail': targetEmail,
       'targetId': targetId,
       'targetName': targetName,
