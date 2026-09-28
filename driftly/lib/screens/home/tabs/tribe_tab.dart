@@ -5,6 +5,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/tribe_provider.dart';
 import '../../../models/tribe.dart';
 import '../../../models/message.dart';
+import '../../../models/sailing.dart';
 import '../../../services/tribe_service.dart';
 import '../../../services/badge_service.dart';
 import '../../../services/firestore_service.dart';
@@ -35,6 +36,7 @@ class _TribeTabState extends State<TribeTab> {
   final FirestoreService _firestoreService = FirestoreService();
   bool _isInitialized = false;
   bool _isSending = false;
+  Sailing? _sailing;
 
   @override
   void initState() {
@@ -136,6 +138,9 @@ class _TribeTabState extends State<TribeTab> {
     final user = authProvider.appUser;
 
     if (user != null && user.currentSailingId != null) {
+      final sailing = await _firestoreService.getSailing(user.currentSailingId!);
+      if (mounted) setState(() => _sailing = sailing);
+
       await tribeProvider.initializeTribe(
         sailingId: user.currentSailingId!,
         tribeId: user.currentTribeId,
@@ -438,7 +443,9 @@ class _TribeTabState extends State<TribeTab> {
             Text('Your Tribe', style: AppTextStyles.displayMedium),
             const SizedBox(height: 8),
             Text(
-              'You haven\'t been matched to a tribe yet',
+              (_sailing?.hasDeparted ?? false)
+                  ? 'You joined after your sailing\'s Tribes were matched'
+                  : 'You haven\'t been matched to a tribe yet',
               style: TextStyle(
                 color: Colors.grey[400],
                 fontSize: 16,
@@ -469,7 +476,9 @@ class _TribeTabState extends State<TribeTab> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'You\'ll be randomly matched with 3-5 other cruisers in your age group who share some of your interests.',
+                    (_sailing?.hasDeparted ?? false)
+                        ? 'Your sailing\'s Tribes were already matched before you joined. We\'ll group you with other latecomers as soon as there\'s someone to match you with — never dropped into a group that\'s already been together a while.'
+                        : 'You\'ll be randomly matched with 3-5 other cruisers in your age group who share some of your interests.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey[300]),
                   ),
@@ -486,15 +495,22 @@ class _TribeTabState extends State<TribeTab> {
                     '1-2 shared interests',
                   ),
                   const SizedBox(height: 12),
-                  _buildFeatureRow(
-                    Icons.wc,
-                    'Balanced gender mix',
-                  ),
-                  const SizedBox(height: 12),
-                  _buildFeatureRow(
-                    Icons.calendar_today,
-                    'Matching happens 5 days before sailing',
-                  ),
+                  if (_sailing?.hasDeparted ?? false) ...[
+                    _buildFeatureRow(
+                      Icons.groups,
+                      'A dedicated group just for late joiners',
+                    ),
+                  ] else ...[
+                    _buildFeatureRow(
+                      Icons.wc,
+                      'Balanced gender mix',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureRow(
+                      Icons.calendar_today,
+                      'Matching happens 25 days before sailing',
+                    ),
+                  ],
                 ],
               ),
             ),

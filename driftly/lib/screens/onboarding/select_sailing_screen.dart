@@ -163,7 +163,10 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 7)),
-      firstDate: DateTime.now(),
+      // Allow picking up to 7 days into the past too, so someone who
+      // joins partway through their cruise can still select their real
+      // departure date instead of being locked out entirely.
+      firstDate: DateTime.now().subtract(const Duration(days: 7)),
       lastDate: DateTime.now().add(AppConstants.sailingAccessWindow),
       helpText: 'Select your sailing date',
     );
@@ -327,10 +330,13 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
       return;
     }
 
-    if (daysUntilDeparture < 0) {
+    if (daysUntilDeparture < -7) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select a future sailing date'),
+          content: Text(
+            'This sailing already departed more than a week ago — '
+            'please pick a more recent date.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -541,7 +547,9 @@ class _SelectSailingScreenState extends State<SelectSailingScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'You can access the app 30 days before your sailing date',
+                        'You can access the app 30 days before your sailing '
+                        'date, or up to 7 days after — if you\'re joining '
+                        'partway through, just pick your real departure date.',
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey[300],

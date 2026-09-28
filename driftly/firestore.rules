@@ -127,10 +127,17 @@ service cloud.firestore {
         && request.resource.data.memberCount == 0
         && request.resource.data.active == true;
       // The one exception to "nothing updates a sailing": the tribe-
-      // matching trigger lock (see tribes below) flips this single field.
+      // matching trigger lock (see tribes below) flips this single field,
+      // plus the resettable late-joiner matching lock (see runTribeMatching
+      // vs. tryTriggerLateJoinerMatching in TribeService — the former is a
+      // one-shot enum, the latter a re-triggerable boolean for whenever a
+      // new late joiner shows up after the main pass already completed).
       allow update: if isAuthenticated()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tribeMatchingStatus'])
-        && request.resource.data.tribeMatchingStatus in ['not_started', 'in_progress', 'completed'];
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['tribeMatchingStatus', 'lateJoinerMatchingLock'])
+        && request.resource.data.tribeMatchingStatus in ['not_started', 'in_progress', 'completed']
+        && (!('lateJoinerMatchingLock' in request.resource.data)
+            || request.resource.data.lateJoinerMatchingLock is bool);
       allow delete: if false;
 
       // ==================== Pods Subcollection ====================

@@ -137,6 +137,7 @@ class TribeService {
     int maxMembers = 5,
     bool isMixedAgeGroup = false,
     List<String> ageBands = const [],
+    bool isLateJoinerTribe = false,
   }) async {
     try {
       final tribe = Tribe(
@@ -153,6 +154,7 @@ class TribeService {
         ),
         isFull: false,
         isMixedAgeGroup: isMixedAgeGroup,
+        isLateJoinerTribe: isLateJoinerTribe,
         createdAt: DateTime.now(),
       );
 
@@ -664,6 +666,188 @@ class TribeService {
     } catch (e) {
       throw Exception('Failed to run tribe matching: $e');
     }
+  }
+
+  // ==================== Late Joiner Matching ====================
+  //
+  // For someone who joins after their sailing's main matching pass has
+  // already completed (e.g. they create their account partway through a
+  // cruise that already departed) — runTribeMatching above is a one-shot
+  // lock and will never fire again for that sailing, so without this,
+  // such a user would never get a tribe at all. Deliberately simpler than
+  // the main algorithm: pools are expected to be tiny (people trickling
+  // in one at a time), so there's no gender-balancing or sibling-pair
+  // special-casing here, and the minimum group size is 2 (vs. the normal
+  // 3) so nobody waits the rest of a short cruise for a 3rd match that
+  // may never come. Never inserts a late joiner into an existing on-time
+  // tribe — only into another late-joiner tribe (isLateJoinerTribe: true),
+  // which it will keep growing (up to the normal 5-member cap) as more
+  // late joiners show up, rather than fragmenting into many separate
+  // 2-person tribes.
+
+  /// Attempt a late-joiner matching pass, guarded by a resettable lock
+  /// (unlike tribeMatchingStatus, this can run again every time a new
+  /// late joiner appears — it's not one-shot).
+  Future<bool> tryTriggerLateJoinerMatching(String sailingId) async {
+    final sailingRef = _firestore.collection('sailings').doc(sailingId);
+
+    final wonLock = await _firestore.runTransaction<bool>((transaction) async {
+      final snapshot = await transaction.get(sailingRef);
+      final data = snapshot.data() as Map<String, dynamic>?;
+      final status = data?['tribeMatchingStatus'] as String?;
+      final lateLock = data?['lateJoinerMatchingLock'] as bool? ?? false;
+
+      // Only meaningful once the main pass has already run — before
+      // that, an unmatched user is just waiting their normal turn.
+      if (status != 'completed' || lateLock) return false;
+
+      transaction.update(sailingRef, {'lateJoinerMatchingLock': true});
+      return true;
+    });
+
+    if (!wonLock) return false;
+
+    try {
+      await _runLateJoinerMatching(sailingId);
+      return true;
+    } finally {
+      await sailingRef.update({'lateJoinerMatchingLock': false});
+    }
+  }
+
+  Future<void> _runLateJoinerMatching(String sailingId) async {
+    final usersSnapshot = await _firestore
+        .collection('users')
+        .where('currentSailingId', isEqualTo: sailingId)
+        .where('currentTribeId', isNull: true)
+        .get();
+
+    final users = usersSnapshot.docs
+        .map((doc) => AppUser.fromMap(doc.data(), doc.id))
+        .where((u) => u.isProfileComplete)
+        .toList();
+
+    if (users.isEmpty) return;
+
+    final existingTribes = await getTribesForSailing(sailingId);
+
+    final usersByAgeBand = <String, List<AppUser>>{};
+    for (var user in users) {
+      usersByAgeBand.putIfAbsent(user.ageBand, () => []).add(user);
+    }
+
+    // Pass 1: exact-band groups. Protected bands (16-17, 39+) only ever
+    // match this way — same safety rule as the main algorithm. Runs even
+    // for a single leftover user, since _groupLateJoiners still checks
+    // for room in an already-open late-joiner tribe before deciding
+    // whether to wait.
+    final groupedUserIds = <String>{};
+    for (var band in [...AppConstants.noMixingAgeBands, ...AppConstants.mixableAgeBands]) {
+      final bandUsers = usersByAgeBand[band] ?? [];
+      if (bandUsers.isEmpty) continue;
+      final matched = await _groupLateJoiners(
+        sailingId: sailingId,
+        tribeAgeBandLabel: band,
+        poolUsers: bandUsers,
+        existingTribes: existingTribes,
+        isMixedAgeGroup: false,
+        ageBands: [band],
+      );
+      groupedUserIds.addAll(matched);
+    }
+
+    // Pass 2: leftover mixable-band users who've opted in to age mixing
+    // (canMixAgeGroups) get pooled together, same opt-in gate the main
+    // algorithm respects — a late joiner who never opted in shouldn't be
+    // auto-mixed just because they're impatient to be matched.
+    final mixedLeftovers = <AppUser>[];
+    for (var band in AppConstants.mixableAgeBands) {
+      final leftovers = (usersByAgeBand[band] ?? [])
+          .where((u) => !groupedUserIds.contains(u.uid) && u.canMixAgeGroups)
+          .toList();
+      mixedLeftovers.addAll(leftovers);
+    }
+    if (mixedLeftovers.length >= 2) {
+      await _groupLateJoiners(
+        sailingId: sailingId,
+        tribeAgeBandLabel: 'mixed',
+        poolUsers: mixedLeftovers,
+        existingTribes: existingTribes,
+        isMixedAgeGroup: true,
+        ageBands: AppConstants.mixableAgeBands,
+      );
+    }
+  }
+
+  /// Slots a pool of late joiners into an existing open late-joiner tribe
+  /// for this exact band/label if one exists (so late arrivals accumulate
+  /// into one shared group over time), otherwise creates a brand new one
+  /// — but only if at least 2 people remain to form it. A lone leftover
+  /// (0 or 1 person) is left unmatched and retried on the next trigger.
+  /// Returns the uids that were actually placed into a tribe, so callers
+  /// know which users are still free to be considered elsewhere (e.g. in
+  /// the mixed-age pass) rather than assuming the whole pool was handled.
+  Future<List<String>> _groupLateJoiners({
+    required String sailingId,
+    required String tribeAgeBandLabel,
+    required List<AppUser> poolUsers,
+    required List<Tribe> existingTribes,
+    required bool isMixedAgeGroup,
+    required List<String> ageBands,
+  }) async {
+    final remaining = List<AppUser>.from(poolUsers);
+    if (remaining.isEmpty) return [];
+
+    final matchedUserIds = <String>[];
+
+    Tribe? openTribe;
+    for (final t in existingTribes) {
+      if (t.isLateJoinerTribe && !t.isFull && t.ageBand == tribeAgeBandLabel) {
+        openTribe = t;
+        break;
+      }
+    }
+
+    if (openTribe != null) {
+      final toAdd = remaining.take(openTribe.spotsRemaining).toList();
+      for (final user in toAdd) {
+        await addMemberToTribe(
+          sailingId: sailingId,
+          tribeId: openTribe.id,
+          user: user,
+        );
+        matchedUserIds.add(user.uid);
+      }
+      remaining.removeRange(0, toAdd.length);
+    }
+
+    if (remaining.length >= 2) {
+      final sharedInterests = _findAllSharedInterests(
+        remaining.expand((u) => u.interests).toList(),
+      );
+
+      final tribeId = await createTribe(
+        sailingId: sailingId,
+        ageBand: tribeAgeBandLabel,
+        commonInterests: sharedInterests.take(2).toList(),
+        maxMembers: AppConstants.maxTribeSize,
+        isMixedAgeGroup: isMixedAgeGroup,
+        ageBands: ageBands,
+        isLateJoinerTribe: true,
+      );
+
+      for (var i = 0; i < remaining.length; i++) {
+        await addMemberToTribe(
+          sailingId: sailingId,
+          tribeId: tribeId,
+          user: remaining[i],
+          isLeader: i == 0,
+        );
+        matchedUserIds.add(remaining[i].uid);
+      }
+    }
+
+    return matchedUserIds;
   }
 
   /// Process users from a single age band into tribes

@@ -54,11 +54,13 @@ class Sailing {
     };
   }
 
-  /// Check if sailing is within 30-day access window
+  /// Check if sailing is within the access window: 30 days before
+  /// departure through 7 days after, so a late joiner isn't shown as
+  /// "locked out" once they've actually joined.
   bool get isWithin30DayWindow {
     final now = DateTime.now();
     final daysDifference = departureDate.difference(now).inDays;
-    return daysDifference <= 30 && daysDifference >= 0;
+    return daysDifference <= 30 && daysDifference >= -7;
   }
 
   /// Get days until departure

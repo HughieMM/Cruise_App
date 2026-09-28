@@ -20,6 +20,7 @@ class Tribe {
   final int maxMembers; // 3-5 members
   final bool isFull;
   final bool isMixedAgeGroup; // True if tribe has multiple age groups (18-39 only)
+  final bool isLateJoinerTribe; // Formed from users who joined after the main matching pass
   final DateTime createdAt;
   final DateTime? lastActivityAt;
 
@@ -34,6 +35,7 @@ class Tribe {
     this.maxMembers = 5,
     this.isFull = false,
     this.isMixedAgeGroup = false,
+    this.isLateJoinerTribe = false,
     required this.createdAt,
     this.lastActivityAt,
   });
@@ -50,6 +52,7 @@ class Tribe {
       maxMembers: map['maxMembers'] as int? ?? 5,
       isFull: map['isFull'] as bool? ?? false,
       isMixedAgeGroup: map['isMixedAgeGroup'] as bool? ?? false,
+      isLateJoinerTribe: map['isLateJoinerTribe'] as bool? ?? false,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastActivityAt: (map['lastActivityAt'] as Timestamp?)?.toDate(),
     );
@@ -66,6 +69,7 @@ class Tribe {
       'maxMembers': maxMembers,
       'isFull': isFull,
       'isMixedAgeGroup': isMixedAgeGroup,
+      'isLateJoinerTribe': isLateJoinerTribe,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastActivityAt': lastActivityAt != null
           ? Timestamp.fromDate(lastActivityAt!)
@@ -84,6 +88,7 @@ class Tribe {
     int? maxMembers,
     bool? isFull,
     bool? isMixedAgeGroup,
+    bool? isLateJoinerTribe,
     DateTime? createdAt,
     DateTime? lastActivityAt,
   }) {
@@ -98,6 +103,7 @@ class Tribe {
       maxMembers: maxMembers ?? this.maxMembers,
       isFull: isFull ?? this.isFull,
       isMixedAgeGroup: isMixedAgeGroup ?? this.isMixedAgeGroup,
+      isLateJoinerTribe: isLateJoinerTribe ?? this.isLateJoinerTribe,
       createdAt: createdAt ?? this.createdAt,
       lastActivityAt: lastActivityAt ?? this.lastActivityAt,
     );

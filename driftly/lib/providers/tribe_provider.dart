@@ -69,6 +69,21 @@ class TribeProvider extends ChangeNotifier {
     }
 
     if (tribeId == null) {
+      // Still no tribe — either the main pass already ran and missed
+      // this user (a late joiner, most commonly), or it left them as a
+      // genuine leftover. tryTriggerLateJoinerMatching no-ops unless
+      // tribeMatchingStatus is already 'completed', so this is safe to
+      // always attempt as a fallback.
+      try {
+        await _tribeService.tryTriggerLateJoinerMatching(sailingId);
+        final refreshedUser = await _firestoreService.getUser(userId);
+        tribeId = refreshedUser?.currentTribeId;
+      } catch (e) {
+        debugPrint('Late-joiner tribe matching attempt failed: $e');
+      }
+    }
+
+    if (tribeId == null) {
       _currentTribe = null;
       _tribeMembers = [];
       notifyListeners();
