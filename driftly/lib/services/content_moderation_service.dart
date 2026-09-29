@@ -51,8 +51,26 @@ class ContentModerationService {
 
   // Racial slur — flexible character classes to catch common leetspeak
   // (n1gg@, n!gg3r, etc.) without needing to enumerate every variant.
+  // Racial slur — matches any word STARTING with "nig"/"n1g" (single g)
+  // or "nigg"/"n1gg" (double g), per explicit instruction to flag it
+  // instantly regardless of what follows. This is deliberately broader
+  // than requiring a full slur spelling — it will also catch unrelated
+  // words that happen to start the same way (e.g. "night", "Nigeria",
+  // "Niger"), a known, accepted trade-off for this word specifically.
+  //
+  // Two variants of the same core pattern: _slurPattern is word-boundary
+  // anchored (\b) for checking real text, so it only trips at the start
+  // of an actual word. _slurPatternLoose has no anchor, for checking the
+  // punctuation/space-collapsed text below — collapsing "n i g g e r"
+  // into "nigger" also erases the original word boundaries, so an
+  // anchored pattern would stop catching spaced-out obfuscation sitting
+  // in the middle of a longer message.
   static final RegExp _slurPattern = RegExp(
-    r'n[i1!|]+[gq96]{2,}[e3a@]*r?',
+    r'\bn[i1!|]+[gq96]+',
+    caseSensitive: false,
+  );
+  static final RegExp _slurPatternLoose = RegExp(
+    r'n[i1!|]+[gq96]+',
     caseSensitive: false,
   );
 
@@ -93,7 +111,7 @@ class ContentModerationService {
 
     final collapsed = _collapse(text);
 
-    if (_slurPattern.hasMatch(text) || _slurPattern.hasMatch(collapsed)) {
+    if (_slurPattern.hasMatch(text) || _slurPatternLoose.hasMatch(collapsed)) {
       return true;
     }
 
