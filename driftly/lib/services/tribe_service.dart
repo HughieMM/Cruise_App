@@ -4,6 +4,8 @@ import '../models/app_user.dart';
 import '../models/tribe.dart';
 import '../models/message.dart';
 import '../utils/constants.dart';
+import '../utils/input_validator.dart';
+import 'content_moderation_service.dart';
 
 /// TribeService
 ///
@@ -20,6 +22,7 @@ import '../utils/constants.dart';
 /// - 18-39: CAN mix across these brackets if user opts in and numbers are low
 class TribeService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ContentModerationService _moderationService = ContentModerationService();
 
   /// Tribes collection for a sailing
   CollectionReference tribesCollection(String sailingId) {
@@ -58,17 +61,37 @@ class TribeService {
     String? userPhotoUrl,
   }) async {
     try {
+      final validationError = InputValidator.validateMessage(text);
+      if (validationError != null) {
+        throw Exception(validationError);
+      }
+
+      final moderationResult = await _moderationService.checkAndRecordViolation(
+        userId: userId,
+        text: text,
+      );
+      if (moderationResult.blocked) {
+        throw ContentModerationException(moderationResult);
+      }
+
+      final sanitizedText = InputValidator.sanitizeAndTruncate(
+        text,
+        AppConstants.maxMessageLength,
+      );
+
       final message = Message(
         id: '',
         podId: tribeId,
         userId: userId,
         userName: userName,
         userPhotoUrl: userPhotoUrl,
-        text: text,
+        text: sanitizedText,
         timestamp: DateTime.now(),
       );
 
       await tribeMessagesCollection(sailingId, tribeId).add(message.toMap());
+    } on ContentModerationException {
+      rethrow;
     } catch (e) {
       throw Exception('Failed to send message: $e');
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/content_moderation_service.dart';
 import '../../utils/constants.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -274,6 +275,9 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your name';
+                    }
+                    if (ContentModerationService().containsBlockedContent(value)) {
+                      return 'That name isn\'t allowed — please use something else';
                     }
                     return null;
                   },

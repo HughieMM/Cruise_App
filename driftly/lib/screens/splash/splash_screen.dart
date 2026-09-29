@@ -58,8 +58,11 @@ class _SplashScreenState extends State<SplashScreen> {
     if (authProvider.isSignedIn) {
       // User is logged in, check profile completeness
       if (authProvider.hasProfile) {
-        // Profile exists, check if it's complete
-        if (authProvider.appUser!.isProfileComplete) {
+        if (authProvider.appUser!.isBanned) {
+          // Suspended for a content-moderation violation — never reaches
+          // onboarding or home regardless of profile completeness.
+          context.go('/suspended');
+        } else if (authProvider.appUser!.isProfileComplete) {
           // Profile is complete, go to home
           context.go('/home');
         } else {

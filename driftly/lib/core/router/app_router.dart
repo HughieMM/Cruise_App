@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../screens/splash/splash_screen.dart';
 import '../../screens/auth/sign_in_sign_up_screen.dart';
+import '../../screens/auth/suspended_screen.dart';
 import '../../screens/onboarding/onboarding_profile_screen.dart';
 import '../../screens/onboarding/onboarding_photos_screen.dart';
 import '../../screens/onboarding/select_sailing_screen.dart';
@@ -40,6 +41,13 @@ class AppRouter {
         path: '/auth',
         name: 'auth',
         builder: (context, state) => const SignInSignUpScreen(),
+      ),
+
+      // Suspended account — reached a 3rd content-moderation strike.
+      GoRoute(
+        path: '/suspended',
+        name: 'suspended',
+        builder: (context, state) => const SuspendedScreen(),
       ),
 
       // Onboarding Flow

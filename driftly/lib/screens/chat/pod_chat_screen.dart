@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../services/badge_service.dart';
+import '../../services/content_moderation_service.dart';
 import '../../models/message.dart';
 import '../../models/pod.dart';
 import '../../models/daily_prompt.dart';
 import '../../utils/constants.dart';
+import '../../utils/moderation_ui.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/daily_prompt_card.dart';
 import '../../widgets/glass_card.dart';
@@ -265,6 +267,9 @@ class _PodChatScreenState extends State<PodChatScreen> {
           ),
         );
       }
+    } on ContentModerationException catch (e) {
+      if (!mounted) return;
+      await showModerationResultDialog(context, e.result);
     } catch (e) {
       if (!mounted) return;
 

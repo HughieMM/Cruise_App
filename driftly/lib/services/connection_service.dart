@@ -4,6 +4,7 @@ import '../models/connection_request.dart';
 import '../models/message.dart';
 import '../utils/input_validator.dart';
 import '../utils/constants.dart';
+import 'content_moderation_service.dart';
 
 /// ConnectionService
 ///
@@ -13,6 +14,7 @@ import '../utils/constants.dart';
 /// unit, no side-channel DMs forming from within it).
 class ConnectionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ContentModerationService _moderationService = ContentModerationService();
 
   /// Connection requests are sailing-scoped, like pods/tribes/sibling
   /// requests — a connect request only makes sense between two people who
@@ -247,6 +249,14 @@ class ConnectionService {
     final validationError = InputValidator.validateMessage(text);
     if (validationError != null) {
       throw Exception(validationError);
+    }
+
+    final moderationResult = await _moderationService.checkAndRecordViolation(
+      userId: userId,
+      text: text,
+    );
+    if (moderationResult.blocked) {
+      throw ContentModerationException(moderationResult);
     }
 
     final sanitizedText = InputValidator.sanitizeAndTruncate(

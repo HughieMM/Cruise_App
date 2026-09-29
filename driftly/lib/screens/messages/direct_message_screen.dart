@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/connection_service.dart';
+import '../../services/content_moderation_service.dart';
 import '../../models/message.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/moderation_ui.dart';
 
 /// Private 1:1 "First Mates" chat between two connected users. Reached
 /// only after a Pod-originated connect request has been accepted — there
@@ -78,6 +80,9 @@ class _DirectMessageScreenState extends State<DirectMessageScreen> {
       );
       _messageController.clear();
       _scrollToBottom();
+    } on ContentModerationException catch (e) {
+      if (!mounted) return;
+      await showModerationResultDialog(context, e.result);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

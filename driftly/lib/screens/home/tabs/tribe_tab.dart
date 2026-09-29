@@ -9,12 +9,14 @@ import '../../../models/sailing.dart';
 import '../../../services/tribe_service.dart';
 import '../../../services/badge_service.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/content_moderation_service.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../widgets/glass_card.dart';
 import '../../../widgets/icon_badge.dart';
 import '../../../widgets/pill_button.dart';
 import '../../../widgets/mini_profile_dialog.dart';
+import '../../../utils/moderation_ui.dart';
 import '../../tribe/daily_photo_screen.dart' show SeaYaScreen;
 
 /// Tribe Tab
@@ -119,6 +121,9 @@ class _TribeTabState extends State<TribeTab> {
           ),
         );
       }
+    } on ContentModerationException catch (e) {
+      if (!mounted) return;
+      await showModerationResultDialog(context, e.result);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

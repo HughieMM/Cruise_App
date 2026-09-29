@@ -41,10 +41,22 @@ service cloud.firestore {
       // for rules alone to verify "this write came from a legitimate
       // matching run." Kept as narrow as possible: nothing else on
       // another user's doc is writable this way.
+      //
+      // moderationStrikes/isBanned get a one-way ratchet on the owner
+      // branch: strikes can only stay the same or go up, and isBanned can
+      // only flip false->true, never back — since ContentModerationService
+      // increments these from the offending user's own client (no backend
+      // to do it with full trust), this stops someone from just writing a
+      // lower strike count or un-banning themselves. A false-positive ban
+      // can still be reversed manually via the Firebase console, which
+      // bypasses rules entirely.
       allow update: if isAuthenticated()
         && (
           (isOwner(userId)
-           && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'email']))
+           && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'email'])
+           && request.resource.data.get('moderationStrikes', 0) >= resource.data.get('moderationStrikes', 0)
+           && (resource.data.get('isBanned', false) == false
+               || request.resource.data.get('isBanned', false) == true))
           ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentTribeId', 'updatedAt'])
         );

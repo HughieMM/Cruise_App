@@ -10,12 +10,14 @@ import '../models/cruise_memory.dart';
 import '../models/hangout_photo.dart';
 import '../utils/input_validator.dart';
 import '../utils/constants.dart';
+import 'content_moderation_service.dart';
 
 /// FirestoreService
 ///
 /// Handles all Firestore database operations for users, sailings, pods, messages, and hangouts
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ContentModerationService _moderationService = ContentModerationService();
 
   /// Users collection reference
   CollectionReference get usersCollection => _firestore.collection('users');
@@ -436,6 +438,14 @@ class FirestoreService {
         throw Exception(validationError);
       }
 
+      final moderationResult = await _moderationService.checkAndRecordViolation(
+        userId: userId,
+        text: text,
+      );
+      if (moderationResult.blocked) {
+        throw ContentModerationException(moderationResult);
+      }
+
       final sanitizedText = InputValidator.sanitizeAndTruncate(
         text,
         AppConstants.maxMessageLength,
@@ -458,6 +468,8 @@ class FirestoreService {
       await podsCollection(sailingId).doc(podId).update({
         'lastMessageAt': FieldValue.serverTimestamp(),
       });
+    } on ContentModerationException {
+      rethrow;
     } catch (e) {
       throw Exception('Failed to send message: $e');
     }

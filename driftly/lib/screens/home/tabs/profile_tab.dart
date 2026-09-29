@@ -9,6 +9,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
 import '../../../services/storage_service.dart';
 import '../../../services/badge_service.dart';
+import '../../../services/content_moderation_service.dart';
 import '../../../models/pod.dart';
 import '../../../models/sailing.dart';
 import '../../../models/achievement_badge.dart';
@@ -1333,6 +1334,14 @@ class _ProfileTabState extends State<ProfileTab> {
                       if (nameController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Name cannot be empty')),
+                        );
+                        return;
+                      }
+
+                      if (ContentModerationService()
+                          .containsBlockedContent(nameController.text.trim())) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('That name isn\'t allowed — please use something else')),
                         );
                         return;
                       }

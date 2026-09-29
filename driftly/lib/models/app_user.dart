@@ -25,6 +25,8 @@ class AppUser {
   final bool profileComplete;      // True after Day 30 profile completion
   final bool allowAgeMixing;       // Opt-in to mix with other age groups (18-39 only)
   final Map<String, String> socialLinks; // Social media handles
+  final int moderationStrikes; // Content-filter violations; 3rd triggers a ban
+  final bool isBanned; // Suspended for a community-guidelines violation
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -48,6 +50,8 @@ class AppUser {
     this.profileComplete = false,
     this.allowAgeMixing = false,
     this.socialLinks = const {},
+    this.moderationStrikes = 0,
+    this.isBanned = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -83,6 +87,8 @@ class AppUser {
       profileComplete: map['profileComplete'] as bool? ?? false,
       allowAgeMixing: map['allowAgeMixing'] as bool? ?? false,
       socialLinks: Map<String, String>.from(map['socialLinks'] as Map? ?? {}),
+      moderationStrikes: map['moderationStrikes'] as int? ?? 0,
+      isBanned: map['isBanned'] as bool? ?? false,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -110,6 +116,8 @@ class AppUser {
       'profileComplete': profileComplete,
       'allowAgeMixing': allowAgeMixing,
       'socialLinks': socialLinks,
+      'moderationStrikes': moderationStrikes,
+      'isBanned': isBanned,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
@@ -136,6 +144,8 @@ class AppUser {
     bool? profileComplete,
     bool? allowAgeMixing,
     Map<String, String>? socialLinks,
+    int? moderationStrikes,
+    bool? isBanned,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -159,6 +169,8 @@ class AppUser {
       profileComplete: profileComplete ?? this.profileComplete,
       allowAgeMixing: allowAgeMixing ?? this.allowAgeMixing,
       socialLinks: socialLinks ?? this.socialLinks,
+      moderationStrikes: moderationStrikes ?? this.moderationStrikes,
+      isBanned: isBanned ?? this.isBanned,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
