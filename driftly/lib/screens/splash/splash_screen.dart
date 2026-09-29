@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -32,16 +33,24 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkAuthState() async {
     // Give a small delay for splash screen visibility
-    await Future.delayed(const Duration(seconds: 1));
+    final splashVisibility = Future.delayed(const Duration(seconds: 1));
 
     if (!mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // Wait for auth state to be initialized
-    // The AuthProvider's constructor already starts listening to auth changes
-    // Give it a moment to load the initial state
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Wait for the real auth-state + profile-load work to finish, however
+    // long that takes, instead of guessing with a fixed delay — a slow
+    // Firestore fetch on a real device easily exceeds a short guess,
+    // which was sending fully-onboarded returning users into onboarding
+    // just because their profile hadn't loaded in time yet.
+    if (authProvider.isLoading) {
+      await _waitForAuthReady(authProvider);
+    }
+
+    // Still respect the splash's minimum visible time even if auth
+    // resolved instantly.
+    await splashVisibility;
 
     if (!mounted) return;
 
@@ -73,6 +82,31 @@ class _SplashScreenState extends State<SplashScreen> {
       // User not logged in, go to auth screen
       context.go('/auth');
     }
+  }
+
+  /// Resolves once [authProvider] finishes its initial auth-state +
+  /// profile load (isLoading flips to false), or after a generous
+  /// timeout — so a genuine network failure still falls through to a
+  /// routing decision instead of hanging the splash screen forever.
+  Future<void> _waitForAuthReady(AuthProvider authProvider) {
+    final completer = Completer<void>();
+
+    void listener() {
+      if (!authProvider.isLoading && !completer.isCompleted) {
+        completer.complete();
+      }
+    }
+
+    authProvider.addListener(listener);
+
+    final timeout = Future.delayed(const Duration(seconds: 10), () {
+      if (!completer.isCompleted) completer.complete();
+    });
+
+    return completer.future.whenComplete(() {
+      authProvider.removeListener(listener);
+      timeout.ignore();
+    });
   }
 
   @override
