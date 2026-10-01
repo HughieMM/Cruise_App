@@ -791,30 +791,6 @@ class FirestoreService {
     }
   }
 
-  /// Get recent votes for a specific location (within the vote validity window)
-  Future<List<HotZoneVote>> getRecentVotesForLocation({
-    required String sailingId,
-    required String location,
-  }) async {
-    try {
-      final windowStart = DateTime.now().subtract(AppConstants.voteValidityDuration);
-
-      final querySnapshot = await hotZoneVotesCollection(sailingId)
-          .where('location', isEqualTo: location)
-          .where('timestamp', isGreaterThan: Timestamp.fromDate(windowStart))
-          .orderBy('timestamp', descending: true)
-          .get();
-
-      return querySnapshot.docs
-          .map((doc) =>
-              HotZoneVote.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-          .where((vote) => !vote.hasExpired) // Additional client-side filter
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to get recent votes: $e');
-    }
-  }
-
   /// Stream all recent votes for a sailing (within the vote validity window)
   /// Used to display real-time vibe updates across all locations
   Stream<List<HotZoneVote>> streamRecentVotesForSailing({
@@ -833,61 +809,6 @@ class FirestoreService {
           .where((vote) => !vote.hasExpired) // Additional client-side filter
           .toList();
     });
-  }
-
-  /// Get vote summary for all locations
-  /// Returns a map of location -> {vibe, count}
-  Future<Map<String, Map<String, dynamic>>> getVoteSummaryForSailing({
-    required String sailingId,
-  }) async {
-    try {
-      final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
-
-      final querySnapshot = await hotZoneVotesCollection(sailingId)
-          .where('timestamp', isGreaterThan: Timestamp.fromDate(oneHourAgo))
-          .get();
-
-      final votes = querySnapshot.docs
-          .map((doc) =>
-              HotZoneVote.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-          .where((vote) => !vote.hasExpired)
-          .toList();
-
-      // Group votes by location
-      final locationSummaries = <String, Map<String, dynamic>>{};
-
-      for (var vote in votes) {
-        if (!locationSummaries.containsKey(vote.location)) {
-          locationSummaries[vote.location] = {
-            'vibes': <String, int>{},
-            'totalVotes': 0,
-          };
-        }
-
-        final summary = locationSummaries[vote.location]!;
-        summary['totalVotes'] = (summary['totalVotes'] as int) + 1;
-
-        final vibes = summary['vibes'] as Map<String, int>;
-        vibes[vote.vibe] = (vibes[vote.vibe] ?? 0) + 1;
-      }
-
-      // Determine most common vibe for each location
-      for (var entry in locationSummaries.entries) {
-        final vibes = entry.value['vibes'] as Map<String, int>;
-        if (vibes.isNotEmpty) {
-          final mostCommonVibe = vibes.entries
-              .reduce((a, b) => a.value > b.value ? a : b)
-              .key;
-          entry.value['dominantVibe'] = mostCommonVibe;
-        } else {
-          entry.value['dominantVibe'] = null;
-        }
-      }
-
-      return locationSummaries;
-    } catch (e) {
-      throw Exception('Failed to get vote summary: $e');
-    }
   }
 
   // ==================== Cruise Memory Methods ====================

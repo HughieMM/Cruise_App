@@ -219,7 +219,12 @@ class TribeService {
     }
   }
 
-  /// Add member to tribe
+  /// Add member to tribe. All three writes (member subdoc, tribe doc,
+  /// user doc) go through one WriteBatch so they commit atomically — if
+  /// this were three independent awaited writes, a dropped connection or
+  /// failure between them could leave a user's uid in a tribe's
+  /// memberIds while their own currentTribeId never got set, and the next
+  /// matching pass would then place them in a second tribe too.
   Future<void> addMemberToTribe({
     required String sailingId,
     required String tribeId,
@@ -238,27 +243,30 @@ class TribeService {
         isLeader: isLeader,
       );
 
-      // Add to tribe members subcollection
-      await tribeMembersCollection(sailingId, tribeId)
-          .doc(user.uid)
-          .set(tribeMember.toMap());
-
-      // Update tribe document
       final tribe = await getTribe(sailingId, tribeId);
+
+      final batch = _firestore.batch();
+
+      batch.set(
+        tribeMembersCollection(sailingId, tribeId).doc(user.uid),
+        tribeMember.toMap(),
+      );
+
       if (tribe != null) {
         final newMemberIds = [...tribe.memberIds, user.uid];
-        await tribesCollection(sailingId).doc(tribeId).update({
+        batch.update(tribesCollection(sailingId).doc(tribeId), {
           'memberIds': newMemberIds,
           'isFull': newMemberIds.length >= tribe.maxMembers,
           'lastActivityAt': FieldValue.serverTimestamp(),
         });
       }
 
-      // Update user's currentTribeId
-      await _firestore.collection('users').doc(user.uid).update({
+      batch.update(_firestore.collection('users').doc(user.uid), {
         'currentTribeId': tribeId,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      await batch.commit();
     } catch (e) {
       throw Exception('Failed to add member to tribe: $e');
     }
@@ -508,18 +516,6 @@ class TribeService {
     // If 1-2 remaining, they'll be added to existing tribes later
 
     return sizes;
-  }
-
-  /// Check if age mixing is needed for a sailing
-  /// Returns true if any mixable age band has fewer than minTribeSize users
-  bool needsAgeMixing(Map<String, List<AppUser>> usersByAgeBand) {
-    for (var ageBand in AppConstants.mixableAgeBands) {
-      final users = usersByAgeBand[ageBand] ?? [];
-      if (users.isNotEmpty && users.length < AppConstants.minTribeSize) {
-        return true;
-      }
-    }
-    return false;
   }
 
   // ==================== Tribe Matching Algorithm ====================

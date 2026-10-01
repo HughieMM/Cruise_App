@@ -11,6 +11,7 @@ import '../../screens/onboarding/notification_permission_screen.dart';
 import '../../screens/home/home_shell.dart';
 import '../../screens/memories/memories_screen.dart';
 import '../../screens/messages/direct_message_screen.dart';
+import '../../screens/tribe/daily_photo_screen.dart' show SeaYaScreen;
 import '../../screens/legal/privacy_policy_screen.dart';
 import '../../screens/legal/terms_of_service_screen.dart';
 
@@ -106,6 +107,15 @@ class AppRouter {
           final otherUserName = extra?['otherUserName'] as String? ?? 'First Mate';
           return DirectMessageScreen(otherUserId: otherUserId, otherUserName: otherUserName);
         },
+      ),
+
+      // Sea Ya — the random daily tribe-photo prompt. Reached by tapping
+      // its notification (warm/cold start) or the manual "Daily Pic"
+      // button in the Tribe tab.
+      GoRoute(
+        path: '/sea-ya',
+        name: 'sea-ya',
+        builder: (context, state) => SeaYaScreen(promptedAt: DateTime.now()),
       ),
 
       // Legal Pages

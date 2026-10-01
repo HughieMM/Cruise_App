@@ -1,11 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart' show Color, Colors;
-import '../theme/app_colors.dart';
 
 /// HotZoneVote Model
 ///
 /// Represents a user's vote on location vibe
-/// Users can vote once per location per hour
+/// Users can vote once per location every 30 minutes
 ///
 /// Firestore path: /sailings/{sailingId}/hotZoneVotes/{voteId}
 class HotZoneVote {
@@ -36,7 +34,7 @@ class HotZoneVote {
       userId: map['userId'] as String? ?? '',
       vibe: map['vibe'] as String? ?? 'active',
       timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      expiresAt: (map['expiresAt'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(hours: 1)),
+      expiresAt: (map['expiresAt'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(minutes: 30)),
     );
   }
 
@@ -53,7 +51,7 @@ class HotZoneVote {
     };
   }
 
-  /// Check if vote has expired (1 hour old)
+  /// Check if vote has expired (30 minutes old)
   bool get hasExpired {
     return DateTime.now().isAfter(expiresAt);
   }
@@ -69,55 +67,6 @@ class HotZoneVote {
       return '${difference.inMinutes}m ago';
     } else {
       return 'Just now';
-    }
-  }
-
-  /// Get vibe emoji
-  String get vibeEmoji {
-    switch (vibe) {
-      case 'active':
-        return '💥';
-      case 'quiet':
-        return '🎻';
-      case 'overcrowded':
-        return '🫠';
-      case 'good_vibes':
-        return '🧊';
-      default:
-        return '📍';
-    }
-  }
-
-  /// Get vibe display name
-  String get vibeDisplay {
-    switch (vibe) {
-      case 'active':
-        return 'Active';
-      case 'quiet':
-        return 'Taking an L';
-      case 'overcrowded':
-        return 'Jammed';
-      case 'good_vibes':
-        return 'Chill';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  /// Get vibe color — cold-to-warm: Taking an L (coldest) -> Chill (cold) ->
-  /// Active (warmer) -> Jammed (warmest)
-  Color get vibeColor {
-    switch (vibe) {
-      case 'quiet':
-        return AppColors.frost;
-      case 'good_vibes':
-        return AppColors.teal;
-      case 'active':
-        return AppColors.amber;
-      case 'overcrowded':
-        return AppColors.coral;
-      default:
-        return Colors.grey;
     }
   }
 

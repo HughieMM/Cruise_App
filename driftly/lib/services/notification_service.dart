@@ -5,6 +5,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
+import '../core/router/app_router.dart';
+import '../utils/constants.dart';
 
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -31,6 +33,13 @@ class NotificationService {
 
   bool _isInitialized = false;
 
+  /// Set during [initialize] if the app was cold-launched by tapping a
+  /// Sea Ya prompt notification (as opposed to a warm/backgrounded tap,
+  /// which `_onLocalNotificationTap` handles directly) — SplashScreen
+  /// checks this once, alongside its normal auth-gate routing, since the
+  /// GoRouter isn't necessarily ready to accept a push this early.
+  bool launchedFromSeaYaPrompt = false;
+
   /// Initialize the notification service
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -43,6 +52,16 @@ class NotificationService {
 
     // Initialize local notifications
     await _initializeLocalNotifications();
+
+    // Check whether a local notification (e.g. a Sea Ya prompt) is what
+    // launched the app from fully closed — flutter_local_notifications'
+    // own tap callback doesn't fire for this case until after the
+    // Flutter engine is already up, which can be too early for GoRouter.
+    final launchDetails = await _localNotifications.getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp ?? false) {
+      launchedFromSeaYaPrompt =
+          launchDetails?.notificationResponse?.payload == 'sea_ya_prompt';
+    }
 
     // Set up foreground message handler
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
@@ -193,8 +212,14 @@ class NotificationService {
 
   /// Handle local notification tap
   void _onLocalNotificationTap(NotificationResponse response) {
-    // Navigate based on notification payload
-    // TODO: Implement deep linking based on response.payload
+    if (response.payload == 'sea_ya_prompt') {
+      // App was already running (foreground or backgrounded) — navigate
+      // directly on the static router, no BuildContext/navigator key
+      // needed. The cold-start case (app fully closed) is handled
+      // separately via launchedFromSeaYaPrompt, since GoRouter may not be
+      // ready to accept a push this early in that scenario.
+      AppRouter.router.push('/sea-ya');
+    }
   }
 
   /// Show a local notification
@@ -407,6 +432,58 @@ class NotificationService {
 
     await scheduleDisembarkReminder(endDate);
     await scheduleBackHomeReminder(endDate);
+  }
+
+  /// Schedule the Sea Ya "BeReal for cruises" daily prompt — one random
+  /// time per cruise day, between AppConstants.seaYaStartHour and
+  /// seaYaEndHour, so it's a surprise rather than a predictable fixed
+  /// time. Doesn't call cancelAllScheduledNotifications itself — call
+  /// this *after* scheduleAllCruiseReminders if scheduling both, since
+  /// that method does clear everything first.
+  Future<void> scheduleSeaYaPrompts({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final random = Random();
+    final cruiseDays = endDate.difference(startDate).inDays;
+
+    const androidDetails = AndroidNotificationDetails(
+      'driftly_social',
+      'Social Updates',
+      channelDescription: 'Sea Ya daily photo prompts',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+
+    for (int day = 0; day <= cruiseDays && day <= 7; day++) {
+      final dayDate = startDate.add(Duration(days: day));
+      final hourRange = AppConstants.seaYaEndHour - AppConstants.seaYaStartHour;
+      final promptTime = DateTime(
+        dayDate.year,
+        dayDate.month,
+        dayDate.day,
+        AppConstants.seaYaStartHour + random.nextInt(hourRange),
+        random.nextInt(60),
+      );
+
+      if (promptTime.isAfter(DateTime.now())) {
+        await _localNotifications.zonedSchedule(
+          3000 + day,
+          'Sea Ya! 📸',
+          'Time for today\'s surprise tribe photo — tap to join in!',
+          _convertToTZDateTime(promptTime),
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: 'sea_ya_prompt',
+        );
+      }
+    }
   }
 
   /// Cancel all scheduled notifications

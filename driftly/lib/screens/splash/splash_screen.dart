@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/app_background.dart';
@@ -63,8 +64,16 @@ class _SplashScreenState extends State<SplashScreen> {
           // onboarding or home regardless of profile completeness.
           context.go('/suspended');
         } else if (authProvider.appUser!.isProfileComplete) {
-          // Profile is complete, go to home
-          context.go('/home');
+          // Profile is complete, go to home — unless this cold start was
+          // actually a tap on a Sea Ya prompt notification, in which case
+          // go straight to the prompt instead (the warm/backgrounded-app
+          // tap case is handled directly in NotificationService, this is
+          // only for "app was fully closed").
+          if (NotificationService().launchedFromSeaYaPrompt) {
+            context.go('/sea-ya');
+          } else {
+            context.go('/home');
+          }
         } else {
           // Profile incomplete - check what's missing
           final user = authProvider.appUser!;

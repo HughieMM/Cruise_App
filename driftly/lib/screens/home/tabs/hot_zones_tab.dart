@@ -19,8 +19,8 @@ import '../../hot_zones/vote_dialog.dart';
 /// - Fixed ship locations: Main Pool, Casino, Nightclub, Sports Deck,
 ///   Slides, Game Show, 18+ Pool
 /// - Vote options: Active, Taking an L, Jammed, Chill
-/// - One vote per location per hour per user
-/// - Real-time vote aggregation from last 60 minutes
+/// - One vote per location every 30 minutes per user
+/// - Real-time vote aggregation from the last 30 minutes
 /// - Display dominant vibe and vote count per location
 class HotZonesTab extends StatelessWidget {
   const HotZonesTab({super.key});

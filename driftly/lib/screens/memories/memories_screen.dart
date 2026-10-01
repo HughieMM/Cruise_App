@@ -118,6 +118,52 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
     return null;
   }
 
+  /// Each milestone's own real calendar date — boarding = departure day,
+  /// dayN = departure + N, disembarking = return day, backHome = the day
+  /// after. Used instead of `_getCurrentMilestone` for tap-gating, so a
+  /// user can catch up on a day they missed instead of only ever being
+  /// able to add a photo for the single milestone matching today exactly.
+  DateTime? _dateForMilestone(MemoryMilestone milestone) {
+    if (_sailing == null) return null;
+
+    final departure = _sailing!.departureDate;
+    final returnDate = _sailing!.returnDate ?? departure.add(Duration(days: _cruiseDuration));
+
+    switch (milestone) {
+      case MemoryMilestone.boarding:
+        return departure;
+      case MemoryMilestone.day1:
+        return departure.add(const Duration(days: 1));
+      case MemoryMilestone.day2:
+        return departure.add(const Duration(days: 2));
+      case MemoryMilestone.day3:
+        return departure.add(const Duration(days: 3));
+      case MemoryMilestone.day4:
+        return departure.add(const Duration(days: 4));
+      case MemoryMilestone.day5:
+        return departure.add(const Duration(days: 5));
+      case MemoryMilestone.day6:
+        return departure.add(const Duration(days: 6));
+      case MemoryMilestone.day7:
+        return departure.add(const Duration(days: 7));
+      case MemoryMilestone.disembarking:
+        return returnDate;
+      case MemoryMilestone.backHome:
+        return returnDate.add(const Duration(days: 1));
+    }
+  }
+
+  /// Whether [milestone]'s date has been reached (today or earlier) —
+  /// i.e. it's addable, not locked as a future day.
+  bool _isMilestoneUnlocked(MemoryMilestone milestone) {
+    final date = _dateForMilestone(milestone);
+    if (date == null) return false;
+    final today = DateTime.now();
+    final milestoneDay = DateTime(date.year, date.month, date.day);
+    final todayDay = DateTime(today.year, today.month, today.day);
+    return !todayDay.isBefore(milestoneDay);
+  }
+
   CruiseMemory? _getMemoryForMilestone(MemoryMilestone milestone) {
     try {
       return _memories.firstWhere((m) => m.milestone == milestone);
@@ -272,6 +318,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
               final milestone = milestones[index];
               final memory = _getMemoryForMilestone(milestone);
               final isCurrent = milestone == currentMilestone;
+              final isUnlocked = _isMilestoneUnlocked(milestone);
               final isCompleted = memory != null;
               final isLast = index == milestones.length - 1;
 
@@ -279,6 +326,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                 milestone: milestone,
                 memory: memory,
                 isCurrent: isCurrent,
+                isUnlocked: isUnlocked,
                 isCompleted: isCompleted,
                 isLast: isLast,
               );
@@ -293,6 +341,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
     required MemoryMilestone milestone,
     CruiseMemory? memory,
     required bool isCurrent,
+    required bool isUnlocked,
     required bool isCompleted,
     required bool isLast,
   }) {
@@ -348,7 +397,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                     ? Colors.blue.withValues(alpha: 0.1)
                     : null,
                 child: InkWell(
-                  onTap: isCurrent && !isCompleted
+                  onTap: isUnlocked && !isCompleted
                       ? () => _showAddMemoryDialog(milestone)
                       : isCompleted
                           ? () => _showMemoryDetail(memory!)
@@ -414,7 +463,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                               style: TextStyle(color: Colors.grey[400]),
                             ),
                           ],
-                        ] else if (isCurrent) ...[
+                        ] else if (isUnlocked) ...[
                           // Show prompt to add photo
                           Container(
                             padding: const EdgeInsets.all(16),

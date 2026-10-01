@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/notification_service.dart';
+import '../../services/firestore_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/app_background.dart';
@@ -22,6 +25,7 @@ class NotificationPermissionScreen extends StatefulWidget {
 class _NotificationPermissionScreenState
     extends State<NotificationPermissionScreen> {
   final _notificationService = NotificationService();
+  final _firestoreService = FirestoreService();
   bool _isRequesting = false;
 
   Future<void> _requestPermission() async {
@@ -33,12 +37,45 @@ class _NotificationPermissionScreenState
       // Continue even if permission request fails
     }
 
+    await _scheduleCruiseNotifications();
+
     setState(() => _isRequesting = false);
     _navigateToNext();
   }
 
   void _skipPermission() {
+    _scheduleCruiseNotifications();
     _navigateToNext();
+  }
+
+  /// Schedules the daily-photo reminders and the Sea Ya random prompt for
+  /// the user's sailing — neither was ever being called anywhere before
+  /// this, so nothing scheduled actually fired. Non-critical: scheduling
+  /// local notifications still works even if system permission was
+  /// denied/skipped (they just won't display), and a failure here should
+  /// never block reaching /home.
+  Future<void> _scheduleCruiseNotifications() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final sailingId = authProvider.appUser?.currentSailingId;
+      if (sailingId == null) return;
+
+      final sailing = await _firestoreService.getSailing(sailingId);
+      if (sailing == null) return;
+
+      final endDate = sailing.returnDate ?? sailing.departureDate.add(const Duration(days: 7));
+
+      await _notificationService.scheduleAllCruiseReminders(
+        startDate: sailing.departureDate,
+        endDate: endDate,
+      );
+      await _notificationService.scheduleSeaYaPrompts(
+        startDate: sailing.departureDate,
+        endDate: endDate,
+      );
+    } catch (e) {
+      // Non-critical — onboarding continues regardless.
+    }
   }
 
   void _navigateToNext() {
