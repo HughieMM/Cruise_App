@@ -131,7 +131,9 @@ async function recordStrike(userId) {
 }
 
 exports.moderatePhotoUpload = onObjectFinalized(
-  {cpu: 1, memory: "512MiB"},
+  // Must match the Storage bucket's own region (this project's bucket is
+  // in us-east1) — a Storage-triggered function can't listen cross-region.
+  {region: "us-east1", cpu: 1, memory: "512MiB"},
   async (event) => {
     const object = event.data;
     const filePath = object.name;
