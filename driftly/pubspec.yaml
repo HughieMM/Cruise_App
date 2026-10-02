@@ -34,6 +34,10 @@ dependencies:
   cached_network_image: ^3.4.1  # Profile images
   url_launcher: ^6.3.1       # Open social media links
 
+  # On-device face detection — confirms the verification selfie actually
+  # shows a face before accepting it (not identity matching, just presence).
+  google_mlkit_face_detection: ^0.13.1
+
   # Icons
   cupertino_icons: ^1.0.8
 

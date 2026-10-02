@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/storage_service.dart';
 import '../../theme/app_colors.dart';
@@ -30,6 +31,9 @@ class OnboardingPhotosScreen extends StatefulWidget {
 
 class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
   final StorageService _storageService = StorageService();
+  final FaceDetector _faceDetector = FaceDetector(
+    options: FaceDetectorOptions(performanceMode: FaceDetectorMode.fast),
+  );
 
   File? _facePhoto;
   File? _funPhoto;
@@ -38,6 +42,7 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
 
   bool _isUploading = false;
   bool _showVerification = false;
+  bool _isCheckingVerificationPhoto = false;
   String _currentPose = '';
   int _verificationStep = 0;
 
@@ -53,6 +58,12 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
   void initState() {
     super.initState();
     _selectRandomPose();
+  }
+
+  @override
+  void dispose() {
+    _faceDetector.close();
+    super.dispose();
   }
 
   void _selectRandomPose() {
@@ -137,19 +148,52 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
   Future<void> _takeVerificationPhoto() async {
     try {
       final photo = await _storageService.takePhoto();
-      if (photo != null) {
-        await FileImage(photo).evict();
-        setState(() {
-          _verificationPhoto = photo;
-          _verificationStep = 2; // Completed
-        });
+      if (photo == null) return;
+
+      await FileImage(photo).evict();
+
+      setState(() => _isCheckingVerificationPhoto = true);
+      final hasFace = await _photoContainsFace(photo);
+      if (!mounted) return;
+      setState(() => _isCheckingVerificationPhoto = false);
+
+      if (!hasFace) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('We couldn\'t detect a face in that photo — please try again, making sure your face is clearly visible.'),
+          ),
+        );
+        return;
       }
+
+      setState(() {
+        _verificationPhoto = photo;
+        _verificationStep = 2; // Completed
+      });
     } catch (e) {
       if (mounted) {
+        setState(() => _isCheckingVerificationPhoto = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Could not take photo: $e')),
         );
       }
+    }
+  }
+
+  /// On-device check (Google ML Kit, no network call) that the photo
+  /// actually shows a face — not identity verification (doesn't confirm
+  /// it's the *same* person as the profile photo), just presence, so a
+  /// blank/accidental/non-face photo can't be submitted as "verified."
+  Future<bool> _photoContainsFace(File photo) async {
+    try {
+      final inputImage = InputImage.fromFilePath(photo.path);
+      final faces = await _faceDetector.processImage(inputImage);
+      return faces.isNotEmpty;
+    } catch (e) {
+      // If on-device detection itself fails for some reason (corrupt
+      // image, platform quirk), don't block onboarding over it — fail
+      // open rather than stranding a real user on a broken check.
+      return true;
     }
   }
 
@@ -502,10 +546,10 @@ class _OnboardingPhotosScreenState extends State<OnboardingPhotosScreen> {
             ),
           ] else ...[
             PillButton(
-              label: 'Take Verification Selfie',
+              label: _isCheckingVerificationPhoto ? 'Checking...' : 'Take Verification Selfie',
               icon: Icons.camera_alt,
               color: AppColors.teal,
-              onPressed: _takeVerificationPhoto,
+              onPressed: _isCheckingVerificationPhoto ? null : _takeVerificationPhoto,
             ),
             if (kDebugMode) ...[
               const SizedBox(height: 12),
