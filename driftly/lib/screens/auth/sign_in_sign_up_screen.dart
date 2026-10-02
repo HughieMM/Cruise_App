@@ -244,6 +244,55 @@ class _SignInSignUpScreenState extends State<SignInSignUpScreen> {
               ),
               const SizedBox(height: 24),
 
+              // Terms/Privacy agreement — shown only for new accounts,
+              // required reading for Apple Guideline 1.2 (user-generated
+              // content apps must have users agree to terms prohibiting
+              // objectionable content before they can post).
+              if (_isSignUp) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    children: [
+                      Text(
+                        'By signing up, you agree to our',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () => context.push('/terms-of-service'),
+                            child: const Text(
+                              'Terms of Service',
+                              style: TextStyle(color: AppColors.teal, fontSize: 13),
+                            ),
+                          ),
+                          Text('and', style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () => context.push('/privacy-policy'),
+                            child: const Text(
+                              'Privacy Policy',
+                              style: TextStyle(color: AppColors.teal, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               // Auth Button
               Consumer<AuthProvider>(
                 builder: (context, authProvider, child) {

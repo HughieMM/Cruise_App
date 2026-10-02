@@ -26,7 +26,7 @@ class TermsOfServiceScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Last updated: September 2026',
+              'Last updated: October 2026',
               style: TextStyle(color: Colors.grey[500]),
             ),
             const SizedBox(height: 24),
@@ -35,7 +35,7 @@ class TermsOfServiceScreen extends StatelessWidget {
               context,
               title: '1. Acceptance of Terms',
               content: '''
-By downloading, installing, or using Driftly ("the App"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the App.
+By downloading, installing, or using Driftly ("the App"), you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree to these terms, do not use the App.
 
 Driftly is a social networking application designed to connect cruise passengers aged 16 and older.
 ''',
@@ -52,9 +52,9 @@ To use Driftly, you must:
 - Have booked or plan to book a cruise
 - Agree to these Terms of Service and our Privacy Policy
 
-By using the App, you represent and warrant that you meet all eligibility requirements.
+By using the App, you represent and warrant that you meet all eligibility requirements and that the age you provide is accurate.
 
-Age-based restrictions: Users aged 16-17 are only matched and grouped with other users in the same 16-17 age group, and cannot access gambling-related features (such as the "High Rollers" pod) or nightlife-oriented content. Access to gambling-related features requires users to be at least 18 years of age.
+Age-based restrictions: Users aged 16-17 are only matched, grouped, and able to message with other users in the same 16-17 age group — this applies across Tribes, Pods, and First Mates — and cannot access gambling-related features (such as the "High Rollers" pod) or nightlife-oriented content (such as the "18+ Pool" Vibes location). Those features require users to be at least 18 years of age.
 ''',
             ),
 
@@ -64,10 +64,12 @@ Age-based restrictions: Users aged 16-17 are only matched and grouped with other
               content: '''
 You must create an account to use Driftly. You agree to:
 
-- Provide accurate, current, and complete information
+- Provide accurate, current, and complete information, including your real age
 - Maintain the security of your account credentials
 - Notify us immediately of any unauthorized access
 - Accept responsibility for all activities under your account
+
+As part of account setup, you'll be asked to take a verification selfie. We check, entirely on your device, that the photo contains a visible face — we do not perform facial recognition or confirm it is the same person as your other photos.
 
 We reserve the right to suspend or terminate accounts that violate these terms.
 ''',
@@ -80,43 +82,46 @@ We reserve the right to suspend or terminate accounts that violate these terms.
 You agree NOT to:
 
 - Harass, bully, or intimidate other users
-- Post content that is offensive, abusive, or inappropriate
-- Impersonate another person or misrepresent your identity
+- Post content that is offensive, abusive, hateful, or inappropriate, including slurs, hate speech, or language encouraging self-harm or violence
+- Post sexually explicit, graphic, or otherwise inappropriate photos
+- Impersonate another person or misrepresent your identity or age
 - Use the App for illegal purposes
 - Spam or send unsolicited messages
 - Attempt to hack or disrupt the App's functionality
-- Share explicit or adult content
 - Discriminate against others based on race, gender, religion, or other protected characteristics
 - Engage in any commercial activities without our permission
 
-Violation of these rules may result in immediate account termination.
+We use a combination of automated screening and user reports to enforce these rules — see Section 5. Violations may result in content removal, a strike on your account, or immediate termination for severe violations, at our discretion.
 ''',
             ),
 
             _buildSection(
               context,
-              title: '5. Content',
+              title: '5. Content, Reporting, and Enforcement',
               content: '''
-User Content: You retain ownership of content you post (photos, messages, etc.), but grant Driftly a non-exclusive license to use, display, and distribute this content within the App.
+User Content: You retain ownership of content you post (photos, messages, etc.), but grant Driftly a non-exclusive license to use, display, and distribute this content within the App for as long as it remains posted.
 
-Content Standards: All content must be appropriate for a general audience and comply with our community guidelines.
+Automated Screening: Photos are automatically scanned for prohibited content before other users can see them. Messages are automatically checked for slurs, hate speech, and language encouraging self-harm or violence before they're sent. Content that fails these checks is blocked or removed automatically.
 
-Content Removal: We reserve the right to remove any content that violates these terms or is otherwise objectionable.
+Reporting: You can report any piece of content or any user directly in the App.
 
-Reporting: Users can report inappropriate content or behavior through the App's reporting feature.
+Blocking: You can block any other user at any time; once blocked, that person can no longer message or otherwise interact with you. Blocking is entirely within your control and takes effect immediately.
+
+Strikes and Suspension: Confirmed violations — whether caught automatically or through a user report — add a strike to your account. Repeated violations result in your account being automatically suspended. We may also remove content or terminate an account directly for severe violations without prior warning.
 ''',
             ),
 
             _buildSection(
               context,
-              title: '6. Tribe Matching',
+              title: '6. Tribe, Pod, and First Mates Matching',
               content: '''
-Driftly uses algorithms to match users into "Tribes" based on various factors including interests, pod memberships, and sailing information.
+Driftly uses algorithms to match users into "Tribes" based on factors including age band, shared interests, and (where both people have opted in) accepted sibling/friend requests.
 
-- Matches are provided as suggestions only
+- Matches, Pods, and First Mates connections are provided as suggestions and tools only
 - We do not guarantee compatibility or successful friendships
-- Tribe assignments are final for each sailing
-- Users must treat all tribe members with respect
+- Tribe assignments are final for each sailing, though a separate matching pass applies to anyone who joins after the main matching has already run
+- First Mates (private 1:1 messaging) is only ever initiated from a Pod — it is intentionally not available from Tribe chat, so no one is left out of the group
+- Users must treat all Tribe, Pod, and First Mates members with respect
 ''',
             ),
 
@@ -129,9 +134,9 @@ When meeting other users in person:
 - Meet in public areas of the cruise ship
 - Inform others of your plans
 - Trust your instincts and leave if uncomfortable
-- Report any concerning behavior to ship security and our support team
+- Report any concerning behavior to ship security and our support team, and use the in-app Report/Block tools
 
-Driftly is not responsible for interactions that occur outside the App or for any harm resulting from in-person meetings.
+Driftly performs automated and user-driven content moderation, but does not verify the real-world identity of any user. Driftly is not responsible for interactions that occur outside the App or for any harm resulting from in-person meetings.
 ''',
             ),
 
@@ -154,8 +159,9 @@ THE APP IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND.
 We do not guarantee:
 - Uninterrupted or error-free service
 - That matches will lead to friendships
-- The accuracy of other users' information
+- The accuracy of other users' information, including their stated age
 - The behavior of other users
+- That our automated content moderation will catch every violation
 
 USE THE APP AT YOUR OWN RISK.
 ''',
@@ -189,7 +195,7 @@ You agree to indemnify and hold harmless Driftly and its employees from any clai
               content: '''
 You may delete your account at any time through the App settings.
 
-We may suspend or terminate your account at any time for violation of these Terms or for any other reason at our discretion.
+We may suspend or terminate your account at any time for violation of these Terms — including reaching the strike threshold described in Section 5 — or for any other reason at our discretion.
 
 Upon termination, your right to use the App ceases immediately.
 ''',
@@ -219,7 +225,7 @@ Any disputes shall be resolved in the courts of Florida.
               context,
               title: '15. Contact Us',
               content: '''
-If you have questions about these Terms, contact us at:
+If you have questions about these Terms, or need to report a safety concern, contact us at:
 
 Email: support@driftly.app
 ''',
